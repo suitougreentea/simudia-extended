@@ -32,4 +32,7 @@ export default class Time {
     const second = Number(text.substring(length - 2))
     return this.fromHMS(hour, minute, second)
   }
+  static isValidTimeInput(text: string): boolean {
+    return /^[0-9]*[0-5][0-9][0-5][0-9](-[0-9]*[0-5][0-9][0-5][0-9])?$/.test(text)
+  }
 }
