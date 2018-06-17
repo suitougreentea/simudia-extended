@@ -10,21 +10,27 @@ defs
 </template>
 <script lang="ts">
 import Vue from 'vue'
-import { SECOND_DIVISOR } from "../../time"
+import { SECOND_DIVISOR } from "../../time-util"
 
 export default Vue.extend({
-  props: ["mode", "x", "accumulatedStationY", "stationSelection", "hoveredTime", "modifierStates"],
+  props: ["mode", "inputtingTime", "x", "accumulatedStationY", "stationSelection", "hoveredTime", "modifierStates"],
   data: function() {
     return {
       rubberbands: new Array<any>(), // {time, station, done}
-      //newRubberband: {},
+      terminal: -1
     }
   },
   methods: {
+    setTerminal(stationIndex: number) {
+      this.terminal = stationIndex
+    },
     addPoint(event: { station: number, time: number, skip: boolean }) {
+      if (this.rubberbands.length == 0 && this.terminal == -1) {
+        this.terminal = event.station
+      }
       if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station == event.station) {
         const rubberbands = [...this.rubberbands, ...this.getNewRubberbands(event.station, event.time, event.skip)]
-        if (rubberbands.length >= 3) {
+        if (rubberbands.length >= 2 && rubberbands[0].station != rubberbands[1].station) {
           this.$emit("start-time-input", rubberbands)
         }
       } else {
@@ -33,10 +39,13 @@ export default Vue.extend({
     },
     getNewRubberbands(station: number, _time: number, skip: boolean): Array<any> {
       if (_time < 0) return []
+      if (this.inputtingTime) return []
       if (this.rubberbands.length == 0) return [{ station, time: _time }]
       if (this.rubberbands[this.rubberbands.length - 1].station == station) {
-        if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
-          return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
+        //if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
+        if (this.rubberbands[this.rubberbands.length - 1].station != this.terminal) {
+          //return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
+          return [{ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
         }
         return []
       }
@@ -55,13 +64,22 @@ export default Vue.extend({
       } while (j != station)
       return result
     },
+    endInput() {
+      // TODO: name
+      if (this.rubberbands[this.rubberbands.length - 1].station != this.terminal) {
+        this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR })
+      }
+      if (this.rubberbands.length >= 3) this.$emit("start-time-input", this.rubberbands)
+    },
     end() {
+      // TODO: name
       this.rubberbands = []
+      this.terminal = -1
     }
   },
   computed: {
     newRubberbands(): Array<any> {
-      return this.getNewRubberbands(this.stationSelection.hovered, this.hoveredTime, this.modifierStates.shift)
+      return this.getNewRubberbands(this.stationSelection.hovered, this.hoveredTime, !this.modifierStates.shift)
     },
     displayPath(): string {
       return this.rubberbands.map((e, i) => {

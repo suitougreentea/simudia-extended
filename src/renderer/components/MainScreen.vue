@@ -1,33 +1,33 @@
+<!-- TODO: "Singleton" components should be *more tightly* coupled with MainScreen for performance issues
+           It is redundant to $emit from children only to change UI state -->
 <template lang="pug">
 div(style="position: relative")
-  div.diagram
-    div
-      button(v-if="$root.canUndo" @click="$root.undo") Undo
-      button(v-else disabled) Undo
-      button(v-if="$root.canRedo" @click="$root.redo") Redo
-      button(v-else disabled) Redo
-      button(@click="mode = 'input'") Input mode
-      button(@click="mode = 'edit'") Edit mode
-      //-div {{ hoveredLine }}
-      //-div {{ hoveredSet }}
-      //-div {{ hoveredSegment }}
-      //-div {{ selectedLine }}
-      //-div {{ selectedSet }}
-      //-div {{ selectedSegment }}
-    div(style="position: relative")
+  div.diagram(@click="clickBackground")
+    div.toolbar
+      //-button(v-if="$root.canUndo" @click="$root.undo") Undo
+      //-button(v-else disabled) Undo
+      //-button(v-if="$root.canRedo" @click="$root.redo") Redo
+      //-button(v-else disabled) Redo
+      div.toolbar-button(:class="{ pressed: (mode == 'input') }" @click.prevent="toggleInputMode") Input
+      div.toolbar-button(@click.prevent.stop="zoomInHorizontal") ↔+
+      div.toolbar-button(@click.prevent.stop="zoomOutHorizontal") ↔-
+      div.toolbar-button(@click.prevent.stop="zoomInVertical") ↕+
+      div.toolbar-button(@click.prevent.stop="zoomOutVertical") ↕-
+    div.workspace
       div(style="position: absolute; top: 0; left: 0;")
       svg(:width="layout.width", :height="layout.height" ref="svg")
         filter(id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%")
           feGaussianBlur(in="SourceGraphic" result="blur" stdDeviation=2)
           feBlend(in="SourceGraphic" in2="blur" mode="normal")
         LineDefs(:mode="mode" :x="x" :accumulatedStationY="accumulatedStationY" :lineSelection="lineSelection"
-                 @update-line-selection="updateLineSelection")
-        StationDefs(:mode="mode" :stations="stations" :xi="xi" :accumulatedStationY="accumulatedStationY" :layout="layout" :stationSelection="stationSelection" :relativeX="relativeX"
-                    @update-station-selection="updateStationSelection" @update-hovered-time="updateHoveredTime" @click-station-line-input="clickStationLineInput")
-        LineInputDefs(ref="lineInputDefs" :mode="mode" :x="x" :accumulatedStationY="accumulatedStationY" :stationSelection="stationSelection" :hoveredTime="hoveredTime" :modifierStates="modifierStates"
+                 @update-line-selection="updateLineSelection" @insert-rubberband="insertRubberband")
+        StationDefs(:mode="mode" :inputtingTime="inputtingTime" :stations="stations" :xi="xi" :accumulatedStationY="accumulatedStationY" :layout="layout" :lineSelection="lineSelection" :stationSelection="stationSelection" :relativeX="relativeX"
+                    @update-line-selection="updateLineSelection" @update-station-selection="updateStationSelection" @update-hovered-time="updateHoveredTime" @click-station-line-input="clickStationLineInput")
+        LineInputDefs(ref="lineInputDefs" :mode="mode" :inputtingTime="inputtingTime" :x="x" :accumulatedStationY="accumulatedStationY" :stationSelection="stationSelection" :hoveredTime="hoveredTime" :modifierStates="modifierStates"
                       @start-time-input="startTimeInput")
 
-        line(v-for="l in vgrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color")
+        line(v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color")
+        text(v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14") {{ t.text }}
         use(xlink:href="#stations")
         use(v-if="mode == 'input'" xlink:href="#line-input")
         use(xlink:href="#lines")
@@ -36,25 +36,25 @@ div(style="position: relative")
         use(xlink:href="#lines-hover")
       div(style="position: absolute; top: 0; left: 0;")
         div.station-name(contenteditable v-for="(s, i) in stations" :style="{ top: accumulatedStationY[i] - 20 + 'px', left: '20px' }"
-            @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)"
+            @focus="endLineInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)"
             ref="existingStation") {{ s.name }}
         div.station-name(contenteditable :style="{ top: newStationY + 'px', left: '20px' }"
-            @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur"
+            @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur"
             ref="newStation")
         div.station-name(:style="{ top: '-100px', left: '-100px' }"
             ref="stationForMeasure")
-        TimeInput(ref="timeInput", :x="x" :accumulatedStationY="accumulatedStationY"
+        TimeInput(ref="timeInput", :x="x" :accumulatedStationY="accumulatedStationY" :lineInsertOrigin="lineInsertOrigin"
                   @end-line-input="endLineInput")
   div.property-side
-    SidebarLine(:lineSelection="lineSelection")
-
+    Sidebar(:mode="mode" :lineSelection="lineSelection"
+            @update-line-selection="updateLineSelection" @cancel-input="endLineInput")
 
 </template>
 
 <script lang="ts">
 import Vue from "vue"
-import { SECOND_DIVISOR } from "../../time"
-import SidebarLine from "./SidebarLine.vue"
+import { SECOND_DIVISOR } from "../../time-util"
+import Sidebar from "./Sidebar.vue"
 import LineDefs from "./LineDefs.vue"
 import StationDefs from "./StationDefs.vue"
 import LineInputDefs from "./LineInputDefs.vue"
@@ -68,7 +68,7 @@ const HEADER_HEIGHT = 20
 
 export default Vue.extend({
   components: {
-    SidebarLine,
+    Sidebar,
     LineDefs,
     StationDefs,
     LineInputDefs,
@@ -76,7 +76,8 @@ export default Vue.extend({
   },
   data: function() {
     return {
-      mode: "input",
+      mode: "edit",
+      inputtingTime: false,
       lineSelection: {
         hoveredLine: -1,
         hoveredSet: -1,
@@ -95,18 +96,32 @@ export default Vue.extend({
       modifierStates: {
         control: false,
         shift: false
+      },
+      lineInsertOrigin: {
+        line: -1,
+        halt: -1
+      },
+      zoom: {
+        horizontal: 0,
+        vertical: 0
       }
     }
   },
   methods: {
-    a() {
-      console.log("!")
-    },
     x(tick: number): number {
-      return this.layout.left + this.layout.stationsWidth + tick / 7200
+      return this.layout.left + this.layout.stationsWidth + tick / (7200 * Math.pow(2, -this.zoom.horizontal / 2))
     },
     xi(x: number): number {
-      return (x - this.layout.left - this.layout.stationsWidth) * 7200
+      return (x - this.layout.left - this.layout.stationsWidth) * (7200 * Math.pow(2, -this.zoom.horizontal / 2))
+    },
+    zoomInHorizontal() { this.zoom.horizontal ++ },
+    zoomOutHorizontal() { this.zoom.horizontal -- },
+    zoomInVertical() { this.zoom.vertical ++ },
+    zoomOutVertical() { this.zoom.vertical -- },
+    newStationFocus() {
+      this.endLineInput()
+      const element = this.$refs.newStation as HTMLElement
+      element.innerText = ""
     },
     newStationKeyProceed() {
       const element = this.$refs.newStation as HTMLElement
@@ -181,39 +196,107 @@ export default Vue.extend({
     clickStationLineInput(event: any) {
       (this.$refs.lineInputDefs as any).addPoint(event)
     },
+    insertRubberband(data: any) {
+      this.lineInsertOrigin = {
+        line: data.lineIndex,
+        halt: data.haltIndex,
+      }
+      this.mode = "input";
+      (this.$refs.lineInputDefs as any).setTerminal(data.nextStationIndex);
+      (this.$refs.lineInputDefs as any).addPoint({ station: data.stationIndex, time: data.time, skip: false })
+    },
     startTimeInput(rubberbands: Array<any>) {
+      this.inputtingTime = true;
       (this.$refs.timeInput as any).start(rubberbands)
     },
     endLineInput() {
+      // TODO: name
+      (this.$refs.timeInput as any).end();
       (this.$refs.lineInputDefs as any).end()
+      this.lineInsertOrigin = {
+        line: -1,
+        halt: -1
+      }
+      this.inputtingTime = false
+      this.mode = "edit"
+    },
+    toggleInputMode() {
+      if (this.mode == "input") {
+        this.endLineInput()
+        this.mode = "edit"
+      } else {
+        this.unselectAll()
+        this.mode = "input"
+      }
+    },
+    clickBackground() {
+      this.unselectAll()
+    },
+    unselectAll() {
+      this.lineSelection = {
+        hoveredLine: -1,
+        hoveredSet: -1,
+        hoveredHalt: -1,
+        hoveredType: -1,
+        selectedLine: -1,
+        selectedSet: -1,
+        selectedHalt: -1,
+        selectedType: -1
+      }
+      this.stationSelection ={
+        hovered: -1,
+        selected: -1
+      }
+    },
+    closeDialog(): number {
+      return dialog.showMessageBox(remote.getCurrentWindow(), {
+        message: "Save modified data?",
+        type: "warning",
+        buttons: ["Yes", "No", "Cancel"],
+        cancelId: 2
+      })
     },
     openFile() {
+      if (this.$store.state.modified) {
+        const result = this.closeDialog()
+        if (result == 2) return
+        if (result == 0) {
+          const saved = this.saveFile()
+          if (!saved) return
+        }
+      }
       const result = dialog.showOpenDialog(remote.getCurrentWindow(), {
         properties: ["openFile"],
         filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
       })
       if (result != undefined) {
-
+        this.$store.commit("loadFromFile", { path: result[0] })
+        this.unselectAll()
       }
     },
-    saveFile() {
-
+    saveFile(): boolean {
+      if (this.$store.state.currentFile != "") {
+        this.$store.commit("saveToFile", { path: this.$store.state.currentFile })
+        return true
+      } else return this.saveAs()
     },
-    saveAs() {
+    saveAs(): boolean {
       const result = dialog.showSaveDialog(remote.getCurrentWindow(), {
         filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
       })
       if (result != undefined) {
         this.$store.commit("saveToFile", { path: result })
+        return true
       }
+      return false
     }
   },
   computed: {
     layout(): any {
       const stationsWidth = Math.max(100, ...this.stations.map(e => e.width)) + 10
 
-      const monthLength = this.$store.state.month_length.getTick()
-      const width = MARGIN + stationsWidth + monthLength / 7200 + MARGIN
+      const monthLength = this.$store.state.monthLength
+      const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -this.zoom.horizontal / 2)) + MARGIN
 
       const ys = this.accumulatedStationY
       let height: number
@@ -239,9 +322,9 @@ export default Vue.extend({
         return this.layout.height - 20
       }
     },
-    vgrids() {
+    verticalGrids() {
       const result = []
-      const monthLength = this.$store.state.month_length.getTick()
+      const monthLength = this.$store.state.monthLength
       for (let i = 0; i <= monthLength; i += SECOND_DIVISOR * 60 * 3) {
         const x: number = this.x(i)
         let color: string
@@ -260,12 +343,29 @@ export default Vue.extend({
       }
       return result
     },
+    verticalTexts() {
+      const result: Array<any> = []
+      const monthLength = this.$store.state.monthLength
+      for (let i = 0; i <= monthLength / (SECOND_DIVISOR * 60 * 60); i ++) {
+        const tick = i * SECOND_DIVISOR * 60 * 60
+        result.push({ x: this.x(tick) + 5, y: this.layout.top + this.layout.headerHeight - 5, text: `${i}:00:00` })
+      }
+      return result
+    },
     stations(): Array<any> { return this.$store.state.stations },
-    accumulatedStationY(): Array<number> { return this.$store.getters.accumulatedStationTimes.map((e: number) => (MARGIN + 20 + e / 3600)) },
+    accumulatedStationY(): Array<number> { return this.$store.getters.accumulatedStationTimes.map((e: number) => (MARGIN + 20 + e / (3600 * Math.pow(2, -this.zoom.vertical / 2)))) },
+    title(): string {
+      return (this.$store.state.modified ? "*" : "") + this.$store.getters.baseName + " - SimuDia-Extended " + remote.app.getVersion()
+    }
   },
   watch: {
+    title() {
+      remote.getCurrentWindow().setTitle(this.title)
+    }
   },
   created: function() {
+    remote.getCurrentWindow().setTitle(this.title)
+
     const menu = new Menu()
     const fileMenu = new Menu()
     fileMenu.append(new MenuItem({ label: "&Open...", click: () => this.openFile() }))
@@ -278,6 +378,22 @@ export default Vue.extend({
     Menu.setApplicationMenu(menu)
 
     window.addEventListener("keydown", (event: KeyboardEvent) => {
+      if (event.key == "Enter") {
+        const lineInputDefs = (this.$refs.lineInputDefs as any)
+        if (this.mode == "input" && !this.inputtingTime && lineInputDefs.rubberbands.length > 0) {
+          event.preventDefault()
+          event.stopPropagation()
+          lineInputDefs.endInput()
+        }
+      }
+      if (event.key == "Escape") {
+        if (this.mode == "input") {
+          this.endLineInput()
+        }
+        if (this.mode == "edit") {
+          this.unselectAll()
+        }
+      }
       if (event.key == "Shift") this.modifierStates = { ...this.modifierStates, shift: true }
       if (event.key == "Control") this.modifierStates = { ...this.modifierStates, control: true }
     })
@@ -285,16 +401,37 @@ export default Vue.extend({
       if (event.key == "Shift") this.modifierStates = { ...this.modifierStates, shift: false }
       if (event.key == "Control") this.modifierStates = { ...this.modifierStates, control: false }
     })
+    window.addEventListener("beforeunload", (e) => {
+      // TODO: create function?
+      if (this.$store.state.modified) {
+        const result = this.closeDialog()
+        if (result == 2) {
+          e.returnValue = false
+          return
+        }
+        if (result == 0) {
+          const saved = this.saveFile()
+          if (!saved) {
+            e.returnValue = false
+            return
+          }
+        }
+      }
+    })
   },
 })
 </script>
 
 <style lang="stylus">
+body
+  font-family: sans-serif
+
 .station-name
   min-width: 100px
   line-height: 20px
   position: absolute
   white-space: nowrap
+  font-size: 14px
 
 .time-input-container
   min-width: 100px
@@ -327,4 +464,37 @@ export default Vue.extend({
   height: 100%
   background-color: white
   border-left: 2px solid black
+
+.toolbar
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  height: 30px
+  background-color: #EEE
+  z-index: 100
+  font-size: 14px
+
+.workspace
+  position: absolute
+  top: 30px
+
+.toolbar-button
+  display: inline-block
+  border: 2px outset #EEE
+  background-color: #DDD
+  padding: 2px
+  cursor: default
+  user-select: none
+  min-width: 22px
+  height: 22px
+  line-height: 22px
+  text-align: center
+
+  &.pressed
+    border: 2px inset #BBB
+    background-color: #AAA
+  &:active
+    border: 2px inset #BBB
+    background-color: #AAA
 </style>

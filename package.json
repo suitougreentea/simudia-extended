@@ -1,12 +1,13 @@
 {
   "name": "simudia-extended",
-  "version": "0.0.0",
+  "version": "0.9.0-beta",
   "author": "suitougreentea",
   "description": "An interactive editor for planning timetables used in Simutrans-Extended",
   "license": "MIT",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",
+    "build:all": "node .electron-vue/build.js && electron-builder -wml",
     "build:dir": "node .electron-vue/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "build:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",

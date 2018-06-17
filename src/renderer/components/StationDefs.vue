@@ -3,10 +3,9 @@ defs
   symbol#stations
     line(v-for="(s, i) in stations" :x1="layout.left" :x2="layout.right" :y1="accumulatedStationY[i]" :y2="accumulatedStationY[i]" stroke="black" :stroke-width="stationSelection.hovered == i ? 2.5 : 1")
     line(v-if="stations.length == 0" :x1="layout.left" :x2="layout.right" :y1="layout.top + layout.headerHeight" :y2="layout.top + layout.headerHeight" stroke="black")
-    //- TODO: 20 = TOP_SIZE
   symbol#stations-hover
     line(v-for="(s, i) in stations" :x1="layout.left" :x2="layout.right" :y1="accumulatedStationY[i]" :y2="accumulatedStationY[i]" stroke="transparent" stroke-width=10
-        @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent="clickStationLine(i, $event)" @contextmenu.prevent="contextStationLine(i, $event)")
+        @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
   
 </template>
 <script lang="ts">
@@ -15,7 +14,7 @@ import * as Electron from "electron"
 const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
-  props: ["mode", "stations", "xi", "accumulatedStationY", "layout", "stationSelection", "relativeX"],
+  props: ["mode", "inputtingTime", "stations", "xi", "accumulatedStationY", "layout", "lineSelection", "stationSelection", "relativeX"],
   methods: {
     hoverStation(i: number, e: MouseEvent) {
       this.$emit("update-station-selection", {
@@ -33,14 +32,14 @@ export default Vue.extend({
       }
     },
     clickStationLine(i: number, e: MouseEvent) {
-      if (this.mode == "input") {
+      if (this.mode == "input" && !this.inputtingTime) {
         const x = this.relativeX(e.clientX)
         const cursorTime = this.xi(x)
         if (cursorTime >= 0) {
           this.$emit("click-station-line-input", {
             station: i,
             time: cursorTime,
-            skip: e.getModifierState("Shift")
+            skip: !e.getModifierState("Shift")
           })
         }
       } else if (this.mode == "edit") {
@@ -82,8 +81,19 @@ export default Vue.extend({
         menu.append(new MenuItem({
           label: "Delete station",
           click: () => {
-            this.$store.commit("deleteStation", {
-              pos: i + 1,
+            const prevSelectedLine = this.$store.state.lines[this.lineSelection.selectedLine]
+            this.$store.dispatch("deleteStation", {
+              pos: i,
+            }).then(() => {
+              const selectedLine = this.$store.state.lines[this.lineSelection.selectedLine]
+              if (prevSelectedLine !== selectedLine) {
+                this.$emit("update-line-selection", {
+                  selectedLine: -1,
+                  selectedSet: -1,
+                  selectedHalt: -1,
+                  selectedType: -1,
+                })
+              }
             })
           }
         }))

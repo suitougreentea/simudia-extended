@@ -1,0 +1,649 @@
+{
+  "fileVersion": 0,
+  "monthLength": 8294400,
+  "shiftDivisor": 1440,
+  "stations": [
+    {
+      "name": "白橋",
+      "width": 100,
+      "id": 1941233742
+    },
+    {
+      "name": "東白橋",
+      "width": 100,
+      "id": 2807404291
+    },
+    {
+      "name": "白橋新（仮）",
+      "width": 100,
+      "id": 3011145468
+    },
+    {
+      "name": "山原新（仮）",
+      "width": 100,
+      "id": 1908260085
+    },
+    {
+      "name": "三河通",
+      "width": 100,
+      "id": 2457952294
+    },
+    {
+      "name": "山原",
+      "width": 100,
+      "id": 3981004150
+    },
+    {
+      "name": "東山原",
+      "width": 100,
+      "id": 546727891
+    },
+    {
+      "name": "前松平（仮）",
+      "width": 100,
+      "id": 3254717276
+    },
+    {
+      "name": "西松平",
+      "width": 100,
+      "id": 715582744
+    },
+    {
+      "name": "松平",
+      "width": 100,
+      "id": 816654390
+    },
+    {
+      "name": "西森平",
+      "width": 100,
+      "id": 2210622716
+    },
+    {
+      "name": "森平",
+      "width": 100,
+      "id": 2194998178
+    },
+    {
+      "name": "東森平",
+      "width": 100,
+      "id": 3041813164
+    },
+    {
+      "name": "森平新（仮）",
+      "width": 100,
+      "id": 1875533953
+    },
+    {
+      "name": "古井新（仮）",
+      "width": 100,
+      "id": 1677466732
+    },
+    {
+      "name": "西古井",
+      "width": 100,
+      "id": 3650891323
+    },
+    {
+      "name": "古井中央（仮）",
+      "width": 100,
+      "id": 428267915
+    },
+    {
+      "name": "古井",
+      "width": 100,
+      "id": 1016581640
+    }
+  ],
+  "lines": [
+    {
+      "name": "各停",
+      "divisor": 20,
+      "lineWidth": 1.5,
+      "color": "#000000",
+      "halts": [
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": true,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": true,
+          "departureTime": 86400,
+          "skip": false,
+          "stationId": 1941233742,
+          "time": 53280
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2807404291,
+          "time": 47520
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3011145468,
+          "time": 44640
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1908260085,
+          "time": 51840
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2457952294,
+          "time": 56160
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3981004150,
+          "time": 64800
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 546727891,
+          "time": 48960
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3254717276,
+          "time": 56880
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 715582744,
+          "time": 48960
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 816654390,
+          "time": 44640
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2210622716,
+          "time": 55440
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": true,
+          "waitTime": 64800,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2194998178,
+          "time": 43200
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3041813164,
+          "time": 41040
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1875533953,
+          "time": 43920
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1677466732,
+          "time": 48960
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3650891323,
+          "time": 41040
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 428267915,
+          "time": 38880
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": true,
+          "wait": true,
+          "waitTime": 108000,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1016581640,
+          "time": 46800
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 428267915,
+          "time": 40320
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3650891323,
+          "time": 50400
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1677466732,
+          "time": 44640
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1875533953,
+          "time": 41760
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3041813164,
+          "time": 61200
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": true,
+          "waitTime": 64800,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2194998178,
+          "time": 49680
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2210622716,
+          "time": 45360
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 816654390,
+          "time": 48960
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 715582744,
+          "time": 55440
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3254717276,
+          "time": 49680
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 546727891,
+          "time": 52560
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3981004150,
+          "time": 56160
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2457952294,
+          "time": 51120
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1908260085,
+          "time": 46080
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3011145468,
+          "time": 48240
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2807404291,
+          "time": 42480
+        }
+      ],
+      "defaultLoadingTime": 10800,
+      "reversingTime": 21600,
+      "visible": true
+    },
+    {
+      "name": "急行",
+      "divisor": 20,
+      "lineWidth": 2,
+      "color": "#008000",
+      "halts": [
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": true,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": true,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1941233742,
+          "time": 157680
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3981004150,
+          "time": 123120
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 816654390,
+          "time": 72000
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2194998178,
+          "time": 103680
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3650891323,
+          "time": 61920
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": true,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 1016581640,
+          "time": 71280
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3650891323,
+          "time": 126000
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 2194998178,
+          "time": 69120
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 816654390,
+          "time": 122400
+        },
+        {
+          "overrideLoadingTime": false,
+          "loadingTime": 10800,
+          "reverse": false,
+          "wait": false,
+          "waitTime": 0,
+          "scheduled": false,
+          "departureTime": 0,
+          "skip": false,
+          "stationId": 3981004150,
+          "time": 172800
+        }
+      ],
+      "defaultLoadingTime": 10800,
+      "reversingTime": 21600,
+      "visible": true
+    }
+  ]
+}

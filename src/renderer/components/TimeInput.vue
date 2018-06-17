@@ -6,16 +6,17 @@ div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInput
 </template>
 <script lang="ts">
 import Vue from 'vue'
-import Time from "../../time"
+import { Time } from "../../types"
+import TimeUtil from "../../time-util"
 
 export default Vue.extend({
-  props: ["x", "accumulatedStationY"],
+  props: ["x", "accumulatedStationY", "lineInsertOrigin"],
   data: function() {
     return {
       rubberbands: new Array<any>(),
       inputtingTimeIndex: -1,
       errorTime: false,
-      inputtingTimes: new Array<number>(),
+      inputtingTimes: new Array<Time>(),
     }
   },
   methods: {
@@ -24,7 +25,7 @@ export default Vue.extend({
       this.inputtingTimeIndex = 0
       Vue.nextTick(() => {
         const element = this.$refs.timeInput as HTMLElement
-        element.innerText = new Time(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time).joinStringSimple()
+        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
         element.focus()
         document.execCommand("selectAll", false, null)
       })
@@ -32,26 +33,36 @@ export default Vue.extend({
     inputTime() {
       const element = this.$refs.timeInput as HTMLElement
       const text = element.innerText.trim()
-      this.errorTime = !Time.isValidTimeInput(text)
+      this.errorTime = !TimeUtil.isValidTimeInput(text)
     },
     putTime() {
       const element = this.$refs.timeInput as HTMLElement
       const text = element.innerText.trim()
-      if (!Time.isValidTimeInput(text)) return
-      this.inputtingTimes.push(Time.parse(text).tick)
+      if (!TimeUtil.isValidTimeInput(text)) return
+      this.inputtingTimes.push(TimeUtil.parse(text))
       if (this.inputtingTimeIndex < this.rubberbands.length - 2) {
         this.inputtingTimeIndex ++
-        element.innerText = new Time(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time).joinStringSimple()
+        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
         element.focus()
         document.execCommand("selectAll", false, null)
       } else {
-        this.$store.commit("addLine", { stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: new Time(this.rubberbands[0].time) })
-        this.rubberbands = []
-        this.inputtingTimeIndex = -1
-        this.inputtingTimes = []
+        if (this.lineInsertOrigin.line != -1) {
+          this.$store.commit("insertHalts", {
+            lineIndex: this.lineInsertOrigin.line, haltIndex: this.lineInsertOrigin.halt,
+            stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes
+          })
+        } else {
+          this.$store.commit("addLine", { stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: this.rubberbands[0].time })
+        }
+        this.end()
         this.$emit("end-line-input")
       }
     },
+    end() {
+      this.rubberbands = []
+      this.inputtingTimeIndex = -1
+      this.inputtingTimes = []
+    }
   },
   computed: {
     timeInputPosition(): any {

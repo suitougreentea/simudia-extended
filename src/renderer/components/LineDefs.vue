@@ -2,47 +2,54 @@
 defs
   symbol#lines
     g(v-for="(line, lineIndex) in lineSegments")
-      g(v-for="(set, setIndex) in line")
-        g(v-for="ss in set")
-          line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" :stroke="s.color" :stroke-width="s.width + (isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type) ? 1 : 0)"
-              :class="{selectedLine: isLineSegmentSelected(lineIndex, setIndex, s.haltIndex, s.type)}"
-              stroke-linecap="round")
-          //-circle(v-for="s in ss" v-if="s.type == 2 && (selectedSegment.type == 2 || hoveredSegment.halt == 2) && isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type)"
-                :cx="(s.x1 + s.x2) / 2" :cy="s.y1" r=3 fill="black")
+      g(v-if="line.visible")
+        g(v-for="(set, setIndex) in line.sets")
+          g(v-for="ss in set")
+            line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" :stroke="s.color" :stroke-width="s.width + (isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type) ? 1 : 0)"
+                :stroke-dasharray="s.dashed ? '5, 5' : ''"
+                :class="{selectedLine: isLineSegmentSelected(lineIndex, setIndex, s.haltIndex, s.type)}"
+                stroke-linecap="round")
+            //-circle(v-for="s in ss" v-if="s.type == 2 && (selectedSegment.type == 2 || hoveredSegment.halt == 2) && isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type)"
+                  :cx="(s.x1 + s.x2) / 2" :cy="s.y1" r=3 fill="black")
   symbol#lines-hover
     g(v-if="mode == 'edit'")
       g(v-for="(line, lineIndex) in lineSegments")
-        g(v-if="lineIndex != lineSelection.selectedLine" v-for="(set, setIndex) in line")
+        g(v-if="line.visible")
+          g(v-if="lineIndex != lineSelection.selectedLine" v-for="(set, setIndex) in line.sets")
+            g(v-for="ss in set")
+              line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
+                  stroke-linecap="round"
+                  @mousemove="hoverLine(lineIndex, $event)" @mouseout="unhoverLine(lineIndex, $event)" @click.prevent.stop="clickLine(lineIndex, $event)"
+                  @contextmenu.prevent.stop="contextLine(lineIndex, $event)")
+      g(v-if="lineSelection.selectedLine >= 0 && lineSegments[lineSelection.selectedLine].visible")
+        g(v-for="(set, setIndex) in lineSegments[lineSelection.selectedLine].sets")
           g(v-for="ss in set")
-            line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
+            line(v-if="setIndex != lineSelection.selectedSet" v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
                 stroke-linecap="round"
-                @mousemove="hoverLine(lineIndex, $event)" @mouseout="unhoverLine(lineIndex, $event)" @click.prevent="clickLine(lineIndex, $event)")
-      g(v-if="lineSelection.selectedLine >= 0" v-for="(set, setIndex) in lineSegments[lineSelection.selectedLine]")
-        g(v-for="ss in set")
-          line(v-if="setIndex != lineSelection.selectedSet" v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
-              stroke-linecap="round"
-              @mousemove="hoverSet(setIndex, $event)" @mouseout="unhoverSet(setIndex, $event)" @click.prevent="clickSet(setIndex, $event)")
-      g(v-if="lineSelection.selectedSet >= 0")
-        //- TODO: somehow placing v-if and v-for fails
-        g(v-for="ss in lineSegments[lineSelection.selectedLine][lineSelection.selectedSet]")
+                @mousemove="hoverSet(setIndex, $event)" @mouseout="unhoverSet(setIndex, $event)" @click.prevent.stop="clickSet(setIndex, $event)")
+      g(v-if="lineSelection.selectedSet >= 0 && lineSegments[lineSelection.selectedLine].visible")
+        g(v-for="ss in lineSegments[lineSelection.selectedLine].sets[lineSelection.selectedSet]")
           line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
               stroke-linecap="round"
-              @mousemove="hoverSegment(s.haltIndex, s.type, $event)" @mouseout="unhoverSegment(s.haltIndex, s.type, $event)" @click.prevent="clickSegment(s.haltIndex, s.type, $event)")
+              @mousemove="hoverSegment(s.haltIndex, s.type, $event)" @mouseout="unhoverSegment(s.haltIndex, s.type, $event)" @click.prevent.stop="clickSegment(s.haltIndex, s.type, $event)"
+              @contextmenu.prevent.stop="contextSegment(s.haltIndex, s.type, $event)")
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import { Line } from "../store"
+import * as Electron from "electron"
+const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
   props: ["mode", "x", "accumulatedStationY", "lineSelection"],
   computed: {
-    lineSegments(): Array<Array<Array<Array<any>>>> {
+    lineSegments(): Array<{ visible: boolean, sets: Array<Array<Array<any>>>}> {
       // line, set, [segment-journey, segment-halt]
       const lines: Array<Line> = this.$store.state.lines
       const computedTimes = this.$store.getters.computedTimes
       const pushSegment = (array: Array<any>, segment: any) => {
-        const monthLength = this.$store.state.month_length.tick
+        const monthLength = this.$store.state.monthLength
         if (segment.t1 >= monthLength) {
           pushSegment(array, { ...segment, t1: segment.t1 - monthLength, t2: segment.t2 - monthLength })
         } else if (segment.t2 > monthLength) {
@@ -54,7 +61,7 @@ export default Vue.extend({
             x1: this.x(segment.t1),
             x2: this.x(segment.t2),
             y1: segment.y1, y2: segment.y2,
-            haltIndex: segment.haltIndex, type: segment.type, color: segment.color, width: segment.width
+            haltIndex: segment.haltIndex, type: segment.type, color: segment.color, width: segment.width, dashed: segment.dashed
           })
         }
       }
@@ -64,7 +71,7 @@ export default Vue.extend({
         const length = line.halts.length
         for (let set = 0; set < line.divisor; set++) {
           result[set] = [[], []]
-          const offsetTime = set * (this.$store.state.month_length.tick / line.divisor)
+          const offsetTime = set * (this.$store.state.monthLength / line.divisor)
           for (let j = 0; j < length; j++) {
             const currHalt = line.halts[j]
             const nextHalt = line.halts[(j+1) % length]
@@ -80,15 +87,17 @@ export default Vue.extend({
             pushSegment(result[set][0],
             {
               t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
-              haltIndex: j, type: 1, color: line.color, width: line.lineWidth
+              haltIndex: j, type: 1, color: line.color, width: line.lineWidth,
+              dashed: currHalt.skip
             })
             pushSegment(result[set][1], {
               t1: nextArrTime, y1: nextY, t2: nextDepTime, y2: nextY,
-              haltIndex: j, type: 2, color: line.color, width: line.lineWidth
+              haltIndex: (j+1)%length, type: 2, color: line.color, width: line.lineWidth,
+              dashed: nextHalt.skip
             })
           }
         }
-        return result
+        return { visible: line.visible, sets: result }
       })
     },
   },
@@ -172,6 +181,20 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
+    contextLine(index: number, event: MouseEvent) {
+      this.clickLine(index, event)
+      const menu = new Menu()
+      menu.append(new MenuItem({
+        label: "Delete line",
+        click: () => {
+          this.$emit("update-line-selection", {
+            selectedLine: -1,
+          })
+          this.$store.commit("deleteLine", index)
+        }
+      }))
+      menu.popup()
+    },
     hoverSet(index: number, event: MouseEvent) {
       this.$emit("update-line-selection", {
         hoveredLine: -1,
@@ -221,6 +244,48 @@ export default Vue.extend({
         hoveredHalt: haltIndex,
         hoveredType: type
       })
+    },
+    contextSegment(haltIndex: number, type: number, event: MouseEvent) {
+      this.clickSegment(haltIndex, type, event)
+
+      const lineIndex = this.lineSelection.selectedLine
+      const setIndex = this.lineSelection.selectedSet
+      const line = this.$store.state.lines[lineIndex]
+
+      if (type == 2) {
+        const menu = new Menu()
+        menu.append(new MenuItem({
+          label: "Insert halt",
+          click: () => {
+            const monthLength = this.$store.state.monthLength
+            const halts = this.$store.state.lines[lineIndex].halts
+            const halt = halts[haltIndex]
+            const nextHalt = halts[(haltIndex + 1)%halts.length]
+            const stationIndex = this.$store.getters.findStationIndex(halt.stationId)
+            const nextStationIndex = this.$store.getters.findStationIndex(nextHalt.stationId)
+            const time = (this.$store.getters.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
+            this.$emit("insert-rubberband", {
+              lineIndex,
+              haltIndex,
+              stationIndex,
+              nextStationIndex,
+              time
+            })
+          }
+        }))
+        menu.append(new MenuItem({
+          label: "Delete halt",
+          enabled: line.halts.length >= 3,
+          click: () => {
+            this.$emit("update-line-selection", {
+              selectedHalt: -1,
+              selectedType: -1,
+            })
+            this.$store.commit("deleteHalt", { lineIndex, haltIndex })
+          }
+        }))
+        menu.popup()
+      }
     }
   }
 })
