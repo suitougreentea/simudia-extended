@@ -49,6 +49,8 @@ deploy:
   api_key: $GH_TOKEN
   file_glob: true
   file: 'build/SimuDia-Extended*'
+  on:
+    branch: travis-exp
 
 branches:
   only:
