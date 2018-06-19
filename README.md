@@ -2,12 +2,12 @@
 
 ## For Japanese users
 
-本体は[Releases]()からダウンロードできます。
+本体は[Releases](https://github.com/suitougreentea/simudia-extended/releases)からダウンロードできます。
 
 
 ## Installing (for users)
 
-Go [Releases]() and download binaries for your platform.
+Go [Releases](https://github.com/suitougreentea/simudia-extended/releases) and download binaries for your platform.
 
 
 ## Developing
@@ -50,5 +50,5 @@ Issues / Forks / PRs
 
 ## License
 
-MIT. See [LICENSE]
+MIT. See [LICENSE](LICENSE)
 
