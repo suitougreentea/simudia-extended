@@ -36,9 +36,9 @@ script:
         -v ~/.cache/electron:/root/.cache/electron \
         -v ~/.cache/electron-builder:/root/.cache/electron-builder \
         electronuserland/builder:wine \
-        /bin/bash -c "yarn --link-duplicates --pure-lockfile --ignore-engines && yarn build"
+        /bin/bash -c "yarn --link-duplicates --pure-lockfile --ignore-engines && node .electron-vue/build.js && yarn electron-builder --publish never -wl"
     else
-        yarn build
+      node .electron-vue/build.js && yarn electron-builder --publish never -m"
     fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
@@ -48,9 +48,9 @@ deploy:
   skip_cleanup: true
   api_key: $GH_TOKEN
   file_glob: true
-  file: 'build/SimuDia-Extended*'
+  file: 'build/*.{exe,dmg,AppImage}'
   on:
-    branch: travis-exp
+    tags: true
 
 branches:
   only:
