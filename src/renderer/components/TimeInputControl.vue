@@ -1,9 +1,10 @@
 <template lang="pug">
 input(type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input="input" @change="change")
 </template>
-<script lang="ts">
-import Vue from 'vue'
+<script>
+import Vue from "vue"
 import TimeUtil from "../../time-util"
+
 export default Vue.extend({
   props: ["value", "disabled"],
   data: function() {
@@ -13,14 +14,14 @@ export default Vue.extend({
     }
   },
   methods: {
-    input(event: Event) {
-      const element = event.target as HTMLInputElement
+    input(event) {
+      const element = event.target
       const text = element.value.trim()
       this.rawText = text
       this.$emit("input", {target: this})
     },
-    change(event: Event) {
-      const element = event.target as HTMLInputElement
+    change(event) {
+      const element = event.target
       const text = element.value.trim()
       this.rawText = text
       if (TimeUtil.isValidTimeInput(text)) {
@@ -30,10 +31,10 @@ export default Vue.extend({
     }
   },
   computed: {
-    stringified(): string {
+    stringified() {
       return TimeUtil.joinStringSimple(this.value)
     },
-    error(): boolean {
+    error() {
       return !TimeUtil.isValidTimeInput(this.rawText)
     }
   },

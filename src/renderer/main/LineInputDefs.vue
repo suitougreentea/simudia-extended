@@ -8,43 +8,43 @@ defs
       circle(v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r=3 fill="gray")
   
 </template>
-<script lang="ts">
-import Vue from 'vue'
+<script>
+import Vue from "vue"
 import { SECOND_DIVISOR } from "../../time-util"
 
 export default Vue.extend({
   props: ["mode", "inputtingTime", "x", "accumulatedStationY", "stationSelection", "hoveredTime", "modifierStates"],
   data: function() {
     return {
-      rubberbands: new Array<any>(), // {time, station, done}
+      rubberbands: [], // {time, station, done}
       terminal: -1
     }
   },
   methods: {
-    setTerminal(stationIndex: number) {
+    setTerminal(stationIndex) {
       this.terminal = stationIndex
     },
-    addPoint(event: { station: number, time: number, skip: boolean }) {
-      if (this.rubberbands.length == 0 && this.terminal == -1) {
-        this.terminal = event.station
+    addPoint({ station, time, skip }) {
+      if (this.rubberbands.length === 0 && this.terminal === -1) {
+        this.terminal = station
       }
-      if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station == event.station) {
-        const rubberbands = [...this.rubberbands, ...this.getNewRubberbands(event.station, event.time, event.skip)]
-        if (rubberbands.length >= 2 && rubberbands[0].station != rubberbands[1].station) {
+      if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station === station) {
+        const rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
+        if (rubberbands.length >= 2 && rubberbands[0].station !== rubberbands[1].station) {
           this.$emit("start-time-input", rubberbands)
         }
       } else {
-        this.rubberbands = [...this.rubberbands, ...this.getNewRubberbands(event.station, event.time, event.skip)]
+        this.rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
       }
     },
-    getNewRubberbands(station: number, _time: number, skip: boolean): Array<any> {
+    getNewRubberbands(station, _time, skip) {
       if (_time < 0) return []
       if (this.inputtingTime) return []
-      if (this.rubberbands.length == 0) return [{ station, time: _time }]
-      if (this.rubberbands[this.rubberbands.length - 1].station == station) {
-        //if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
-        if (this.rubberbands[this.rubberbands.length - 1].station != this.terminal) {
-          //return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
+      if (this.rubberbands.length === 0) return [{ station, time: _time }]
+      if (this.rubberbands[this.rubberbands.length - 1].station === station) {
+        // if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
+        if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
+          // return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
           return [{ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
         }
         return []
@@ -61,12 +61,12 @@ export default Vue.extend({
         const y = this.accumulatedStationY[j]
         const t = lastTime + (time - lastTime) / (thisY - lastY) * (y - lastY)
         result.push({time: t, station: j})
-      } while (j != station)
+      } while (j !== station)
       return result
     },
     endInput() {
       // TODO: name
-      if (this.rubberbands[this.rubberbands.length - 1].station != this.terminal) {
+      if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
         this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR })
       }
       if (this.rubberbands.length >= 3) this.$emit("start-time-input", this.rubberbands)
@@ -78,35 +78,35 @@ export default Vue.extend({
     }
   },
   computed: {
-    newRubberbands(): Array<any> {
+    newRubberbands() {
       return this.getNewRubberbands(this.stationSelection.hovered, this.hoveredTime, !this.modifierStates.shift)
     },
-    displayPath(): string {
+    displayPath() {
       return this.rubberbands.map((e, i) => {
         const x = this.x(e.time)
         const y = this.accumulatedStationY[e.station]
-        if (i == 0) return `M ${x} ${y}`
+        if (i === 0) return `M ${x} ${y}`
         return `L ${x} ${y}`
       }).join(" ")
     },
-    displayPathNew(): string {
-      if (this.rubberbands.length == 0) return ""
+    displayPathNew() {
+      if (this.rubberbands.length === 0) return ""
       const rubberbands = [this.rubberbands[this.rubberbands.length - 1], ...this.newRubberbands]
       return rubberbands.map((e, i) => {
         const x = this.x(e.time)
         const y = this.accumulatedStationY[e.station]
-        if (i == 0) return `M ${x} ${y}`
+        if (i === 0) return `M ${x} ${y}`
         return `L ${x} ${y}`
       }).join(" ")
     },
-    displayCircles(): Array<any> {
+    displayCircles() {
       return this.rubberbands.map((e, i) => {
         const x = this.x(e.time)
         const y = this.accumulatedStationY[e.station]
         return { x, y }
       })
     },
-    displayCirclesNew(): Array<any> {
+    displayCirclesNew() {
       return this.newRubberbands.map((e, i) => {
         const x = this.x(e.time)
         const y = this.accumulatedStationY[e.station]

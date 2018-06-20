@@ -51,7 +51,7 @@ div(style="position: relative")
 
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue"
 import { SECOND_DIVISOR } from "../../time-util"
 import Sidebar from "./Sidebar.vue"
@@ -108,25 +108,25 @@ export default Vue.extend({
     }
   },
   methods: {
-    x(tick: number): number {
+    x(tick) {
       return this.layout.left + this.layout.stationsWidth + tick / (7200 * Math.pow(2, -this.zoom.horizontal / 2))
     },
-    xi(x: number): number {
+    xi(x) {
       return (x - this.layout.left - this.layout.stationsWidth) * (7200 * Math.pow(2, -this.zoom.horizontal / 2))
     },
-    zoomInHorizontal() { this.zoom.horizontal ++ },
-    zoomOutHorizontal() { this.zoom.horizontal -- },
-    zoomInVertical() { this.zoom.vertical ++ },
-    zoomOutVertical() { this.zoom.vertical -- },
+    zoomInHorizontal() { this.zoom.horizontal++ },
+    zoomOutHorizontal() { this.zoom.horizontal-- },
+    zoomInVertical() { this.zoom.vertical++ },
+    zoomOutVertical() { this.zoom.vertical-- },
     newStationFocus() {
       this.endLineInput()
-      const element = this.$refs.newStation as HTMLElement
+      const element = this.$refs.newStation
       element.innerText = ""
     },
     newStationKeyProceed() {
-      const element = this.$refs.newStation as HTMLElement
+      const element = this.$refs.newStation
       const text = element.innerText.trim()
-      if (text != "") {
+      if (text !== "") {
         this.$store.commit("addStation", { name: text, width: this.measureStationWidth(text) })
         element.innerText = ""
       } else {
@@ -134,85 +134,85 @@ export default Vue.extend({
       }
     },
     newStationKeyCancel() {
-      const element = this.$refs.newStation as HTMLElement
+      const element = this.$refs.newStation
       element.innerText = ""
       element.blur()
     },
     newStationBlur() {
-      const element = this.$refs.newStation as HTMLElement
+      const element = this.$refs.newStation
       const text = element.innerText.trim()
-      if (text != "") {
+      if (text !== "") {
         this.$store.commit("addStation", { name: text, width: this.measureStationWidth(text) })
         element.innerText = ""
       }
     },
-    modifyStationKeyProceed(i: number) {
-      const array = (this.$refs.existingStation as Array<HTMLElement>)
+    modifyStationKeyProceed(i) {
+      const array = this.$refs.existingStation
       const element = array[i]
       const text = element.innerText.trim()
-      if (text != this.stations[i].name) {
+      if (text !== this.stations[i].name) {
         this.$store.commit("modifyStation", { pos: i, name: text, width: this.measureStationWidth(text) })
       }
-      if (array.length == i + 1) {
-        (this.$refs.newStation as HTMLElement).focus()
+      if (array.length === i + 1) {
+        this.$refs.newStation.focus()
       } else {
         array[i + 1].focus()
       }
     },
-    modifyStationKeyCancel(i: number) {
-      const array = (this.$refs.existingStation as Array<HTMLElement>)
+    modifyStationKeyCancel(i) {
+      const array = this.$refs.existingStation
       const element = array[i]
       element.innerText = this.stations[i].name
       element.blur()
     },
-    modifyStationBlur(i: number) {
-      const array = (this.$refs.existingStation as Array<HTMLElement>)
+    modifyStationBlur(i) {
+      const array = this.$refs.existingStation
       const element = array[i]
       const text = element.innerText.trim()
-      if (text != this.stations[i].name) {
+      if (text !== this.stations[i].name) {
         this.$store.commit("modifyStation", { pos: i, name: text, width: this.measureStationWidth(text) })
       }
     },
-    measureStationWidth(name: string): number {
-      const element = this.$refs.stationForMeasure as HTMLElement
+    measureStationWidth(name) {
+      const element = this.$refs.stationForMeasure
       element.innerText = name
       return element.clientWidth
     },
-    updateLineSelection(selection: any) {
+    updateLineSelection(selection) {
       Vue.set(this, "lineSelection", {...this.lineSelection, ...selection})
     },
-    updateStationSelection(selection: any) {
+    updateStationSelection(selection) {
       Vue.set(this, "stationSelection", {...this.stationSelection, ...selection})
     },
-    updateHoveredTime(time: number) {
+    updateHoveredTime(time) {
       this.hoveredTime = time
     },
-    relativeX(x: number) {
-      return x - (this.$refs.svg as HTMLElement).getBoundingClientRect().left
+    relativeX(x) {
+      return x - this.$refs.svg.getBoundingClientRect().left
     },
-    relativeY(y: number) {
-      return y - (this.$refs.svg as HTMLElement).getBoundingClientRect().top
+    relativeY(y) {
+      return y - this.$refs.svg.getBoundingClientRect().top
     },
-    clickStationLineInput(event: any) {
-      (this.$refs.lineInputDefs as any).addPoint(event)
+    clickStationLineInput(event) {
+      this.$refs.lineInputDefs.addPoint(event)
     },
-    insertRubberband(data: any) {
+    insertRubberband(data) {
       this.lineInsertOrigin = {
         line: data.lineIndex,
         halt: data.haltIndex,
       }
-      this.mode = "input";
-      (this.$refs.lineInputDefs as any).setTerminal(data.nextStationIndex);
-      (this.$refs.lineInputDefs as any).addPoint({ station: data.stationIndex, time: data.time, skip: false })
+      this.mode = "input"
+      this.$refs.lineInputDefs.setTerminal(data.nextStationIndex)
+      this.$refs.lineInputDefs.addPoint({ station: data.stationIndex, time: data.time, skip: false })
     },
-    startTimeInput(rubberbands: Array<any>) {
-      this.inputtingTime = true;
-      (this.$refs.timeInput as any).start(rubberbands)
+    startTimeInput(rubberbands) {
+      this.inputtingTime = true
+      this.$refs.timeInput.start(rubberbands)
     },
     endLineInput() {
       // TODO: name
-      (this.$refs.timeInput as any).end();
-      (this.$refs.lineInputDefs as any).end()
+      this.$refs.timeInput.end()
+      this.$refs.lineInputDefs.end()
       this.lineInsertOrigin = {
         line: -1,
         halt: -1
@@ -221,7 +221,7 @@ export default Vue.extend({
       this.mode = "edit"
     },
     toggleInputMode() {
-      if (this.mode == "input") {
+      if (this.mode === "input") {
         this.endLineInput()
         this.mode = "edit"
       } else {
@@ -248,7 +248,7 @@ export default Vue.extend({
         selected: -1
       }
     },
-    closeDialog(): number {
+    closeDialog() {
       return dialog.showMessageBox(remote.getCurrentWindow(), {
         message: "Save modified data?",
         type: "warning",
@@ -259,8 +259,8 @@ export default Vue.extend({
     openFile() {
       if (this.$store.state.modified) {
         const result = this.closeDialog()
-        if (result == 2) return
-        if (result == 0) {
+        if (result === 2) return
+        if (result === 0) {
           const saved = this.saveFile()
           if (!saved) return
         }
@@ -269,22 +269,22 @@ export default Vue.extend({
         properties: ["openFile"],
         filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
       })
-      if (result != undefined) {
+      if (result !== undefined) {
         this.$store.commit("loadFromFile", { path: result[0] })
         this.unselectAll()
       }
     },
-    saveFile(): boolean {
-      if (this.$store.state.currentFile != "") {
+    saveFile() {
+      if (this.$store.state.currentFile !== "") {
         this.$store.commit("saveToFile", { path: this.$store.state.currentFile })
         return true
       } else return this.saveAs()
     },
-    saveAs(): boolean {
+    saveAs() {
       const result = dialog.showSaveDialog(remote.getCurrentWindow(), {
         filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
       })
-      if (result != undefined) {
+      if (result !== undefined) {
         this.$store.commit("saveToFile", { path: result })
         return true
       }
@@ -292,15 +292,15 @@ export default Vue.extend({
     }
   },
   computed: {
-    layout(): any {
+    layout() {
       const stationsWidth = Math.max(100, ...this.stations.map(e => e.width)) + 10
 
       const monthLength = this.$store.state.monthLength
       const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -this.zoom.horizontal / 2)) + MARGIN
 
       const ys = this.accumulatedStationY
-      let height: number
-      if (ys.length == 0) height = 60
+      let height
+      if (ys.length === 0) height = 60
       else height = ys[ys.length - 1] + MARGIN
 
       return {
@@ -314,9 +314,9 @@ export default Vue.extend({
         stationsWidth
       }
     },
-    newStationY(): number {
+    newStationY() {
       const stations = this.$store.state.stations
-      if (stations.length == 0) {
+      if (stations.length === 0) {
         return 20
       } else {
         return this.layout.height - 20
@@ -326,13 +326,13 @@ export default Vue.extend({
       const result = []
       const monthLength = this.$store.state.monthLength
       for (let i = 0; i <= monthLength; i += SECOND_DIVISOR * 60 * 3) {
-        const x: number = this.x(i)
-        let color: string
-        let y: number
-        if (i % (SECOND_DIVISOR * 60 * 60) == 0) {
+        const x = this.x(i)
+        let color
+        let y
+        if (i % (SECOND_DIVISOR * 60 * 60) === 0) {
           color = "black"
           y = this.layout.top
-        } else if (i % (SECOND_DIVISOR * 60 * 15) == 0) {
+        } else if (i % (SECOND_DIVISOR * 60 * 15) === 0) {
           color = "gray"
           y = this.layout.top + this.layout.headerHeight
         } else {
@@ -344,17 +344,17 @@ export default Vue.extend({
       return result
     },
     verticalTexts() {
-      const result: Array<any> = []
+      const result = []
       const monthLength = this.$store.state.monthLength
-      for (let i = 0; i <= monthLength / (SECOND_DIVISOR * 60 * 60); i ++) {
+      for (let i = 0; i <= monthLength / (SECOND_DIVISOR * 60 * 60); i++) {
         const tick = i * SECOND_DIVISOR * 60 * 60
         result.push({ x: this.x(tick) + 5, y: this.layout.top + this.layout.headerHeight - 5, text: `${i}:00:00` })
       }
       return result
     },
-    stations(): Array<any> { return this.$store.state.stations },
-    accumulatedStationY(): Array<number> { return this.$store.getters.accumulatedStationTimes.map((e: number) => (MARGIN + 20 + e / (3600 * Math.pow(2, -this.zoom.vertical / 2)))) },
-    title(): string {
+    stations() { return this.$store.state.stations },
+    accumulatedStationY() { return this.$store.getters.accumulatedStationTimes.map(e => (MARGIN + 20 + e / (3600 * Math.pow(2, -this.zoom.vertical / 2)))) },
+    title() {
       return (this.$store.state.modified ? "*" : "") + this.$store.getters.baseName + " - SimuDia-Extended " + remote.app.getVersion()
     }
   },
@@ -372,48 +372,47 @@ export default Vue.extend({
     fileMenu.append(new MenuItem({ label: "&Save", click: () => this.saveFile() }))
     fileMenu.append(new MenuItem({ label: "Save &As...", click: () => this.saveAs() }))
     menu.append(new MenuItem({ label: "&File", submenu: fileMenu }))
-    if (remote.getGlobal("process").env.NODE_ENV == "development") {
+    if (remote.getGlobal("process").env.NODE_ENV === "development") {
       menu.append(new MenuItem({ label: "&Reload", role: "forcereload" }))
     }
     Menu.setApplicationMenu(menu)
 
-    window.addEventListener("keydown", (event: KeyboardEvent) => {
-      if (event.key == "Enter") {
-        const lineInputDefs = (this.$refs.lineInputDefs as any)
-        if (this.mode == "input" && !this.inputtingTime && lineInputDefs.rubberbands.length > 0) {
+    window.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        const lineInputDefs = this.$refs.lineInputDefs
+        if (this.mode === "input" && !this.inputtingTime && lineInputDefs.rubberbands.length > 0) {
           event.preventDefault()
           event.stopPropagation()
           lineInputDefs.endInput()
         }
       }
-      if (event.key == "Escape") {
-        if (this.mode == "input") {
+      if (event.key === "Escape") {
+        if (this.mode === "input") {
           this.endLineInput()
         }
-        if (this.mode == "edit") {
+        if (this.mode === "edit") {
           this.unselectAll()
         }
       }
-      if (event.key == "Shift") this.modifierStates = { ...this.modifierStates, shift: true }
-      if (event.key == "Control") this.modifierStates = { ...this.modifierStates, control: true }
+      if (event.key === "Shift") this.modifierStates = { ...this.modifierStates, shift: true }
+      if (event.key === "Control") this.modifierStates = { ...this.modifierStates, control: true }
     })
-    window.addEventListener("keyup", (event: KeyboardEvent) => {
-      if (event.key == "Shift") this.modifierStates = { ...this.modifierStates, shift: false }
-      if (event.key == "Control") this.modifierStates = { ...this.modifierStates, control: false }
+    window.addEventListener("keyup", event => {
+      if (event.key === "Shift") this.modifierStates = { ...this.modifierStates, shift: false }
+      if (event.key === "Control") this.modifierStates = { ...this.modifierStates, control: false }
     })
     window.addEventListener("beforeunload", (e) => {
       // TODO: create function?
       if (this.$store.state.modified) {
         const result = this.closeDialog()
-        if (result == 2) {
+        if (result === 2) {
           e.returnValue = false
           return
         }
-        if (result == 0) {
+        if (result === 0) {
           const saved = this.saveFile()
           if (!saved) {
             e.returnValue = false
-            return
           }
         }
       }

@@ -35,20 +35,20 @@ defs
               @contextmenu.prevent.stop="contextSegment(s.haltIndex, s.type, $event)")
 </template>
 
-<script lang="ts">
-import Vue from 'vue'
-import { Line } from "../store"
+<script>
+import Vue from "vue"
 import * as Electron from "electron"
 const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
   props: ["mode", "x", "accumulatedStationY", "lineSelection"],
   computed: {
-    lineSegments(): Array<{ visible: boolean, sets: Array<Array<Array<any>>>}> {
+    // Array<{ visible: boolean, sets: Array<Array<Array<any>>>}>
+    lineSegments() {
       // line, set, [segment-journey, segment-halt]
-      const lines: Array<Line> = this.$store.state.lines
+      const lines = this.$store.state.lines
       const computedTimes = this.$store.getters.computedTimes
-      const pushSegment = (array: Array<any>, segment: any) => {
+      const pushSegment = (array, segment) => {
         const monthLength = this.$store.state.monthLength
         if (segment.t1 >= monthLength) {
           pushSegment(array, { ...segment, t1: segment.t1 - monthLength, t2: segment.t2 - monthLength })
@@ -67,7 +67,7 @@ export default Vue.extend({
       }
       return lines.map((line, i) => {
         const time = computedTimes[i]
-        const result: Array<any> = []
+        const result = []
         const length = line.halts.length
         for (let set = 0; set < line.divisor; set++) {
           result[set] = [[], []]
@@ -84,8 +84,7 @@ export default Vue.extend({
             const currDepTime = currTime.departure + offsetTime
             const nextArrTime = nextTime.arrival + offsetTime
             const nextDepTime = nextTime.arrival + nextTime.wait + offsetTime
-            pushSegment(result[set][0],
-            {
+            pushSegment(result[set][0], {
               t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
               haltIndex: j, type: 1, color: line.color, width: line.lineWidth,
               dashed: currHalt.skip
@@ -102,59 +101,60 @@ export default Vue.extend({
     },
   },
   methods: {
-    isLineSegmentWidened(lineIndex: number, setIndex: number, haltIndex: number, type: number): boolean {
+    isLineSegmentWidened(lineIndex, setIndex, haltIndex, type) {
       const { hoveredLine, hoveredSet, hoveredHalt, hoveredType,
-              selectedLine, selectedSet, selectedHalt, selectedType } = this.lineSelection
+        selectedLine, selectedSet, selectedHalt, selectedType } = this.lineSelection
       // TODO: semantically correct, but it should be simpler
       // if I add one more selection stack state, it'll be more complex...
-      if (selectedLine == -1) {
-        return hoveredLine == lineIndex
+      if (selectedLine === -1) {
+        return hoveredLine === lineIndex
       }
-      if (selectedLine >= 0 && selectedSet == -1) {
+      if (selectedLine >= 0 && selectedSet === -1) {
         if (hoveredSet >= 0) {
-          return selectedLine == lineIndex && hoveredSet == setIndex
+          return selectedLine === lineIndex && hoveredSet === setIndex
         } else {
-          if (selectedLine == lineIndex) return true
+          if (selectedLine === lineIndex) return true
           if (hoveredLine >= 0) {
-            return hoveredLine == lineIndex
+            return hoveredLine === lineIndex
           }
         }
       }
-      if (selectedSet >= 0 && selectedHalt == -1) {
+      if (selectedSet >= 0 && selectedHalt === -1) {
         if (hoveredHalt >= 0) {
-          return selectedLine == lineIndex && selectedSet == setIndex && hoveredHalt == haltIndex && hoveredType == type
+          return selectedLine === lineIndex && selectedSet === setIndex && hoveredHalt === haltIndex && hoveredType === type
         } else {
-          if (selectedLine == lineIndex && selectedSet == setIndex) return true
+          if (selectedLine === lineIndex && selectedSet === setIndex) return true
           if (hoveredSet >= 0) {
-            return selectedLine == lineIndex && hoveredSet == setIndex
+            return selectedLine === lineIndex && hoveredSet === setIndex
           }
           if (hoveredLine >= 0) {
-            return hoveredLine == lineIndex
+            return hoveredLine === lineIndex
           }
         }
       }
       if (selectedHalt >= 0) {
-        if (selectedLine == lineIndex && selectedSet == setIndex && selectedHalt == haltIndex && selectedType == type) return true
+        if (selectedLine === lineIndex && selectedSet === setIndex && selectedHalt === haltIndex && selectedType === type) return true
         if (hoveredHalt >= 0) {
-          return selectedLine == lineIndex && selectedSet == setIndex && hoveredHalt == haltIndex && hoveredType == type
+          return selectedLine === lineIndex && selectedSet === setIndex && hoveredHalt === haltIndex && hoveredType === type
         }
         if (hoveredSet >= 0) {
-          return selectedLine == lineIndex && hoveredSet == setIndex
+          return selectedLine === lineIndex && hoveredSet === setIndex
         }
         if (hoveredLine >= 0) {
-          return hoveredLine == lineIndex
+          return hoveredLine === lineIndex
         }
       }
       return false
     },
-    isLineSegmentSelected(lineIndex: number, setIndex: number, haltIndex: number, type: number): boolean {
+    isLineSegmentSelected(lineIndex, setIndex, haltIndex, type) {
       const { selectedLine, selectedSet, selectedHalt, selectedType } = this.lineSelection
-      if (selectedHalt >= 0)
-        return selectedLine == lineIndex && selectedSet == setIndex && selectedHalt == haltIndex && selectedType == type
-      if (selectedSet >= 0) return selectedLine == lineIndex && selectedSet == setIndex
-      return selectedLine == lineIndex
+      if (selectedHalt >= 0) {
+        return selectedLine === lineIndex && selectedSet === setIndex && selectedHalt === haltIndex && selectedType === type
+      }
+      if (selectedSet >= 0) return selectedLine === lineIndex && selectedSet === setIndex
+      return selectedLine === lineIndex
     },
-    hoverLine(index: number, event: MouseEvent) {
+    hoverLine(index, event) {
       this.$emit("update-line-selection", {
         hoveredLine: index,
         hoveredSet: -1,
@@ -162,14 +162,14 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    unhoverLine(index: number, event: MouseEvent) {
-      if (this.lineSelection.hoveredLine == index) {
+    unhoverLine(index, event) {
+      if (this.lineSelection.hoveredLine === index) {
         this.$emit("update-line-selection", {
           hoveredLine: -1
         })
       }
     },
-    clickLine(index: number, event: MouseEvent) {
+    clickLine(index, event) {
       this.$emit("update-line-selection", {
         selectedLine: index,
         selectedSet: -1,
@@ -181,7 +181,7 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    contextLine(index: number, event: MouseEvent) {
+    contextLine(index, event) {
       this.clickLine(index, event)
       const menu = new Menu()
       menu.append(new MenuItem({
@@ -195,7 +195,7 @@ export default Vue.extend({
       }))
       menu.popup()
     },
-    hoverSet(index: number, event: MouseEvent) {
+    hoverSet(index, event) {
       this.$emit("update-line-selection", {
         hoveredLine: -1,
         hoveredSet: index,
@@ -203,15 +203,15 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    unhoverSet(index: number, event: MouseEvent) {
-      if (this.lineSelection.hoveredSet == index) {
+    unhoverSet(index, event) {
+      if (this.lineSelection.hoveredSet === index) {
         this.$emit("update-line-selection", {
           hoveredLine: -1,
           hoveredSet: -1
         })
       }
     },
-    clickSet(index: number, event: MouseEvent) {
+    clickSet(index, event) {
       this.$emit("update-line-selection", {
         selectedSet: index,
         selectedHalt: -1,
@@ -221,14 +221,14 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    hoverSegment(haltIndex: number, type: number, event: MouseEvent) {
+    hoverSegment(haltIndex, type, event) {
       this.$emit("update-line-selection", {
         hoveredHalt: haltIndex,
         hoveredType: type
       })
     },
-    unhoverSegment(haltIndex: number, type: number, event: MouseEvent) {
-      if (this.lineSelection.hoveredHalt == haltIndex && this.lineSelection.hoveredType == type) {
+    unhoverSegment(haltIndex, type, event) {
+      if (this.lineSelection.hoveredHalt === haltIndex && this.lineSelection.hoveredType === type) {
         this.$emit("update-line-selection", {
           hoveredLine: -1,
           hoveredSet: -1,
@@ -237,7 +237,7 @@ export default Vue.extend({
         })
       }
     },
-    clickSegment(haltIndex: number, type: number, event: MouseEvent) {
+    clickSegment(haltIndex, type, event) {
       this.$emit("update-line-selection", {
         selectedHalt: haltIndex,
         selectedType: type,
@@ -245,14 +245,14 @@ export default Vue.extend({
         hoveredType: type
       })
     },
-    contextSegment(haltIndex: number, type: number, event: MouseEvent) {
+    contextSegment(haltIndex, type, event) {
       this.clickSegment(haltIndex, type, event)
 
       const lineIndex = this.lineSelection.selectedLine
       const setIndex = this.lineSelection.selectedSet
       const line = this.$store.state.lines[lineIndex]
 
-      if (type == 2) {
+      if (type === 2) {
         const menu = new Menu()
         menu.append(new MenuItem({
           label: "Insert halt",

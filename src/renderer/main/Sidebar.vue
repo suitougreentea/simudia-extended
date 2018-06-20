@@ -82,10 +82,10 @@ div(style="height: 100%")
 
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue"
 import TimeUtil from "../../time-util"
-import TimeInputControl from "./TimeInputControl.vue"
+import TimeInputControl from "../components/TimeInputControl.vue"
 
 import * as Electron from "electron"
 const { Menu, MenuItem } = Electron.remote
@@ -105,35 +105,35 @@ export default Vue.extend({
     }
   },
   methods: {
-    value(event: Event) {
-      return (event.target as HTMLInputElement).value
+    value(event) {
+      return event.target.value
     },
-    check(event: Event) {
-      return (event.target as HTMLInputElement).checked
+    check(event) {
+      return event.target.checked
     },
-    changeLine(key: string, value: any) {
+    changeLine(key, value) {
       this.$store.commit("modifyLine", { index: this.lineSelection.selectedLine, key, value })
     },
-    changeLineTime(key: string, event: any) {
+    changeLineTime(key, event) {
       this.changeLine(key, event.target.time)
     },
-    changeLineVisibility(index: number, value: boolean) {
+    changeLineVisibility(index, value) {
       this.$store.commit("modifyLine", { index: index, key: "visible", value })
     },
-    changeTime(key: string, event: any) {
+    changeTime(key, event) {
       // TODO: perhaps not needed
       this.changeHalt(key, event.target.time)
     },
-    changeHalt(key: string, value: any) {
+    changeHalt(key, value) {
       this.$store.commit("modifyLineHalt", { lineIndex: this.lineSelection.selectedLine, haltIndex: this.lineSelection.selectedHalt, key, value })
     },
-    changeGlobal(key: string, value: any) {
+    changeGlobal(key, value) {
       this.$store.commit("modifyGlobal", { key, value })
     },
 
     // TODO: duplicate of LineDefs; see MainScreen.vue for more details
     //       or perhaps resolved by mixins?
-    hoverLine(index: number, event: MouseEvent) {
+    hoverLine(index, event) {
       this.$emit("update-line-selection", {
         hoveredLine: index,
         hoveredSet: -1,
@@ -141,14 +141,14 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    unhoverLine(index: number, event: MouseEvent) {
-      if (this.lineSelection.hoveredLine == index) {
+    unhoverLine(index, event) {
+      if (this.lineSelection.hoveredLine === index) {
         this.$emit("update-line-selection", {
           hoveredLine: -1
         })
       }
     },
-    clickLine(index: number, event: MouseEvent) {
+    clickLine(index, event) {
       this.$emit("cancel-input")
       this.$emit("update-line-selection", {
         selectedLine: index,
@@ -161,8 +161,8 @@ export default Vue.extend({
         hoveredType: -1
       })
     },
-    contextLine(index: number, event: MouseEvent) {
-      //this.clickLine(index, event)  // TODO: selection disabled
+    contextLine(index, event) {
+      // this.clickLine(index, event)  // TODO: selection disabled
       const menu = new Menu()
       menu.append(new MenuItem({
         label: "Delete line",
@@ -177,32 +177,32 @@ export default Vue.extend({
       menu.popup()
     },
     // TODO: end of duplication
-    departureTimeShift(time: number): number {
+    departureTimeShift(time) {
       const monthLength = this.$store.state.monthLength
       const shiftDivisor = this.$store.state.shiftDivisor
       return Math.round((time % monthLength) / monthLength * shiftDivisor)
     },
-    shiftToTime(shift: number): number {
+    shiftToTime(shift) {
       const monthLength = this.$store.state.monthLength
       const shiftDivisor = this.$store.state.shiftDivisor
       return shift / shiftDivisor * monthLength
     }
   },
   computed: {
-    currentLine(): Array<any> { return this.$store.state.lines[this.lineSelection.selectedLine] },
-    currentHalt(): any { return this.$store.state.lines[this.lineSelection.selectedLine].halts[this.lineSelection.selectedHalt] },
-    nextHalt(): any { 
+    currentLine() { return this.$store.state.lines[this.lineSelection.selectedLine] },
+    currentHalt() { return this.$store.state.lines[this.lineSelection.selectedLine].halts[this.lineSelection.selectedHalt] },
+    nextHalt() {
       const halts = this.$store.state.lines[this.lineSelection.selectedLine].halts
       return halts[(this.lineSelection.selectedHalt+1) % halts.length]
     },
-    stationName(): string {
+    stationName() {
       return this.$store.state.stations[this.$store.getters.findStationIndex(this.currentHalt.stationId)].name
     },
-    nextStationName(): string {
+    nextStationName() {
       return this.$store.state.stations[this.$store.getters.findStationIndex(this.nextHalt.stationId)].name
     },
-    lineInfoString(): Array<string> {
-      const result = new Array<string>()
+    lineInfoString() {
+      const result = []
       const monthLength = this.$store.state.monthLength
       const shiftDivisor = this.$store.state.shiftDivisor
       const line = this.$store.state.lines[this.lineSelection.selectedLine]
@@ -211,7 +211,7 @@ export default Vue.extend({
       for (let i = 0; i < halts.length; i++) {
         const halt = halts[i]
         const station = this.$store.getters.findStation(halt.stationId)
-        if (i != 0) result.push(TimeUtil.joinString(times[i].arrival, false))
+        if (i !== 0) result.push(TimeUtil.joinString(times[i].arrival, false))
         const scheduleInfo = times[i].scheduled ? "Scheduled: " + Math.round((times[i].departure % monthLength) / monthLength * shiftDivisor) : ""
         result.push(`[${station.name}] ${scheduleInfo}`)
         result.push(TimeUtil.joinString(times[i].departure, false))
@@ -224,8 +224,7 @@ export default Vue.extend({
       return result
     },
   }
-});
-
+})
 </script>
 
 <style lang="stylus">

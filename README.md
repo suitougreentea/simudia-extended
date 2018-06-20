@@ -35,11 +35,8 @@ yarn dev
 # build electron application for production for your platform
 yarn build
 
-# run unit & end-to-end tests
-# yarn test
-
 # lint all JS/Vue component files in `src/`
-# yarn lint
+yarn lint
 ```
 
 

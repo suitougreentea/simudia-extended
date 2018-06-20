@@ -8,15 +8,15 @@ defs
         @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
   
 </template>
-<script lang="ts">
-import Vue from 'vue'
+<script>
+import Vue from "vue"
 import * as Electron from "electron"
 const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
   props: ["mode", "inputtingTime", "stations", "xi", "accumulatedStationY", "layout", "lineSelection", "stationSelection", "relativeX"],
   methods: {
-    hoverStation(i: number, e: MouseEvent) {
+    hoverStation(i, e) {
       this.$emit("update-station-selection", {
         hovered: i
       })
@@ -24,15 +24,15 @@ export default Vue.extend({
       const hoveredTime = this.xi(x)
       this.$emit("update-hovered-time", hoveredTime)
     },
-    unhoverStation(i: number) {
-      if (this.stationSelection.hovered == i) {
+    unhoverStation(i) {
+      if (this.stationSelection.hovered === i) {
         this.$emit("update-station-selection", {
           hovered: -1
         })
       }
     },
-    clickStationLine(i: number, e: MouseEvent) {
-      if (this.mode == "input" && !this.inputtingTime) {
+    clickStationLine(i, e) {
+      if (this.mode === "input" && !this.inputtingTime) {
         const x = this.relativeX(e.clientX)
         const cursorTime = this.xi(x)
         if (cursorTime >= 0) {
@@ -42,15 +42,15 @@ export default Vue.extend({
             skip: !e.getModifierState("Shift")
           })
         }
-      } else if (this.mode == "edit") {
+      } else if (this.mode === "edit") {
         this.$emit("update-station-selection", {
           hovered: i,
           selected: i,
         })
       }
     },
-    contextStationLine(i: number, e: MouseEvent) {
-      if (this.mode == "edit") {
+    contextStationLine(i, e) {
+      if (this.mode === "edit") {
         this.$emit("update-station-selection", {
           hovered: i,
           selected: i,
