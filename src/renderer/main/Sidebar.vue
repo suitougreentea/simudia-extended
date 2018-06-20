@@ -1,7 +1,9 @@
+<!-- NOTE: This component must be a child of MainScreen -->
+
 <template lang="pug">
 div(style="height: 100%")
   div#sidebar-above
-    div(v-if="lineSelection.selectedLine == -1")
+    div(v-if="$parent.lineSelection.selectedLine == -1")
       div
         label Month length:
         TimeInputControl(:value="$store.state.monthLength" @change="changeGlobal('monthLength', $event.target.time)")
@@ -9,7 +11,7 @@ div(style="height: 100%")
         label Shift divisor:
         input(type="number" min=1 :value="$store.state.shiftDivisor" @input="changeGlobal('shiftDivisor', Math.max(Math.floor(Number(value($event))), 1))")
 
-    div(v-if="lineSelection.selectedLine >= 0 && lineSelection.selectedSet == -1")
+    div(v-if="$parent.lineSelection.selectedLine >= 0 && $parent.lineSelection.selectedSet == -1")
       div
         input(type="checkbox" :checked="currentLine.visible", @change="changeLine('visible', check($event))")
         label Visible
@@ -31,8 +33,8 @@ div(style="height: 100%")
       div
         label Reversing time:
         TimeInputControl(:value="currentLine.reversingTime" @change="changeLineTime('reversingTime', $event)")
-    div(v-if="lineSelection.selectedHalt >= 0")
-      div(v-if="lineSelection.selectedType == 1")
+    div(v-if="$parent.lineSelection.selectedHalt >= 0")
+      div(v-if="$parent.lineSelection.selectedType == 1")
         div From: {{ stationName }}
         div To: {{ nextStationName }}
         div
@@ -41,7 +43,7 @@ div(style="height: 100%")
         div(v-if="!currentHalt.skip")
           label Journey time:
           TimeInputControl(:value="currentHalt.time" @change="changeTime('time', $event)")
-      div(v-if="lineSelection.selectedType == 2")
+      div(v-if="$parent.lineSelection.selectedType == 2")
         div Stops at: {{ stationName }}
         div
           input(type="checkbox" :checked="currentHalt.skip", @change="changeHalt('skip', check($event))")
@@ -69,14 +71,16 @@ div(style="height: 100%")
               label In-game shift:
               input(:disabled="!currentHalt.scheduled" type="number" min="0" :value="departureTimeShift(currentHalt.departureTime)" @input="changeHalt('departureTime', shiftToTime(Number(value($event))))")
   div#sidebar-below
-    div(v-if="lineSelection.selectedLine == -1")
+    div(v-if="$parent.lineSelection.selectedLine == -1")
       div(v-for="(line, lineIndex) in $store.state.lines")
-        div(:class="{ 'hovered-line': lineSelection.hoveredLine == lineIndex }" :style="{ borderBottom: '2px solid ' + line.color }"
-            @mousemove="hoverLine(lineIndex, $event)" @mouseout="unhoverLine(lineIndex, $event)" @click.prevent.stop="clickLine(lineIndex, $event)"
-            @contextmenu.prevent.stop="contextLine(lineIndex, $event)")
+        div(:class="{ 'hovered-line': $parent.lineSelection.hoveredLine == lineIndex }" :style="{ borderBottom: '2px solid ' + line.color }"
+            @mouseenter="$parent.$refs.lineDefs.hoverLine(lineIndex, $event)"
+            @mouseleave="$parent.$refs.lineDefs.unhoverLine(lineIndex, $event)"
+            @click.prevent.stop="$parent.$refs.lineDefs.clickLine(lineIndex, $event)"
+            @contextmenu.prevent.stop="$parent.$refs.lineDefs.contextLine(lineIndex, $event)")
           input(type="checkbox" :checked="line.visible" @change="changeLineVisibility(lineIndex, check($event))" @click.stop="")
           span {{ line.name }}
-    div(v-if="lineSelection.selectedLine >= 0 && lineSelection.selectedSet == -1")
+    div(v-if="$parent.lineSelection.selectedLine >= 0 && $parent.lineSelection.selectedSet == -1")
       div(v-for="line in lineInfoString") {{ line }}
 
 
@@ -87,15 +91,8 @@ import Vue from "vue"
 import TimeUtil from "../../time-util"
 import TimeInputControl from "../components/TimeInputControl.vue"
 
-import * as Electron from "electron"
-const { Menu, MenuItem } = Electron.remote
-
 export default Vue.extend({
   name: "sidebar",
-  props: [
-    "mode",
-    "lineSelection"
-  ],
   components: {
     TimeInputControl
   },
@@ -112,7 +109,7 @@ export default Vue.extend({
       return event.target.checked
     },
     changeLine(key, value) {
-      this.$store.commit("modifyLine", { index: this.lineSelection.selectedLine, key, value })
+      this.$store.commit("modifyLine", { index: this.$parent.lineSelection.selectedLine, key, value })
     },
     changeLineTime(key, event) {
       this.changeLine(key, event.target.time)
@@ -125,58 +122,11 @@ export default Vue.extend({
       this.changeHalt(key, event.target.time)
     },
     changeHalt(key, value) {
-      this.$store.commit("modifyLineHalt", { lineIndex: this.lineSelection.selectedLine, haltIndex: this.lineSelection.selectedHalt, key, value })
+      this.$store.commit("modifyLineHalt", { lineIndex: this.$parent.lineSelection.selectedLine, haltIndex: this.$parent.lineSelection.selectedHalt, key, value })
     },
     changeGlobal(key, value) {
       this.$store.commit("modifyGlobal", { key, value })
     },
-
-    // TODO: duplicate of LineDefs; see MainScreen.vue for more details
-    //       or perhaps resolved by mixins?
-    hoverLine(index, event) {
-      this.$emit("update-line-selection", {
-        hoveredLine: index,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
-    },
-    unhoverLine(index, event) {
-      if (this.lineSelection.hoveredLine === index) {
-        this.$emit("update-line-selection", {
-          hoveredLine: -1
-        })
-      }
-    },
-    clickLine(index, event) {
-      this.$emit("cancel-input")
-      this.$emit("update-line-selection", {
-        selectedLine: index,
-        selectedSet: -1,
-        selectedHalt: -1,
-        selectedType: -1,
-        hoveredLine: index,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
-    },
-    contextLine(index, event) {
-      // this.clickLine(index, event)  // TODO: selection disabled
-      const menu = new Menu()
-      menu.append(new MenuItem({
-        label: "Delete line",
-        click: () => {
-          this.$emit("cancel-input")
-          this.$emit("update-line-selection", {
-            selectedLine: -1,
-          })
-          this.$store.commit("deleteLine", index)
-        }
-      }))
-      menu.popup()
-    },
-    // TODO: end of duplication
     departureTimeShift(time) {
       const monthLength = this.$store.state.monthLength
       const shiftDivisor = this.$store.state.shiftDivisor
@@ -189,11 +139,11 @@ export default Vue.extend({
     }
   },
   computed: {
-    currentLine() { return this.$store.state.lines[this.lineSelection.selectedLine] },
-    currentHalt() { return this.$store.state.lines[this.lineSelection.selectedLine].halts[this.lineSelection.selectedHalt] },
+    currentLine() { return this.$store.state.lines[this.$parent.lineSelection.selectedLine] },
+    currentHalt() { return this.$store.state.lines[this.$parent.lineSelection.selectedLine].halts[this.$parent.lineSelection.selectedHalt] },
     nextHalt() {
-      const halts = this.$store.state.lines[this.lineSelection.selectedLine].halts
-      return halts[(this.lineSelection.selectedHalt+1) % halts.length]
+      const halts = this.$store.state.lines[this.$parent.lineSelection.selectedLine].halts
+      return halts[(this.$parent.lineSelection.selectedHalt+1) % halts.length]
     },
     stationName() {
       return this.$store.state.stations[this.$store.getters.findStationIndex(this.currentHalt.stationId)].name
@@ -205,9 +155,9 @@ export default Vue.extend({
       const result = []
       const monthLength = this.$store.state.monthLength
       const shiftDivisor = this.$store.state.shiftDivisor
-      const line = this.$store.state.lines[this.lineSelection.selectedLine]
+      const line = this.$store.state.lines[this.$parent.lineSelection.selectedLine]
       const halts = line.halts
-      const times = this.$store.getters.computedTimes[this.lineSelection.selectedLine]
+      const times = this.$store.getters.computedTimes[this.$parent.lineSelection.selectedLine]
       for (let i = 0; i < halts.length; i++) {
         const halt = halts[i]
         const station = this.$store.getters.findStation(halt.stationId)

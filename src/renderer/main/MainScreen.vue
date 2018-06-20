@@ -1,5 +1,5 @@
-<!-- TODO: "Singleton" components should be *more tightly* coupled with MainScreen for performance issues
-           It is redundant to $emit from children only to change UI state -->
+<!-- NOTE: This component's data may be changed by the other components in the same folder for performances -->
+
 <template lang="pug">
 div(style="position: relative")
   div.diagram(@click="clickBackground")
@@ -19,12 +19,9 @@ div(style="position: relative")
         filter(id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%")
           feGaussianBlur(in="SourceGraphic" result="blur" stdDeviation=2)
           feBlend(in="SourceGraphic" in2="blur" mode="normal")
-        LineDefs(:mode="mode" :x="x" :accumulatedStationY="accumulatedStationY" :lineSelection="lineSelection"
-                 @update-line-selection="updateLineSelection" @insert-rubberband="insertRubberband")
-        StationDefs(:mode="mode" :inputtingTime="inputtingTime" :stations="stations" :xi="xi" :accumulatedStationY="accumulatedStationY" :layout="layout" :lineSelection="lineSelection" :stationSelection="stationSelection" :relativeX="relativeX"
-                    @update-line-selection="updateLineSelection" @update-station-selection="updateStationSelection" @update-hovered-time="updateHoveredTime" @click-station-line-input="clickStationLineInput")
-        LineInputDefs(ref="lineInputDefs" :mode="mode" :inputtingTime="inputtingTime" :x="x" :accumulatedStationY="accumulatedStationY" :stationSelection="stationSelection" :hoveredTime="hoveredTime" :modifierStates="modifierStates"
-                      @start-time-input="startTimeInput")
+        LineDefs(ref="lineDefs")
+        StationDefs(ref="stationDefs")
+        LineInputDefs(ref="lineInputDefs")
 
         line(v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color")
         text(v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14") {{ t.text }}
@@ -46,8 +43,7 @@ div(style="position: relative")
         TimeInput(ref="timeInput", :x="x" :accumulatedStationY="accumulatedStationY" :lineInsertOrigin="lineInsertOrigin"
                   @end-line-input="endLineInput")
   div.property-side
-    Sidebar(:mode="mode" :lineSelection="lineSelection"
-            @update-line-selection="updateLineSelection" @cancel-input="endLineInput")
+    Sidebar(@cancel-input="endLineInput")
 
 </template>
 
@@ -192,22 +188,6 @@ export default Vue.extend({
     },
     relativeY(y) {
       return y - this.$refs.svg.getBoundingClientRect().top
-    },
-    clickStationLineInput(event) {
-      this.$refs.lineInputDefs.addPoint(event)
-    },
-    insertRubberband(data) {
-      this.lineInsertOrigin = {
-        line: data.lineIndex,
-        halt: data.haltIndex,
-      }
-      this.mode = "input"
-      this.$refs.lineInputDefs.setTerminal(data.nextStationIndex)
-      this.$refs.lineInputDefs.addPoint({ station: data.stationIndex, time: data.time, skip: false })
-    },
-    startTimeInput(rubberbands) {
-      this.inputtingTime = true
-      this.$refs.timeInput.start(rubberbands)
     },
     endLineInput() {
       // TODO: name

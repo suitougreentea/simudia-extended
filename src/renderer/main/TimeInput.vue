@@ -1,3 +1,5 @@
+<!-- NOTE: This component must be a child of MainScreen -->
+
 <template lang="pug">
 div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }")
   div(contenteditable :class="{error: errorTime}" ref="timeInput"
@@ -9,7 +11,6 @@ import Vue from "vue"
 import TimeUtil from "../../time-util"
 
 export default Vue.extend({
-  props: ["x", "accumulatedStationY", "lineInsertOrigin"],
   data: function() {
     return {
       rubberbands: [],
@@ -45,16 +46,16 @@ export default Vue.extend({
         element.focus()
         document.execCommand("selectAll", false, null)
       } else {
-        if (this.lineInsertOrigin.line !== -1) {
+        if (this.$parent.lineInsertOrigin.line !== -1) {
           this.$store.commit("insertHalts", {
-            lineIndex: this.lineInsertOrigin.line, haltIndex: this.lineInsertOrigin.halt,
+            lineIndex: this.$parent.lineInsertOrigin.line, haltIndex: this.$parent.lineInsertOrigin.halt,
             stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes
           })
         } else {
           this.$store.commit("addLine", { stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: this.rubberbands[0].time })
         }
         this.end()
-        this.$emit("end-line-input")
+        this.$parent.endLineInput()
       }
     },
     end() {
@@ -68,8 +69,8 @@ export default Vue.extend({
       if (this.inputtingTimeIndex > this.rubberbands.length - 2) return {x: 0, y: 0}
       const {time: firstTime, station: firstStation} = this.rubberbands[this.inputtingTimeIndex]
       const {time: secondTime, station: secondStation} = this.rubberbands[this.inputtingTimeIndex+1]
-      const x = this.x((firstTime + secondTime) / 2) - 50
-      const y = (this.accumulatedStationY[firstStation] + this.accumulatedStationY[secondStation]) / 2 - 10
+      const x = this.$parent.x((firstTime + secondTime) / 2) - 50
+      const y = (this.$parent.accumulatedStationY[firstStation] + this.$parent.accumulatedStationY[secondStation]) / 2 - 10
       return {x, y}
     },
   }

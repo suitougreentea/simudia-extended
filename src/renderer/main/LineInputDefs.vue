@@ -1,9 +1,11 @@
+<!-- NOTE: This component must be a child of MainScreen -->
+
 <template lang="pug">
 defs
   symbol#line-input
     path(:d="displayPath", fill="none", stroke="black")
     circle(v-for="c in displayCircles" :cx="c.x" :cy="c.y" r=3 fill="black")
-    g(v-if="stationSelection.hovered >= 0 && hoveredTime >= 0")
+    g(v-if="$parent.stationSelection.hovered >= 0 && $parent.hoveredTime >= 0")
       path(:d="displayPathNew", fill="none", stroke="gray")
       circle(v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r=3 fill="gray")
   
@@ -13,7 +15,6 @@ import Vue from "vue"
 import { SECOND_DIVISOR } from "../../time-util"
 
 export default Vue.extend({
-  props: ["mode", "inputtingTime", "x", "accumulatedStationY", "stationSelection", "hoveredTime", "modifierStates"],
   data: function() {
     return {
       rubberbands: [], // {time, station, done}
@@ -31,7 +32,7 @@ export default Vue.extend({
       if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station === station) {
         const rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
         if (rubberbands.length >= 2 && rubberbands[0].station !== rubberbands[1].station) {
-          this.$emit("start-time-input", rubberbands)
+          this.startTimeInput(rubberbands)
         }
       } else {
         this.rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
@@ -39,7 +40,7 @@ export default Vue.extend({
     },
     getNewRubberbands(station, _time, skip) {
       if (_time < 0) return []
-      if (this.inputtingTime) return []
+      if (this.$parent.inputtingTime) return []
       if (this.rubberbands.length === 0) return [{ station, time: _time }]
       if (this.rubberbands[this.rubberbands.length - 1].station === station) {
         // if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
@@ -53,23 +54,28 @@ export default Vue.extend({
       if (skip) return [{ station, time }]
       const result = []
       const {time: lastTime, station: lastStation} = this.rubberbands[this.rubberbands.length - 1]
-      const lastY = this.accumulatedStationY[lastStation]
-      const thisY = this.accumulatedStationY[station]
+      const lastY = this.$parent.accumulatedStationY[lastStation]
+      const thisY = this.$parent.accumulatedStationY[station]
       let j = lastStation
       do {
         j += (lastStation < station) ? 1 : -1
-        const y = this.accumulatedStationY[j]
+        const y = this.$parent.accumulatedStationY[j]
         const t = lastTime + (time - lastTime) / (thisY - lastY) * (y - lastY)
         result.push({time: t, station: j})
       } while (j !== station)
       return result
+    },
+    startTimeInput(rubberbands) {
+      // TODO: name
+      this.$parent.inputtingTime = true
+      this.$parent.$refs.timeInput.start(rubberbands)
     },
     endInput() {
       // TODO: name
       if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
         this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR })
       }
-      if (this.rubberbands.length >= 3) this.$emit("start-time-input", this.rubberbands)
+      if (this.rubberbands.length >= 3) this.startTimeInput(this.rubberbands)
     },
     end() {
       // TODO: name
@@ -79,12 +85,12 @@ export default Vue.extend({
   },
   computed: {
     newRubberbands() {
-      return this.getNewRubberbands(this.stationSelection.hovered, this.hoveredTime, !this.modifierStates.shift)
+      return this.getNewRubberbands(this.$parent.stationSelection.hovered, this.$parent.hoveredTime, !this.$parent.modifierStates.shift)
     },
     displayPath() {
       return this.rubberbands.map((e, i) => {
-        const x = this.x(e.time)
-        const y = this.accumulatedStationY[e.station]
+        const x = this.$parent.x(e.time)
+        const y = this.$parent.accumulatedStationY[e.station]
         if (i === 0) return `M ${x} ${y}`
         return `L ${x} ${y}`
       }).join(" ")
@@ -93,23 +99,23 @@ export default Vue.extend({
       if (this.rubberbands.length === 0) return ""
       const rubberbands = [this.rubberbands[this.rubberbands.length - 1], ...this.newRubberbands]
       return rubberbands.map((e, i) => {
-        const x = this.x(e.time)
-        const y = this.accumulatedStationY[e.station]
+        const x = this.$parent.x(e.time)
+        const y = this.$parent.accumulatedStationY[e.station]
         if (i === 0) return `M ${x} ${y}`
         return `L ${x} ${y}`
       }).join(" ")
     },
     displayCircles() {
       return this.rubberbands.map((e, i) => {
-        const x = this.x(e.time)
-        const y = this.accumulatedStationY[e.station]
+        const x = this.$parent.x(e.time)
+        const y = this.$parent.accumulatedStationY[e.station]
         return { x, y }
       })
     },
     displayCirclesNew() {
       return this.newRubberbands.map((e, i) => {
-        const x = this.x(e.time)
-        const y = this.accumulatedStationY[e.station]
+        const x = this.$parent.x(e.time)
+        const y = this.$parent.accumulatedStationY[e.station]
         return { x, y }
       })
     }

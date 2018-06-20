@@ -1,3 +1,5 @@
+<!-- NOTE: This component must be a child of MainScreen -->
+
 <template lang="pug">
 defs
   symbol#lines
@@ -12,26 +14,26 @@ defs
             //-circle(v-for="s in ss" v-if="s.type == 2 && (selectedSegment.type == 2 || hoveredSegment.halt == 2) && isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type)"
                   :cx="(s.x1 + s.x2) / 2" :cy="s.y1" r=3 fill="black")
   symbol#lines-hover
-    g(v-if="mode == 'edit'")
+    g(v-if="$parent.mode == 'edit'")
       g(v-for="(line, lineIndex) in lineSegments")
         g(v-if="line.visible")
-          g(v-if="lineIndex != lineSelection.selectedLine" v-for="(set, setIndex) in line.sets")
+          g(v-if="lineIndex != $parent.lineSelection.selectedLine" v-for="(set, setIndex) in line.sets")
             g(v-for="ss in set")
               line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
                   stroke-linecap="round"
-                  @mousemove="hoverLine(lineIndex, $event)" @mouseout="unhoverLine(lineIndex, $event)" @click.prevent.stop="clickLine(lineIndex, $event)"
+                  @mouseenter="hoverLine(lineIndex, $event)" @mouseleave="unhoverLine(lineIndex, $event)" @click.prevent.stop="clickLine(lineIndex, $event)"
                   @contextmenu.prevent.stop="contextLine(lineIndex, $event)")
-      g(v-if="lineSelection.selectedLine >= 0 && lineSegments[lineSelection.selectedLine].visible")
-        g(v-for="(set, setIndex) in lineSegments[lineSelection.selectedLine].sets")
+      g(v-if="$parent.lineSelection.selectedLine >= 0 && lineSegments[$parent.lineSelection.selectedLine].visible")
+        g(v-for="(set, setIndex) in lineSegments[$parent.lineSelection.selectedLine].sets")
           g(v-for="ss in set")
-            line(v-if="setIndex != lineSelection.selectedSet" v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
+            line(v-if="setIndex != $parent.lineSelection.selectedSet" v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
                 stroke-linecap="round"
-                @mousemove="hoverSet(setIndex, $event)" @mouseout="unhoverSet(setIndex, $event)" @click.prevent.stop="clickSet(setIndex, $event)")
-      g(v-if="lineSelection.selectedSet >= 0 && lineSegments[lineSelection.selectedLine].visible")
-        g(v-for="ss in lineSegments[lineSelection.selectedLine].sets[lineSelection.selectedSet]")
+                @mouseenter="hoverSet(setIndex, $event)" @mouseleave="unhoverSet(setIndex, $event)" @click.prevent.stop="clickSet(setIndex, $event)")
+      g(v-if="$parent.lineSelection.selectedSet >= 0 && lineSegments[$parent.lineSelection.selectedLine].visible")
+        g(v-for="ss in lineSegments[$parent.lineSelection.selectedLine].sets[$parent.lineSelection.selectedSet]")
           line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
               stroke-linecap="round"
-              @mousemove="hoverSegment(s.haltIndex, s.type, $event)" @mouseout="unhoverSegment(s.haltIndex, s.type, $event)" @click.prevent.stop="clickSegment(s.haltIndex, s.type, $event)"
+              @mouseenter="hoverSegment(s.haltIndex, s.type, $event)" @mouseleave="unhoverSegment(s.haltIndex, s.type, $event)" @click.prevent.stop="clickSegment(s.haltIndex, s.type, $event)"
               @contextmenu.prevent.stop="contextSegment(s.haltIndex, s.type, $event)")
 </template>
 
@@ -41,7 +43,6 @@ import * as Electron from "electron"
 const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
-  props: ["mode", "x", "accumulatedStationY", "lineSelection"],
   computed: {
     // Array<{ visible: boolean, sets: Array<Array<Array<any>>>}>
     lineSegments() {
@@ -58,8 +59,8 @@ export default Vue.extend({
           pushSegment(array, { ...segment, t1: 0, t2: segment.t2 - monthLength, y1: intermediateY })
         } else {
           array.push({
-            x1: this.x(segment.t1),
-            x2: this.x(segment.t2),
+            x1: this.$parent.x(segment.t1),
+            x2: this.$parent.x(segment.t2),
             y1: segment.y1, y2: segment.y2,
             haltIndex: segment.haltIndex, type: segment.type, color: segment.color, width: segment.width, dashed: segment.dashed
           })
@@ -77,8 +78,8 @@ export default Vue.extend({
             const nextHalt = line.halts[(j+1) % length]
             const currStationIndex = this.$store.getters.findStationIndex(currHalt.stationId)
             const nextStationIndex = this.$store.getters.findStationIndex(nextHalt.stationId)
-            const currY = this.accumulatedStationY[currStationIndex]
-            const nextY = this.accumulatedStationY[nextStationIndex]
+            const currY = this.$parent.accumulatedStationY[currStationIndex]
+            const nextY = this.$parent.accumulatedStationY[nextStationIndex]
             const currTime = time[j]
             const nextTime = time[(j+1) % length]
             const currDepTime = currTime.departure + offsetTime
@@ -103,7 +104,7 @@ export default Vue.extend({
   methods: {
     isLineSegmentWidened(lineIndex, setIndex, haltIndex, type) {
       const { hoveredLine, hoveredSet, hoveredHalt, hoveredType,
-        selectedLine, selectedSet, selectedHalt, selectedType } = this.lineSelection
+        selectedLine, selectedSet, selectedHalt, selectedType } = this.$parent.lineSelection
       // TODO: semantically correct, but it should be simpler
       // if I add one more selection stack state, it'll be more complex...
       if (selectedLine === -1) {
@@ -147,7 +148,7 @@ export default Vue.extend({
       return false
     },
     isLineSegmentSelected(lineIndex, setIndex, haltIndex, type) {
-      const { selectedLine, selectedSet, selectedHalt, selectedType } = this.lineSelection
+      const { selectedLine, selectedSet, selectedHalt, selectedType } = this.$parent.lineSelection
       if (selectedHalt >= 0) {
         return selectedLine === lineIndex && selectedSet === setIndex && selectedHalt === haltIndex && selectedType === type
       }
@@ -155,101 +156,79 @@ export default Vue.extend({
       return selectedLine === lineIndex
     },
     hoverLine(index, event) {
-      this.$emit("update-line-selection", {
-        hoveredLine: index,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
+      this.$parent.lineSelection.hoveredLine = index
+      this.$parent.lineSelection.hoveredSet = -1
+      this.$parent.lineSelection.hoveredHalt = -1
+      this.$parent.lineSelection.hoveredType = -1
     },
     unhoverLine(index, event) {
-      if (this.lineSelection.hoveredLine === index) {
-        this.$emit("update-line-selection", {
-          hoveredLine: -1
-        })
+      if (this.$parent.lineSelection.hoveredLine === index) {
+        this.$parent.lineSelection.hoveredLine = -1
       }
     },
     clickLine(index, event) {
-      this.$emit("update-line-selection", {
-        selectedLine: index,
-        selectedSet: -1,
-        selectedHalt: -1,
-        selectedType: -1,
-        hoveredLine: index,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
+      this.$parent.lineSelection.selectedLine = index
+      this.$parent.lineSelection.selectedSet = -1
+      this.$parent.lineSelection.selectedHalt = -1
+      this.$parent.lineSelection.selectedType = -1
+      this.$parent.lineSelection.hoveredLine = index
+      this.$parent.lineSelection.hoveredSet = -1
+      this.$parent.lineSelection.hoveredHalt = -1
+      this.$parent.lineSelection.hoveredType = -1
     },
     contextLine(index, event) {
-      this.clickLine(index, event)
+      // this.clickLine(index, event)
       const menu = new Menu()
       menu.append(new MenuItem({
         label: "Delete line",
         click: () => {
-          this.$emit("update-line-selection", {
-            selectedLine: -1,
-          })
+          this.$parent.lineSelection.selectedLine = -1
           this.$store.commit("deleteLine", index)
         }
       }))
       menu.popup()
     },
     hoverSet(index, event) {
-      this.$emit("update-line-selection", {
-        hoveredLine: -1,
-        hoveredSet: index,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
+      this.$parent.lineSelection.hoveredLine = -1
+      this.$parent.lineSelection.hoveredSet = index
+      this.$parent.lineSelection.hoveredHalt = -1
+      this.$parent.lineSelection.hoveredType = -1
     },
     unhoverSet(index, event) {
-      if (this.lineSelection.hoveredSet === index) {
-        this.$emit("update-line-selection", {
-          hoveredLine: -1,
-          hoveredSet: -1
-        })
+      if (this.$parent.lineSelection.hoveredSet === index) {
+        this.$parent.lineSelection.hoveredLine = -1
+        this.$parent.lineSelection.hoveredSet = -1
       }
     },
     clickSet(index, event) {
-      this.$emit("update-line-selection", {
-        selectedSet: index,
-        selectedHalt: -1,
-        selectedType: -1,
-        hoveredSet: index,
-        hoveredHalt: -1,
-        hoveredType: -1
-      })
+      this.$parent.lineSelection.selectedSet = index
+      this.$parent.lineSelection.selectedHalt = -1
+      this.$parent.lineSelection.selectedType = -1
+      this.$parent.lineSelection.hoveredSet = index
+      this.$parent.lineSelection.hoveredHalt = -1
+      this.$parent.lineSelection.hoveredType = -1
     },
     hoverSegment(haltIndex, type, event) {
-      this.$emit("update-line-selection", {
-        hoveredHalt: haltIndex,
-        hoveredType: type
-      })
+      this.$parent.lineSelection.hoveredHalt = haltIndex
+      this.$parent.lineSelection.hoveredType = type
     },
     unhoverSegment(haltIndex, type, event) {
-      if (this.lineSelection.hoveredHalt === haltIndex && this.lineSelection.hoveredType === type) {
-        this.$emit("update-line-selection", {
-          hoveredLine: -1,
-          hoveredSet: -1,
-          hoveredHalt: -1,
-          hoveredType: -1
-        })
+      if (this.$parent.lineSelection.hoveredHalt === haltIndex && this.$parent.lineSelection.hoveredType === type) {
+        this.$parent.lineSelection.hoveredLine = -1
+        this.$parent.lineSelection.hoveredSet = -1
+        this.$parent.lineSelection.hoveredHalt = -1
+        this.$parent.lineSelection.hoveredType = -1
       }
     },
     clickSegment(haltIndex, type, event) {
-      this.$emit("update-line-selection", {
-        selectedHalt: haltIndex,
-        selectedType: type,
-        hoveredHalt: haltIndex,
-        hoveredType: type
-      })
+      this.$parent.lineSelection.selectedHalt = haltIndex
+      this.$parent.lineSelection.selectedType = type
+      this.$parent.lineSelection.hoveredHalt = haltIndex
+      this.$parent.lineSelection.hoveredType = type
     },
     contextSegment(haltIndex, type, event) {
-      this.clickSegment(haltIndex, type, event)
-
-      const lineIndex = this.lineSelection.selectedLine
-      const setIndex = this.lineSelection.selectedSet
+      const lineIndex = this.$parent.lineSelection.selectedLine
+      const setIndex = this.$parent.lineSelection.selectedSet
       const line = this.$store.state.lines[lineIndex]
 
       if (type === 2) {
@@ -264,23 +243,22 @@ export default Vue.extend({
             const stationIndex = this.$store.getters.findStationIndex(halt.stationId)
             const nextStationIndex = this.$store.getters.findStationIndex(nextHalt.stationId)
             const time = (this.$store.getters.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
-            this.$emit("insert-rubberband", {
-              lineIndex,
-              haltIndex,
-              stationIndex,
-              nextStationIndex,
-              time
-            })
+
+            this.$parent.lineInsertOrigin = {
+              line: lineIndex,
+              halt: haltIndex,
+            }
+            this.$parent.mode = "input"
+            this.$parent.$refs.lineInputDefs.setTerminal(nextStationIndex)
+            this.$parent.$refs.lineInputDefs.addPoint({ station: stationIndex, time: time, skip: false })
           }
         }))
         menu.append(new MenuItem({
           label: "Delete halt",
           enabled: line.halts.length >= 3,
           click: () => {
-            this.$emit("update-line-selection", {
-              selectedHalt: -1,
-              selectedType: -1,
-            })
+            this.$parent.lineSelection.selectedHalt = -1
+            this.$parent.lineSelection.selectedType = -1
             this.$store.commit("deleteHalt", { lineIndex, haltIndex })
           }
         }))
