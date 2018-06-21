@@ -30,9 +30,9 @@ export default Vue.extend({
         this.terminal = station
       }
       if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station === station) {
-        const rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
-        if (rubberbands.length >= 2 && rubberbands[0].station !== rubberbands[1].station) {
-          this.startTimeInput(rubberbands)
+        this.rubberbands.push(...this.getNewRubberbands(station, time, skip))
+        if (this.rubberbands.length >= 2 && this.rubberbands[0].station !== this.rubberbands[1].station) {
+          this.startTimeInput(this.rubberbands)
         }
       } else {
         this.rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
