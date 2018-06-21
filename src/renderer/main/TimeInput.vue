@@ -54,11 +54,10 @@ export default Vue.extend({
         } else {
           this.$store.commit("addLine", { stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: this.rubberbands[0].time })
         }
-        this.end()
-        this.$parent.endLineInput()
+        this.$parent.resetInput()
       }
     },
-    end() {
+    reset() {
       this.rubberbands = []
       this.inputtingTimeIndex = -1
       this.inputtingTimes = []

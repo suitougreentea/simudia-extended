@@ -30,10 +30,7 @@ export default Vue.extend({
         this.terminal = station
       }
       if (this.rubberbands.length > 0 && this.rubberbands[this.rubberbands.length - 1].station === station) {
-        this.rubberbands.push(...this.getNewRubberbands(station, time, skip))
-        if (this.rubberbands.length >= 2 && this.rubberbands[0].station !== this.rubberbands[1].station) {
-          this.startTimeInput(this.rubberbands)
-        }
+        this.finishInput()
       } else {
         this.rubberbands = [...this.rubberbands, ...this.getNewRubberbands(station, time, skip)]
       }
@@ -65,20 +62,16 @@ export default Vue.extend({
       } while (j !== station)
       return result
     },
-    startTimeInput(rubberbands) {
-      // TODO: name
-      this.$parent.inputtingTime = true
-      this.$parent.$refs.timeInput.start(rubberbands)
-    },
-    endInput() {
-      // TODO: name
+    finishInput() {
       if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
         this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR })
       }
-      if (this.rubberbands.length >= 3) this.startTimeInput(this.rubberbands)
+      if (this.rubberbands.length >= 3) {
+        this.$parent.inputtingTime = true
+        this.$parent.$refs.timeInput.start(this.rubberbands)
+      }
     },
-    end() {
-      // TODO: name
+    reset() {
       this.rubberbands = []
       this.terminal = -1
     }

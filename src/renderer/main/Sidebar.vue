@@ -6,7 +6,7 @@ div(style="height: 100%")
     div(v-if="$parent.lineSelection.selectedLine == -1")
       div
         label Month length:
-        TimeInputControl(:value="$store.state.monthLength" @change="changeGlobal('monthLength', $event.target.time)")
+        TimeInputControl(:value="$store.state.monthLength" @change="changeGlobal('monthLength', time($event))")
       div
         label Shift divisor:
         input(type="number" min=1 :value="$store.state.shiftDivisor" @input="changeGlobal('shiftDivisor', Math.max(Math.floor(Number(value($event))), 1))")
@@ -29,10 +29,10 @@ div(style="height: 100%")
         input(type="color" min=1 :value="currentLine.color" @input="changeLine('color', value($event))")
       div
         label Default loading time:
-        TimeInputControl(:value="currentLine.defaultLoadingTime" @change="changeLineTime('defaultLoadingTime', $event)")
+        TimeInputControl(:value="currentLine.defaultLoadingTime" @change="changeLine('defaultLoadingTime', time($event))")
       div
         label Reversing time:
-        TimeInputControl(:value="currentLine.reversingTime" @change="changeLineTime('reversingTime', $event)")
+        TimeInputControl(:value="currentLine.reversingTime" @change="changeLine('reversingTime', time($event))")
     div(v-if="$parent.lineSelection.selectedHalt >= 0")
       div(v-if="$parent.lineSelection.selectedType == 0")
         div From: {{ stationName }}
@@ -42,7 +42,7 @@ div(style="height: 100%")
           label Skip
         div(v-if="!currentHalt.skip")
           label Journey time:
-          TimeInputControl(:value="currentHalt.time" @change="changeTime('time', $event)")
+          TimeInputControl(:value="currentHalt.time" @change="changeHalt('time', time($event))")
       div(v-if="$parent.lineSelection.selectedType == 1")
         div Stops at: {{ stationName }}
         div
@@ -52,7 +52,7 @@ div(style="height: 100%")
           div
             input(type="checkbox" :checked="currentHalt.wait", @change="changeHalt('wait', check($event))")
             label Wait:
-            TimeInputControl(:disabled="!currentHalt.wait" :value="currentHalt.waitTime" @change="changeTime('waitTime', $event)")
+            TimeInputControl(:disabled="!currentHalt.wait" :value="currentHalt.waitTime" @change="changeHalt('waitTime', time($event))")
 
           div
             input(type="checkbox" :checked="currentHalt.reverse", @change="changeHalt('reverse', check($event))")
@@ -61,12 +61,12 @@ div(style="height: 100%")
           div
             input(type="checkbox" :checked="currentHalt.overrideLoadingTime", @change="changeHalt('overrideLoadingTime', check($event))")
             label Override loading:
-            TimeInputControl(:disabled="!currentHalt.overrideLoadingTime" :value="currentHalt.loadingTime" @change="changeTime('loadingTime', $event)")
+            TimeInputControl(:disabled="!currentHalt.overrideLoadingTime" :value="currentHalt.loadingTime" @change="changeHalt('loadingTime', time($event))")
 
           div
             input(type="checkbox" :checked="currentHalt.scheduled", @change="changeHalt('scheduled', check($event))")
             label Schedule departure:
-            TimeInputControl(:disabled="!currentHalt.scheduled" :value="currentHalt.departureTime" @change="changeTime('departureTime', $event)")
+            TimeInputControl(:disabled="!currentHalt.scheduled" :value="currentHalt.departureTime" @change="changeHalt('departureTime', time($event))")
             div
               label In-game shift:
               input(:disabled="!currentHalt.scheduled" type="number" min="0" :value="departureTimeShift(currentHalt.departureTime)" @input="changeHalt('departureTime', shiftToTime(Number(value($event))))")
@@ -108,18 +108,14 @@ export default Vue.extend({
     check(event) {
       return event.target.checked
     },
+    time(event) {
+      return event.target.time
+    },
     changeLine(key, value) {
       this.$store.commit("modifyLine", { index: this.$parent.lineSelection.selectedLine, key, value })
     },
-    changeLineTime(key, event) {
-      this.changeLine(key, event.target.time)
-    },
     changeLineVisibility(index, value) {
       this.$store.commit("modifyLine", { index: index, key: "visible", value })
-    },
-    changeTime(key, event) {
-      // TODO: perhaps not needed
-      this.changeHalt(key, event.target.time)
     },
     changeHalt(key, value) {
       this.$store.commit("modifyLineHalt", { lineIndex: this.$parent.lineSelection.selectedLine, haltIndex: this.$parent.lineSelection.selectedHalt, key, value })

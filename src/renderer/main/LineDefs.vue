@@ -171,6 +171,7 @@ export default Vue.extend({
       }
     },
     clickLine(index, event) {
+      this.$parent.resetInput() // needed by Sidebar
       this.$parent.lineSelection.selectedLine = index
       this.$parent.lineSelection.selectedSet = -1
       this.$parent.lineSelection.selectedHalt = -1
@@ -181,6 +182,7 @@ export default Vue.extend({
       this.$parent.lineSelection.hoveredType = -1
     },
     contextLine(index, event) {
+      this.$parent.resetInput() // needed by Sidebar
       const menu = new Menu()
       menu.append(new MenuItem({
         label: "Delete line",

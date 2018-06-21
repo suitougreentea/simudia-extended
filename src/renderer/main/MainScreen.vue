@@ -33,17 +33,16 @@ div(style="position: relative")
         use(xlink:href="#lines-hover")
       div(style="position: absolute; top: 0; left: 0;")
         div.station-name(contenteditable v-for="(s, i) in stations" :style="{ top: accumulatedStationY[i] - 20 + 'px', left: '20px' }"
-            @focus="endLineInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)"
+            @focus="resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)"
             ref="existingStation") {{ s.name }}
         div.station-name(contenteditable :style="{ top: newStationY + 'px', left: '20px' }"
             @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur"
             ref="newStation")
         div.station-name(:style="{ top: '-100px', left: '-100px' }"
             ref="stationForMeasure")
-        TimeInput(ref="timeInput", :x="x" :accumulatedStationY="accumulatedStationY" :lineInsertOrigin="lineInsertOrigin"
-                  @end-line-input="endLineInput")
+        TimeInput(ref="timeInput")
   div.property-side
-    Sidebar(@cancel-input="endLineInput")
+    Sidebar(ref="sideBar")
 
 </template>
 
@@ -115,7 +114,7 @@ export default Vue.extend({
     zoomInVertical() { this.zoom.vertical++ },
     zoomOutVertical() { this.zoom.vertical-- },
     newStationFocus() {
-      this.endLineInput()
+      this.resetInput()
       const element = this.$refs.newStation
       element.innerText = ""
     },
@@ -189,10 +188,9 @@ export default Vue.extend({
     relativeY(y) {
       return y - this.$refs.svg.getBoundingClientRect().top
     },
-    endLineInput() {
-      // TODO: name
-      this.$refs.timeInput.end()
-      this.$refs.lineInputDefs.end()
+    resetInput() {
+      this.$refs.timeInput.reset()
+      this.$refs.lineInputDefs.reset()
       this.lineInsertOrigin = {
         line: -1,
         halt: -1
@@ -202,7 +200,7 @@ export default Vue.extend({
     },
     toggleInputMode() {
       if (this.mode === "input") {
-        this.endLineInput()
+        this.resetInput()
         this.mode = "edit"
       } else {
         this.unselectAll()
@@ -269,6 +267,21 @@ export default Vue.extend({
         return true
       }
       return false
+    },
+    beforeUnload(e) {
+      if (this.$store.state.modified) {
+        const result = this.closeDialog()
+        if (result === 2) {
+          e.returnValue = false
+          return
+        }
+        if (result === 0) {
+          const saved = this.saveFile()
+          if (!saved) {
+            e.returnValue = false
+          }
+        }
+      }
     }
   },
   computed: {
@@ -363,12 +376,12 @@ export default Vue.extend({
         if (this.mode === "input" && !this.inputtingTime && lineInputDefs.rubberbands.length > 0) {
           event.preventDefault()
           event.stopPropagation()
-          lineInputDefs.endInput()
+          lineInputDefs.finishInput()
         }
       }
       if (event.key === "Escape") {
         if (this.mode === "input") {
-          this.endLineInput()
+          this.resetInput()
         }
         if (this.mode === "edit") {
           this.unselectAll()
@@ -381,22 +394,7 @@ export default Vue.extend({
       if (event.key === "Shift") this.modifierStates = { ...this.modifierStates, shift: false }
       if (event.key === "Control") this.modifierStates = { ...this.modifierStates, control: false }
     })
-    window.addEventListener("beforeunload", (e) => {
-      // TODO: create function?
-      if (this.$store.state.modified) {
-        const result = this.closeDialog()
-        if (result === 2) {
-          e.returnValue = false
-          return
-        }
-        if (result === 0) {
-          const saved = this.saveFile()
-          if (!saved) {
-            e.returnValue = false
-          }
-        }
-      }
-    })
+    window.addEventListener("beforeunload", e => this.beforeUnload(e))
   },
 })
 </script>

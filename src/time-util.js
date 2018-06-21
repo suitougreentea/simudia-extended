@@ -24,7 +24,6 @@ export default {
     return ((((hour * 60) + minute) * 60) + second) * SECOND_DIVISOR
   },
   parse(text) {
-    // TODO: parse hmmss-hmmss
     const length = text.length
     const hour = Number(text.substring(0, length - 4))
     const minute = Number(text.substring(length - 4, length - 2))
@@ -32,6 +31,6 @@ export default {
     return this.fromHMS(hour, minute, second)
   },
   isValidTimeInput(text) {
-    return /^[0-9]*[0-5][0-9][0-5][0-9](-[0-9]*[0-5][0-9][0-5][0-9])?$/.test(text)
+    return /^[0-9]*[0-5][0-9][0-5][0-9]$/.test(text)
   }
 }
