@@ -34,7 +34,7 @@ div(style="height: 100%")
         label Reversing time:
         TimeInputControl(:value="currentLine.reversingTime" @change="changeLineTime('reversingTime', $event)")
     div(v-if="$parent.lineSelection.selectedHalt >= 0")
-      div(v-if="$parent.lineSelection.selectedType == 1")
+      div(v-if="$parent.lineSelection.selectedType == 0")
         div From: {{ stationName }}
         div To: {{ nextStationName }}
         div
@@ -43,7 +43,7 @@ div(style="height: 100%")
         div(v-if="!currentHalt.skip")
           label Journey time:
           TimeInputControl(:value="currentHalt.time" @change="changeTime('time', $event)")
-      div(v-if="$parent.lineSelection.selectedType == 2")
+      div(v-if="$parent.lineSelection.selectedType == 1")
         div Stops at: {{ stationName }}
         div
           input(type="checkbox" :checked="currentHalt.skip", @change="changeHalt('skip', check($event))")

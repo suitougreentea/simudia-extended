@@ -3,38 +3,42 @@
 <template lang="pug">
 defs
   symbol#lines
-    g(v-for="(line, lineIndex) in lineSegments")
-      g(v-if="line.visible")
-        g(v-for="(set, setIndex) in line.sets")
-          g(v-for="ss in set")
-            line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" :stroke="s.color" :stroke-width="s.width + (isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type) ? 1 : 0)"
-                :stroke-dasharray="s.dashed ? '5, 5' : ''"
-                :class="{selectedLine: isLineSegmentSelected(lineIndex, setIndex, s.haltIndex, s.type)}"
-                stroke-linecap="round")
-            //-circle(v-for="s in ss" v-if="s.type == 2 && (selectedSegment.type == 2 || hoveredSegment.halt == 2) && isLineSegmentWidened(lineIndex, setIndex, s.haltIndex, s.type)"
-                  :cx="(s.x1 + s.x2) / 2" :cy="s.y1" r=3 fill="black")
+    polyline(v-for="path in linePaths"
+      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
+    polyline(v-for="path in hoveredLinePaths"
+      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray")
+    g(v-if="$parent.lineSelection.selectedSet == -1")
+      polyline.selectedLine(v-for="path in selectedLinePaths"
+        :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
+    polyline(v-for="path in hoveredSetPaths"
+      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray")
+    g(v-if="$parent.lineSelection.selectedHalt == -1")
+      polyline.selectedLine(v-for="path in selectedSetPaths"
+        :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
+    line(v-for="seg in hoveredHaltSegments"
+      :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray")
+    line.selectedLine(v-for="seg in selectedHaltSegments"
+      :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray")
   symbol#lines-hover
     g(v-if="$parent.mode == 'edit'")
-      g(v-for="(line, lineIndex) in lineSegments")
-        g(v-if="line.visible")
-          g(v-if="lineIndex != $parent.lineSelection.selectedLine" v-for="(set, setIndex) in line.sets")
-            g(v-for="ss in set")
-              line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
-                  stroke-linecap="round"
-                  @mouseenter="hoverLine(lineIndex, $event)" @mouseleave="unhoverLine(lineIndex, $event)" @click.prevent.stop="clickLine(lineIndex, $event)"
-                  @contextmenu.prevent.stop="contextLine(lineIndex, $event)")
-      g(v-if="$parent.lineSelection.selectedLine >= 0 && lineSegments[$parent.lineSelection.selectedLine].visible")
-        g(v-for="(set, setIndex) in lineSegments[$parent.lineSelection.selectedLine].sets")
-          g(v-for="ss in set")
-            line(v-if="setIndex != $parent.lineSelection.selectedSet" v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
-                stroke-linecap="round"
-                @mouseenter="hoverSet(setIndex, $event)" @mouseleave="unhoverSet(setIndex, $event)" @click.prevent.stop="clickSet(setIndex, $event)")
-      g(v-if="$parent.lineSelection.selectedSet >= 0 && lineSegments[$parent.lineSelection.selectedLine].visible")
-        g(v-for="ss in lineSegments[$parent.lineSelection.selectedLine].sets[$parent.lineSelection.selectedSet]")
-          line(v-for="s in ss" :x1="s.x1" :x2="s.x2" :y1="s.y1" :y2="s.y2" stroke="transparent" stroke-width=10
-              stroke-linecap="round"
-              @mouseenter="hoverSegment(s.haltIndex, s.type, $event)" @mouseleave="unhoverSegment(s.haltIndex, s.type, $event)" @click.prevent.stop="clickSegment(s.haltIndex, s.type, $event)"
-              @contextmenu.prevent.stop="contextSegment(s.haltIndex, s.type, $event)")
+      g(v-for="path in linePaths")
+        polyline(v-if="path.lineIndex != $parent.lineSelection.selectedLine"
+                :points="path.d" fill="transparent" stroke="transparent" stroke-width="10"
+                @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)"
+                @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)"
+                style="pointer-events: visibleStroke")
+      g(v-for="path in selectedLinePaths")
+        polyline(v-if="path.setIndex != $parent.lineSelection.selectedSet"
+                :points="path.d" fill="transparent" stroke="transparent" stroke-width="10"
+                @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)"
+                @click.prevent.stop="clickSet(path.setIndex, $event)"
+                style="pointer-events: visibleStroke")
+      g(v-for="(t, type) in currentHaltSegments")
+        g(v-for="seg in t")
+          line(:x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10"
+                @mouseenter="hoverSegment(seg.haltIndex, type, $event)" @mouseleave="unhoverSegment(seg.haltIndex, type, $event)"
+                @click.prevent.stop="clickSegment(seg.haltIndex, type, $event)" @contextmenu.prevent.stop="contextSegment(seg.haltIndex, type, $event)"
+                style="pointer-events: visibleStroke")
 </template>
 
 <script>
@@ -44,11 +48,11 @@ const { Menu, MenuItem } = Electron.remote
 
 export default Vue.extend({
   computed: {
-    // Array<{ visible: boolean, sets: Array<Array<Array<any>>>}>
     lineSegments() {
-      // line, set, [segment-journey, segment-halt]
+      // line, set, segment
       const lines = this.$store.state.lines
       const computedTimes = this.$store.getters.computedTimes
+
       const pushSegment = (array, segment) => {
         const monthLength = this.$store.state.monthLength
         if (segment.t1 >= monthLength) {
@@ -62,16 +66,17 @@ export default Vue.extend({
             x1: this.$parent.x(segment.t1),
             x2: this.$parent.x(segment.t2),
             y1: segment.y1, y2: segment.y2,
-            haltIndex: segment.haltIndex, type: segment.type, color: segment.color, width: segment.width, dashed: segment.dashed
+            haltIndex: segment.haltIndex, type: segment.type, dashed: segment.dashed
           })
         }
       }
+
       return lines.map((line, i) => {
         const time = computedTimes[i]
-        const result = []
+        const sets = []
         const length = line.halts.length
         for (let set = 0; set < line.divisor; set++) {
-          result[set] = [[], []]
+          sets[set] = []
           const offsetTime = set * (this.$store.state.monthLength / line.divisor)
           for (let j = 0; j < length; j++) {
             const currHalt = line.halts[j]
@@ -85,76 +90,75 @@ export default Vue.extend({
             const currDepTime = currTime.departure + offsetTime
             const nextArrTime = nextTime.arrival + offsetTime
             const nextDepTime = nextTime.arrival + nextTime.wait + offsetTime
-            pushSegment(result[set][0], {
+            pushSegment(sets[set], {
               t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
-              haltIndex: j, type: 1, color: line.color, width: line.lineWidth,
-              dashed: currHalt.skip
+              haltIndex: j, type: 0, dashed: currHalt.skip
             })
-            pushSegment(result[set][1], {
+            pushSegment(sets[set], {
               t1: nextArrTime, y1: nextY, t2: nextDepTime, y2: nextY,
-              haltIndex: (j+1)%length, type: 2, color: line.color, width: line.lineWidth,
-              dashed: nextHalt.skip
+              haltIndex: (j+1)%length, type: 1, dashed: nextHalt.skip
             })
           }
         }
-        return { visible: line.visible, sets: result }
+        return { visible: line.visible, width: line.lineWidth, color: line.color, sets }
       })
     },
+    linePaths() {
+      const segments = this.lineSegments
+      const result = []
+      segments.forEach((line, lineIndex) => {
+        if (line.visible) {
+          line.sets.forEach((set, setIndex) => {
+            result.push(...this.segmentToPaths(set).map(path => { return { lineIndex, setIndex, d: path.d, width: line.width, color: line.color, dashArray: path.dashed ? "5, 5": "" } }))
+          })
+        }
+      })
+      return result
+    },
+    hoveredLinePaths() {
+      if (this.$parent.lineSelection.hoveredLine === -1) return []
+      return this.linePaths.filter(path => path.lineIndex === this.$parent.lineSelection.hoveredLine)
+    },
+    selectedLinePaths() {
+      if (this.$parent.lineSelection.selectedLine === -1) return []
+      return this.linePaths.filter(path => path.lineIndex === this.$parent.lineSelection.selectedLine)
+    },
+    hoveredSetPaths() {
+      if (this.$parent.lineSelection.selectedLine === -1 || this.$parent.lineSelection.hoveredSet === -1) return []
+      return this.linePaths.filter(path =>
+        path.lineIndex === this.$parent.lineSelection.selectedLine &&
+        path.setIndex === this.$parent.lineSelection.hoveredSet)
+    },
+    selectedSetPaths() {
+      if (this.$parent.lineSelection.selectedLine === -1 || this.$parent.lineSelection.selectedSet === -1) return []
+      return this.linePaths.filter(path =>
+        path.lineIndex === this.$parent.lineSelection.selectedLine &&
+        path.setIndex === this.$parent.lineSelection.selectedSet)
+    },
+    currentHaltSegments() {
+      const { selectedLine, selectedSet } = this.$parent.lineSelection
+      if (selectedLine === -1 || selectedSet === -1) return [[], []]
+      const segments = this.lineSegments
+      const line = segments[selectedLine]
+      const result = [[], []] // type
+
+      line.sets[selectedSet].forEach(segment => {
+        result[segment.type].push({ x1: segment.x1, x2: segment.x2, y1: segment.y1, y2: segment.y2, haltIndex: segment.haltIndex, width: line.width, color: line.color, dashArray: segment.dashed ? "5, 5" : "" })
+      })
+      return result
+    },
+    hoveredHaltSegments() {
+      const current = this.currentHaltSegments
+      if (current[0].length === 0 || this.$parent.lineSelection.hoveredType === -1) return []
+      return current[this.$parent.lineSelection.hoveredType].filter(e => e.haltIndex === this.$parent.lineSelection.hoveredHalt)
+    },
+    selectedHaltSegments() {
+      const current = this.currentHaltSegments
+      if (current[0].length === 0 || this.$parent.lineSelection.selectedType === -1) return []
+      return current[this.$parent.lineSelection.selectedType].filter(e => e.haltIndex === this.$parent.lineSelection.selectedHalt)
+    }
   },
   methods: {
-    isLineSegmentWidened(lineIndex, setIndex, haltIndex, type) {
-      const { hoveredLine, hoveredSet, hoveredHalt, hoveredType,
-        selectedLine, selectedSet, selectedHalt, selectedType } = this.$parent.lineSelection
-      // TODO: semantically correct, but it should be simpler
-      // if I add one more selection stack state, it'll be more complex...
-      if (selectedLine === -1) {
-        return hoveredLine === lineIndex
-      }
-      if (selectedLine >= 0 && selectedSet === -1) {
-        if (hoveredSet >= 0) {
-          return selectedLine === lineIndex && hoveredSet === setIndex
-        } else {
-          if (selectedLine === lineIndex) return true
-          if (hoveredLine >= 0) {
-            return hoveredLine === lineIndex
-          }
-        }
-      }
-      if (selectedSet >= 0 && selectedHalt === -1) {
-        if (hoveredHalt >= 0) {
-          return selectedLine === lineIndex && selectedSet === setIndex && hoveredHalt === haltIndex && hoveredType === type
-        } else {
-          if (selectedLine === lineIndex && selectedSet === setIndex) return true
-          if (hoveredSet >= 0) {
-            return selectedLine === lineIndex && hoveredSet === setIndex
-          }
-          if (hoveredLine >= 0) {
-            return hoveredLine === lineIndex
-          }
-        }
-      }
-      if (selectedHalt >= 0) {
-        if (selectedLine === lineIndex && selectedSet === setIndex && selectedHalt === haltIndex && selectedType === type) return true
-        if (hoveredHalt >= 0) {
-          return selectedLine === lineIndex && selectedSet === setIndex && hoveredHalt === haltIndex && hoveredType === type
-        }
-        if (hoveredSet >= 0) {
-          return selectedLine === lineIndex && hoveredSet === setIndex
-        }
-        if (hoveredLine >= 0) {
-          return hoveredLine === lineIndex
-        }
-      }
-      return false
-    },
-    isLineSegmentSelected(lineIndex, setIndex, haltIndex, type) {
-      const { selectedLine, selectedSet, selectedHalt, selectedType } = this.$parent.lineSelection
-      if (selectedHalt >= 0) {
-        return selectedLine === lineIndex && selectedSet === setIndex && selectedHalt === haltIndex && selectedType === type
-      }
-      if (selectedSet >= 0) return selectedLine === lineIndex && selectedSet === setIndex
-      return selectedLine === lineIndex
-    },
     hoverLine(index, event) {
       this.$parent.lineSelection.hoveredLine = index
       this.$parent.lineSelection.hoveredSet = -1
@@ -177,7 +181,6 @@ export default Vue.extend({
       this.$parent.lineSelection.hoveredType = -1
     },
     contextLine(index, event) {
-      // this.clickLine(index, event)
       const menu = new Menu()
       menu.append(new MenuItem({
         label: "Delete line",
@@ -231,7 +234,7 @@ export default Vue.extend({
       const setIndex = this.$parent.lineSelection.selectedSet
       const line = this.$store.state.lines[lineIndex]
 
-      if (type === 2) {
+      if (type === 1) {
         const menu = new Menu()
         menu.append(new MenuItem({
           label: "Insert halt",
@@ -264,6 +267,22 @@ export default Vue.extend({
         }))
         menu.popup()
       }
+    },
+    segmentToPaths(segments) {
+      const result = []
+      let current = []
+      let i = 0
+      for (; i < segments.length; i++) {
+        if (i >= 1 && (segments[i-1].x2 !== segments[i].x1 || segments[i-1].dashed !== segments[i].dashed)) {
+          current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
+          result.push({ d: current, dashed: segments[i-1].dashed })
+          current = []
+        }
+        current.push(`${segments[i].x1},${segments[i].y1}`)
+      }
+      current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
+      result.push({ d: current, dashed: segments[i-1].dashed })
+      return result
     }
   }
 })
