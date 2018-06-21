@@ -19,8 +19,8 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "productName": "simudia-extended",
-    "appId": "org.simulatedgreg.electron-vue",
+    "productName": "SimuDia-Extended",
+    "appId": "io.github.suitougreentea.simudiaextended",
     "directories": {
       "output": "build"
     },
