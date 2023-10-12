@@ -1,15 +1,6 @@
-import * as Vuex from "vuex"
-// import VuexUndoRedo from "vuex-undo-redo";
+import { defineStore } from "pinia"
 
-import TimeUtil, { SECOND_DIVISOR } from "../../time-util"
-
-import Vue from "vue"
-
-const fs = require("fs")
-const path = require("path")
-
-Vue.use(Vuex)
-// Vue.use(VuexUndoRedo);
+import TimeUtil, { SECOND_DIVISOR } from "../time-util"
 
 const fileVersion = 0
 
@@ -80,7 +71,7 @@ const getEmptyLineHalt = (defaultLoadingTime) => {
   }
 }
 
-export default new Vuex.Store({
+export const useMainStore = defineStore("main", {
   plugins: [
     (store) => {
       store.subscribe((mutation, state) => {
@@ -94,7 +85,7 @@ export default new Vuex.Store({
       })
     }
   ],
-  state: getEmptyState(),
+  state: () => getEmptyState(),
   getters: {
     accumulatedStationTimes(state) {
       const stations = state.stations
@@ -131,7 +122,7 @@ export default new Vuex.Store({
     findStationIndex,
     findStation(state, getters) {
       return function(id) {
-        return state.stations[getters.findStationIndex(id)]
+        return state.stations[this.findStationIndex(id)]
       }
     },
     computedTimes(state) {
@@ -190,28 +181,31 @@ export default new Vuex.Store({
       return true
     } */
   },
-  mutations: {
+  actions: {
     emptyState() {
       this.replaceState(getEmptyState(), null)
     },
-    modifyGlobal(state, { key, value }) {
-      Vue.set(state, key, value)
+    modifyMonthLength({ value }) {
+      this.monthLength = value
     },
-    addStation(state, { pos: _pos, name, width }) {
-      const pos = (_pos == null) ? state.stations.length : _pos
+    modifyShiftDivisor({ value }) {
+      this.shiftDivisor = value
+    },
+    addStation({ pos: _pos, name, width }) {
+      const pos = (_pos == null) ? this.stations.length : _pos
       // get unused ID
       let id
-      do { id = Math.floor(Math.random() * 4294967296) } while (state.stations.some(e => e.id === id))
-      state.stations.splice(pos, 0, { name, width, id })
+      do { id = Math.floor(Math.random() * 4294967296) } while (this.stations.some(e => e.id === id))
+      this.stations.splice(pos, 0, { name, width, id })
     },
-    modifyStation(state, { pos, name, width }) {
-      const old = state.stations[pos]
-      Vue.set(state.stations, pos, { name, width, id: old.id })
+    modifyStation({ pos, name, width }) {
+      const old = this.stations[pos]
+      this.stations[pos] = { name, width, id: old.id }
     },
-    deleteStation(state, { pos }) {
-      state.stations.splice(pos, 1)
+    deleteStation({ pos }) {
+      this.stations.splice(pos, 1)
     },
-    addLine(state, { stationIndices, times, firstTime }) {
+    addLine({ stationIndices, times, firstTime }) {
       const halts = []
       const size = stationIndices.length - 1
       for (let i = 0; i < size; i++) {
@@ -219,30 +213,30 @@ export default new Vuex.Store({
         const curr = stationIndices[i]
         const next = stationIndices[(i + 1) % size]
         const reverse = (curr - prev) * (curr - next) > 0
-        const stationId = state.stations[curr].id
+        const stationId = this.stations[curr].id
         halts.push({ ...getEmptyLineHalt(30 * SECOND_DIVISOR), stationId, time: times[i], reverse })
       }
       halts[0].scheduled = true
       halts[0].departureTime = firstTime
-      state.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * SECOND_DIVISOR, reversingTime: 60 * SECOND_DIVISOR, visible: true })
+      this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * SECOND_DIVISOR, reversingTime: 60 * SECOND_DIVISOR, visible: true })
     },
-    deleteLine(state, index) {
-      state.lines.splice(index, 1)
+    deleteLine(index) {
+      lines.splice(index, 1)
     },
-    modifyLine(state, { index, key, value }) {
-      Vue.set(state.lines[index], key, value)
+    modifyLine({ index, key, value }) {
+      this.lines[index][key] = value
     },
-    modifyLineHalt(state, { lineIndex, haltIndex, key, value }) {
-      Vue.set(state.lines[lineIndex].halts[haltIndex], key, value)
+    modifyLineHalt({ lineIndex, haltIndex, key, value }) {
+      this.lines[lineIndex].halts[haltIndex][key] = value
     },
-    insertHalts(state, { lineIndex, haltIndex, stationIndices, times }) {
-      const line = state.lines[lineIndex]
+    insertHalts({ lineIndex, haltIndex, stationIndices, times }) {
+      const line = this.lines[lineIndex]
       const halts = line.halts
       const insertingHalts = []
       for (let i = 0; i < stationIndices.length - 1; i++) {
         insertingHalts.push({
           ...getEmptyLineHalt(line.defaultLoadingTime),
-          stationId: state.stations[stationIndices[i]].id,
+          stationId: this.stations[stationIndices[i]].id,
           time: times[i],
           reverse: false // reverses are set later
         })
@@ -254,17 +248,17 @@ export default new Vuex.Store({
       // update reverses
       const size = newHalts.length
       for (let i = haltIndex; i < haltIndex + stationIndices.length; i++) {
-        const prev = findStationIndex(state)(newHalts[(i+size-1) % size].stationId)
-        const curr = findStationIndex(state)(newHalts[i % size].stationId) // because i == size when inserting at tail
-        const next = findStationIndex(state)(newHalts[(i+1) % size].stationId)
+        const prev = findStationIndex(this)(newHalts[(i+size-1) % size].stationId)
+        const curr = findStationIndex(this)(newHalts[i % size].stationId) // because i == size when inserting at tail
+        const next = findStationIndex(this)(newHalts[(i+1) % size].stationId)
 
         const reverse = (curr - prev) * (curr - next) > 0
         newHalts[i % size].reverse = reverse
       }
-      Vue.set(state.lines[lineIndex], "halts", newHalts)
+      this.lines[lineIndex].halts = newHalts
     },
-    deleteHalt(state, { lineIndex, haltIndex }) {
-      const halts = state.lines[lineIndex].halts
+    deleteHalt({ lineIndex, haltIndex }) {
+      const halts = this.lines[lineIndex].halts
       halts.splice(haltIndex, 1)
       const size = halts.length
       if (size <= 1) return
@@ -272,42 +266,40 @@ export default new Vuex.Store({
         // v
         halts.splice((haltIndex+size-1)%size, 1)
         const newSize = halts.length
-        Vue.set(halts[(haltIndex+newSize-1)%newSize], "reverse", true)
+        halts[(haltIndex+newSize-1)%newSize].reverse = true
       } else {
         // / or \
         const newTime = halts[(haltIndex+size-1)%size].time + halts[haltIndex%size].time
-        Vue.set(halts[(haltIndex+size-1)%size], "time", newTime)
+        halts[(haltIndex+size-1)%size].time = newTime
       }
     },
-    saveToFile(state, { path }) {
+    saveToFile({ path }) {
       fs.writeFileSync(path, JSON.stringify({
         fileVersion,
-        monthLength: state.monthLength,
-        shiftDivisor: state.shiftDivisor,
-        stations: state.stations,
-        lines: state.lines,
+        monthLength: this.monthLength,
+        shiftDivisor: this.shiftDivisor,
+        stations: this.stations,
+        lines: this.lines,
       }, null, 2), "utf8")
-      state.currentFile = path
+      this.currentFile = path
     },
-    loadFromFile(state, { path }) {
+    loadFromFile({ path }) {
       const result = fs.readFileSync(path, "utf8")
       const json = JSON.parse(result)
       this.replaceState({
-        ...state,
+        ...this,
         ...json,
         currentFile: path
       }, null)
     },
-    setModified(state, modified) {
-      state.modified = modified
-    }
-  },
-  actions: {
-    deleteStation({ state, commit }, { pos }) {
-      const station = state.stations[pos]
+    setModified(modified) {
+      this.modified = modified
+    },
+    deleteStation({ pos }) {
+      const station = this.stations[pos]
       const id = station.id
       commit("deleteStation", { pos })
-      state.lines.forEach((line, lineIndex) => {
+      this.lines.forEach((line, lineIndex) => {
         let i = 0
         while (i < line.halts.length) {
           if (line.halts[i].stationId === id) {
@@ -319,7 +311,6 @@ export default new Vuex.Store({
         }
       })
     }
-
   },
   strict: process.env.NODE_ENV !== "production"
 })

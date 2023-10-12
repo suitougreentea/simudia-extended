@@ -1,0 +1,87 @@
+<!-- NOTE: This component must be a child of MainScreen -->
+
+<template lang="pug">
+div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }")
+  div(contenteditable :class="{error: errorTime}" ref="timeInput"
+      @keydown.enter.prevent="putTime" @input="inputTime")
+  
+</template>
+<script>
+import { defineComponent, nextTick } from "vue"
+import { useMainStore } from "../stores/main"
+import TimeUtil from "../time-util"
+
+export default defineComponent({
+  setup() {
+    const store = useMainStore()
+    return {
+      store
+    }
+  },
+  data: function() {
+    return {
+      rubberbands: [],
+      inputtingTimeIndex: -1,
+      errorTime: false,
+      inputtingTimes: []
+    }
+  },
+  methods: {
+    start(rubberbands) {
+      this.rubberbands = rubberbands
+      this.inputtingTimeIndex = 0
+      nextTick(() => {
+        const element = this.$refs.timeInput
+        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
+        element.focus()
+        document.execCommand("selectAll", false, null)
+      })
+    },
+    inputTime() {
+      const element = this.$refs.timeInput
+      const text = element.innerText.trim()
+      this.errorTime = !TimeUtil.isValidTimeInput(text)
+    },
+    putTime() {
+      const element = this.$refs.timeInput
+      const text = element.innerText.trim()
+      if (!TimeUtil.isValidTimeInput(text)) return
+      this.inputtingTimes.push(TimeUtil.parse(text))
+      if (this.inputtingTimeIndex < this.rubberbands.length - 2) {
+        this.inputtingTimeIndex++
+        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
+        element.focus()
+        document.execCommand("selectAll", false, null)
+      } else {
+        if (this.$parent.lineInsertOrigin.line !== -1) {
+          this.store.insertHalts({
+            lineIndex: this.$parent.lineInsertOrigin.line, haltIndex: this.$parent.lineInsertOrigin.halt,
+            stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes
+          })
+        } else {
+          this.store.addLine({ stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: this.rubberbands[0].time })
+        }
+        this.$parent.resetInput()
+      }
+    },
+    reset() {
+      this.rubberbands = []
+      this.inputtingTimeIndex = -1
+      this.inputtingTimes = []
+    }
+  },
+  computed: {
+    timeInputPosition() {
+      if (this.inputtingTimeIndex > this.rubberbands.length - 2) return {x: 0, y: 0}
+      const {time: firstTime, station: firstStation} = this.rubberbands[this.inputtingTimeIndex]
+      const {time: secondTime, station: secondStation} = this.rubberbands[this.inputtingTimeIndex+1]
+      const x = this.$parent.x((firstTime + secondTime) / 2) - 50
+      const y = (this.$parent.accumulatedStationY[firstStation] + this.$parent.accumulatedStationY[secondStation]) / 2 - 10
+      return {x, y}
+    },
+  }
+})
+</script>
+<style lang="stylus">
+
+</style>
