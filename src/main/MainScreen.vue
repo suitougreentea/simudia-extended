@@ -4,6 +4,9 @@
 div(style="position: relative")
   div.diagram(@click="clickBackground")
     div.toolbar
+      div.toolbar-button(@click.prevent.stop="openFile") Open
+      div.toolbar-button(@click.prevent.stop="downloadFile") Download
+      br
       //-button(v-if="$root.canUndo" @click="$root.undo") Undo
       //-button(v-else disabled) Undo
       //-button(v-if="$root.canRedo" @click="$root.redo") Redo
@@ -301,61 +304,45 @@ export default defineComponent({
       this.lineSelection.selectedLine = -1
       this.store.deleteLine(index)
     },
-    closeDialog() {
-      return dialog.showMessageBox(remote.getCurrentWindow(), {
-        message: "Save modified data?",
-        type: "warning",
-        buttons: ["Yes", "No", "Cancel"],
-        cancelId: 2
-      })
-    },
     openFile() {
       if (this.store.modified) {
-        const result = this.closeDialog()
-        if (result === 2) return
-        if (result === 0) {
-          const saved = this.saveFile()
-          if (!saved) return
+        const result = window.confirm("Save modified data?")
+        if (!result) return
+        else {
+          this.downloadFile()
         }
       }
-      const result = dialog.showOpenDialog(remote.getCurrentWindow(), {
-        properties: ["openFile"],
-        filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
-      })
-      if (result !== undefined) {
-        this.store.loadFromFile({ path: result[0] })
+
+      const input = document.createElement("input")
+      input.type = "file"
+      input.onchange = async (ev) => {
+        if (input.files == 0) return
+        const file = input.files[0]
+        const str = await file.text()
+        this.store.loadFromJsonString(file.name, str)
         this.unselectAll()
       }
+      input.click()
     },
-    saveFile() {
-      if (this.store.currentFile !== "") {
-        this.store.saveToFile({ path: this.store.currentFile })
-        return true
-      } else return this.saveAs()
-    },
-    saveAs() {
-      const result = dialog.showSaveDialog(remote.getCurrentWindow(), {
-        filters: [{name: "SimuDia-Extended file", extensions: ["simudiax"]}]
-      })
-      if (result !== undefined) {
-        this.store.saveToFile({ path: result })
-        return true
-      }
-      return false
+    downloadFile() {
+      const jsonString = this.store.jsonString
+      const blob = new Blob([jsonString], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      
+      const filename = this.store.currentFile != "" ? this.store.currentFile : "New File.simudiax"
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      a.click()
+
+      URL.revokeObjectURL(url)
+
+      this.store.setSaved(filename)
     },
     beforeUnload(e) {
       if (this.store.modified) {
-        const result = this.closeDialog()
-        if (result === 2) {
-          e.returnValue = false
-          return
-        }
-        if (result === 0) {
-          const saved = this.saveFile()
-          if (!saved) {
-            e.returnValue = false
-          }
-        }
+        e.returnValue = ""
+        e.preventDefault()
       }
     }
   },
@@ -525,14 +512,14 @@ body
   top: 0
   left: 0
   width: 100%
-  height: 30px
+  height: 60px
   background-color: #EEE
   z-index: 100
   font-size: 14px
 
 .workspace
   position: absolute
-  top: 30px
+  top: 60px
 
 .toolbar-button
   display: inline-block

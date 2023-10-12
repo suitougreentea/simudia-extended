@@ -72,19 +72,6 @@ const getEmptyLineHalt = (defaultLoadingTime) => {
 }
 
 export const useMainStore = defineStore("main", {
-  plugins: [
-    (store) => {
-      store.subscribe((mutation, state) => {
-        const type = mutation.type
-        if (type === "setModified") return
-        if (type === "loadFromFile" || type === "saveToFile") {
-          store.commit("setModified", false)
-        } else if (ignoredMutations.every((e) => mutation.type !== e)) {
-          store.commit("setModified", true)
-        }
-      })
-    }
-  ],
   state: () => getEmptyState(),
   getters: {
     accumulatedStationTimes(state) {
@@ -173,9 +160,18 @@ export const useMainStore = defineStore("main", {
     },
     baseName(state) {
       if (state.currentFile !== "") {
-        return path.basename(state.currentFile)
+        return state.currentFile
       }
       return "New File"
+    },
+    jsonString(state) {
+      return JSON.stringify({
+        fileVersion,
+        monthLength: state.monthLength,
+        shiftDivisor: state.shiftDivisor,
+        stations: state.stations,
+        lines: state.lines,
+      }, null, 2)
     },
     /* modified(state): boolean {
       return true
@@ -183,13 +179,15 @@ export const useMainStore = defineStore("main", {
   },
   actions: {
     emptyState() {
-      this.replaceState(getEmptyState(), null)
+      this.$patch(getEmptyState())
     },
     modifyMonthLength({ value }) {
       this.monthLength = value
+      this.setModified(true)
     },
     modifyShiftDivisor({ value }) {
       this.shiftDivisor = value
+      this.setModified(true)
     },
     addStation({ pos: _pos, name, width }) {
       const pos = (_pos == null) ? this.stations.length : _pos
@@ -197,10 +195,12 @@ export const useMainStore = defineStore("main", {
       let id
       do { id = Math.floor(Math.random() * 4294967296) } while (this.stations.some(e => e.id === id))
       this.stations.splice(pos, 0, { name, width, id })
+      this.setModified(true)
     },
     modifyStation({ pos, name, width }) {
       const old = this.stations[pos]
       this.stations[pos] = { name, width, id: old.id }
+      this.setModified(true)
     },
     deleteStation({ pos }) {
       const station = this.stations[pos]
@@ -217,6 +217,7 @@ export const useMainStore = defineStore("main", {
           this.deleteLine(lineIndex)
         }
       })
+      this.setModified(true)
     },
     addLine({ stationIndices, times, firstTime }) {
       const halts = []
@@ -232,15 +233,19 @@ export const useMainStore = defineStore("main", {
       halts[0].scheduled = true
       halts[0].departureTime = firstTime
       this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * SECOND_DIVISOR, reversingTime: 60 * SECOND_DIVISOR, visible: true })
+      this.setModified(true)
     },
     deleteLine(index) {
       this.lines.splice(index, 1)
+      this.setModified(true)
     },
     modifyLine({ index, key, value }) {
       this.lines[index][key] = value
+      this.setModified(true)
     },
     modifyLineHalt({ lineIndex, haltIndex, key, value }) {
       this.lines[lineIndex].halts[haltIndex][key] = value
+      this.setModified(true)
     },
     insertHalts({ lineIndex, haltIndex, stationIndices, times }) {
       const line = this.lines[lineIndex]
@@ -269,6 +274,7 @@ export const useMainStore = defineStore("main", {
         newHalts[i % size].reverse = reverse
       }
       this.lines[lineIndex].halts = newHalts
+      this.setModified(true)
     },
     deleteHalt({ lineIndex, haltIndex }) {
       const halts = this.lines[lineIndex].halts
@@ -285,25 +291,20 @@ export const useMainStore = defineStore("main", {
         const newTime = halts[(haltIndex+size-1)%size].time + halts[haltIndex%size].time
         halts[(haltIndex+size-1)%size].time = newTime
       }
+      this.setModified(true)
     },
-    saveToFile({ path }) {
-      fs.writeFileSync(path, JSON.stringify({
-        fileVersion,
-        monthLength: this.monthLength,
-        shiftDivisor: this.shiftDivisor,
-        stations: this.stations,
-        lines: this.lines,
-      }, null, 2), "utf8")
-      this.currentFile = path
+    setSaved(filename) {
+      this.currentFile = filename
+      this.setModified(false)
     },
-    loadFromFile({ path }) {
-      const result = fs.readFileSync(path, "utf8")
-      const json = JSON.parse(result)
-      this.replaceState({
+    loadFromJsonString(filename, text) {
+      const json = JSON.parse(text)
+      this.$patch({
         ...this,
         ...json,
-        currentFile: path
-      }, null)
+        currentFile: filename
+      })
+      this.setModified(false)
     },
     setModified(modified) {
       this.modified = modified
