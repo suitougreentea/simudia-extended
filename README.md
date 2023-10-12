@@ -1,5 +1,9 @@
 # SimuDia-Extended
 
+Web-app version (ウェブアプリ版):
+
+https://suitougreentea.github.io/simudia-extended/
+
 ## Project Setup
 
 ```sh
