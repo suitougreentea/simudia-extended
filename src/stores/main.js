@@ -203,7 +203,20 @@ export const useMainStore = defineStore("main", {
       this.stations[pos] = { name, width, id: old.id }
     },
     deleteStation({ pos }) {
+      const station = this.stations[pos]
+      const id = station.id
       this.stations.splice(pos, 1)
+      this.lines.forEach((line, lineIndex) => {
+        let i = 0
+        while (i < line.halts.length) {
+          if (line.halts[i].stationId === id) {
+            this.deleteHalt({ lineIndex, haltIndex: i })
+          } else i++
+        }
+        if (line.halts.length === 0) {
+          this.deleteLine(lineIndex)
+        }
+      })
     },
     addLine({ stationIndices, times, firstTime }) {
       const halts = []
@@ -221,7 +234,7 @@ export const useMainStore = defineStore("main", {
       this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * SECOND_DIVISOR, reversingTime: 60 * SECOND_DIVISOR, visible: true })
     },
     deleteLine(index) {
-      lines.splice(index, 1)
+      this.lines.splice(index, 1)
     },
     modifyLine({ index, key, value }) {
       this.lines[index][key] = value
@@ -295,22 +308,6 @@ export const useMainStore = defineStore("main", {
     setModified(modified) {
       this.modified = modified
     },
-    deleteStation({ pos }) {
-      const station = this.stations[pos]
-      const id = station.id
-      commit("deleteStation", { pos })
-      this.lines.forEach((line, lineIndex) => {
-        let i = 0
-        while (i < line.halts.length) {
-          if (line.halts[i].stationId === id) {
-            commit("deleteHalt", { lineIndex, haltIndex: i })
-          } else i++
-        }
-        if (line.halts.length === 0) {
-          commit("deleteLine", lineIndex)
-        }
-      })
-    }
   },
   strict: process.env.NODE_ENV !== "production"
 })

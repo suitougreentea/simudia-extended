@@ -177,6 +177,7 @@ export default defineComponent({
     },
     clickLine(index, event) {
       this.$parent.resetInput() // needed by Sidebar
+      this.$parent.unselectStation()
       this.$parent.lineSelection.selectedLine = index
       this.$parent.lineSelection.selectedSet = -1
       this.$parent.lineSelection.selectedHalt = -1
@@ -194,8 +195,7 @@ export default defineComponent({
       menu.append(new MenuItem({
         label: "Delete line",
         click: () => {
-          this.$parent.lineSelection.selectedLine = -1
-          this.store.deleteLine(index)
+          this.$parent.deleteSelectedLine(index)
         }
       }))
       menu.popup()
@@ -214,6 +214,7 @@ export default defineComponent({
       }
     },
     clickSet(index, event) {
+      this.$parent.unselectStation()
       this.$parent.lineSelection.selectedSet = index
       this.$parent.lineSelection.selectedHalt = -1
       this.$parent.lineSelection.selectedType = -1
@@ -234,16 +235,13 @@ export default defineComponent({
       }
     },
     clickSegment(haltIndex, type, event) {
+      this.$parent.unselectStation()
       this.$parent.lineSelection.selectedHalt = haltIndex
       this.$parent.lineSelection.selectedType = type
       this.$parent.lineSelection.hoveredHalt = haltIndex
       this.$parent.lineSelection.hoveredType = type
     },
     contextSegment(haltIndex, type, event) {
-      const lineIndex = this.$parent.lineSelection.selectedLine
-      const setIndex = this.$parent.lineSelection.selectedSet
-      const line = this.store.lines[lineIndex]
-
       if (type === 1) {
         console.warn("TODO: implement menu")
         /*
@@ -251,30 +249,14 @@ export default defineComponent({
         menu.append(new MenuItem({
           label: "Insert halt",
           click: () => {
-            const monthLength = this.store.monthLength
-            const halts = this.store.lines[lineIndex].halts
-            const halt = halts[haltIndex]
-            const nextHalt = halts[(haltIndex + 1)%halts.length]
-            const stationIndex = this.store.findStationIndex(halt.stationId)
-            const nextStationIndex = this.store.findStationIndex(nextHalt.stationId)
-            const time = (this.store.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
-
-            this.$parent.lineInsertOrigin = {
-              line: lineIndex,
-              halt: haltIndex,
-            }
-            this.$parent.mode = "input"
-            this.$parent.$refs.lineInputDefs.setTerminal(nextStationIndex)
-            this.$parent.$refs.lineInputDefs.addPoint({ station: stationIndex, time: time, skip: false })
+            this.$parent.insertHaltToSelectedLine(haltIndex)
           }
         }))
         menu.append(new MenuItem({
           label: "Delete halt",
-          enabled: line.halts.length >= 3,
+          enabled: this.store.lines[this.$parent.lineSelection.selectedLine].halts.length >= 3,
           click: () => {
-            this.$parent.lineSelection.selectedHalt = -1
-            this.$parent.lineSelection.selectedType = -1
-            this.store.deleteHalt({ lineIndex, haltIndex })
+            this.$parent.deleteHaltFromSelectedLine(haltIndex)
           }
         }))
         menu.popup()

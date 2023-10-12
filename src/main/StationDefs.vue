@@ -4,15 +4,23 @@
 defs
   symbol#stations
     line(v-for="(s, i) in $parent.stations"
-        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]"
-        stroke="black" :stroke-width="$parent.stationSelection.hovered == i ? 2.5 : 1")
+      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]"
+      stroke="black" :stroke-width="1")
+    g(v-if="$parent.stationSelection.hovered >= 0")
+      line(
+        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.hovered]" :y2="$parent.accumulatedStationY[$parent.stationSelection.hovered]"
+        stroke="black" :stroke-width="2.5")
+    g(v-if="$parent.stationSelection.selected >= 0")
+      line.selectedLine(
+        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.selected]" :y2="$parent.accumulatedStationY[$parent.stationSelection.selected]"
+        stroke="black" :stroke-width="1")
     line(v-if="$parent.stations.length == 0"
-        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.layout.top + $parent.layout.headerHeight" :y2="$parent.layout.top + $parent.layout.headerHeight"
-        stroke="black")
+      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.layout.top + $parent.layout.headerHeight" :y2="$parent.layout.top + $parent.layout.headerHeight"
+      stroke="black")
   symbol#stations-hover
     line(v-for="(s, i) in $parent.stations"
-        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="transparent" stroke-width=10
-        @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
+      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="transparent" stroke-width=10
+      @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
   
 </template>
 <script>
@@ -39,6 +47,7 @@ export default defineComponent({
           this.$parent.$refs.lineInputDefs.addPoint({ station: i, time: cursorTime, skip: !e.getModifierState("Shift") })
         }
       } else if (this.$parent.mode === "edit") {
+        this.$parent.unselectLine()
         this.$parent.stationSelection.hovered = i
         this.$parent.stationSelection.selected = i
       }
@@ -51,40 +60,19 @@ export default defineComponent({
         menu.append(new MenuItem({
           label: "Insert station above",
           click: () => {
-            this.$store.commit("addStation", {
-              pos: i,
-              name: "New station",
-              width: 100
-            })
-            // TODO: focus
+            this.$parent.insertStationAboveSelected(i)
           }
         }))
         menu.append(new MenuItem({
           label: "Insert station below",
           click: () => {
-            this.$store.commit("addStation", {
-              pos: i + 1,
-              name: "New station",
-              width: 100
-            })
-            // TODO: focus
+            this.$parent.insertStationBelowSelected(i)
           }
         }))
         menu.append(new MenuItem({
           label: "Delete station",
           click: () => {
-            const prevSelectedLine = this.$store.state.lines[this.$parent.lineSelection.selectedLine]
-            this.$store.dispatch("deleteStation", {
-              pos: i,
-            }).then(() => {
-              const selectedLine = this.$store.state.lines[this.$parent.lineSelection.selectedLine]
-              if (prevSelectedLine !== selectedLine) {
-                this.$parent.lineSelection.selectedLine = -1
-                this.$parent.lineSelection.selectedSet = -1
-                this.$parent.lineSelection.selectedHalt = -1
-                this.$parent.lineSelection.selectedType = -1
-              }
-            })
+            this.$parent.deleteSelectedStation(i)
           }
         }))
         menu.popup()

@@ -3,13 +3,20 @@
 <template lang="pug">
 div(style="height: 100%")
   div#sidebar-above
-    div(v-if="$parent.lineSelection.selectedLine == -1")
+    div(v-if="$parent.stationSelection.selected == -1 && $parent.lineSelection.selectedLine == -1")
       div
         label Month length:
         TimeInputControl(:value="store.monthLength" @change="changeMonthLength(time($event))")
       div
         label Shift divisor:
         input(type="number" min=1 :value="store.shiftDivisor" @input="changeShiftDivisor(Math.max(Math.floor(Number(value($event))), 1))")
+
+    div(v-if="$parent.stationSelection.selected >= 0")
+      div Name: {{ currentStation.name }}
+      div
+        button(@click="$parent.insertStationAboveSelected($parent.stationSelection.selected)") Insert station above
+        button(@click="$parent.insertStationBelowSelected($parent.stationSelection.selected)") Insert station below
+        button(@click="$parent.deleteSelectedStation($parent.stationSelection.selected)") Delete station
 
     div(v-if="$parent.lineSelection.selectedLine >= 0 && $parent.lineSelection.selectedSet == -1")
       div
@@ -33,6 +40,8 @@ div(style="height: 100%")
       div
         label Reversing time:
         TimeInputControl(:value="currentLine.reversingTime" @change="changeLine('reversingTime', time($event))")
+      div
+        button(@click="$parent.deleteLine($parent.lineSelection.selectedLine)") Delete line
     div(v-if="$parent.lineSelection.selectedHalt >= 0")
       div(v-if="$parent.lineSelection.selectedType == 0")
         div From: {{ stationName }}
@@ -53,16 +62,13 @@ div(style="height: 100%")
             input(type="checkbox" :checked="currentHalt.wait", @change="changeHalt('wait', check($event))")
             label Wait:
             TimeInputControl(:disabled="!currentHalt.wait" :value="currentHalt.waitTime" @change="changeHalt('waitTime', time($event))")
-
           div
             input(type="checkbox" :checked="currentHalt.reverse", @change="changeHalt('reverse', check($event))")
             label Reverse
-
           div
             input(type="checkbox" :checked="currentHalt.overrideLoadingTime", @change="changeHalt('overrideLoadingTime', check($event))")
             label Override loading:
             TimeInputControl(:disabled="!currentHalt.overrideLoadingTime" :value="currentHalt.loadingTime" @change="changeHalt('loadingTime', time($event))")
-
           div
             input(type="checkbox" :checked="currentHalt.scheduled", @change="changeHalt('scheduled', check($event))")
             label Schedule departure:
@@ -70,6 +76,10 @@ div(style="height: 100%")
             div
               label In-game shift:
               input(:disabled="!currentHalt.scheduled" type="number" min="0" :value="departureTimeShift(currentHalt.departureTime)" @input="changeHalt('departureTime', shiftToTime(Number(value($event))))")
+        div
+          button(@click="$parent.insertHaltToSelectedLine($parent.lineSelection.selectedHalt)") Insert halt
+          button(@click="$parent.deleteHaltFromSelectedLine($parent.lineSelection.selectedHalt)"
+            :disabled="store.lines[$parent.lineSelection.selectedLine].halts.length < 3") Delete halt
   div#sidebar-below
     div(v-if="$parent.lineSelection.selectedLine == -1")
       div(v-for="(line, lineIndex) in store.lines")
@@ -145,6 +155,7 @@ export default defineComponent({
     }
   },
   computed: {
+    currentStation() { return this.store.stations[this.$parent.stationSelection.selected] },
     currentLine() { return this.store.lines[this.$parent.lineSelection.selectedLine] },
     currentHalt() { return this.store.lines[this.$parent.lineSelection.selectedLine].halts[this.$parent.lineSelection.selectedHalt] },
     nextHalt() {

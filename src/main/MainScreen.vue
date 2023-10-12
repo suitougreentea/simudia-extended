@@ -215,7 +215,7 @@ export default defineComponent({
     clickBackground() {
       this.unselectAll()
     },
-    unselectAll() {
+    unselectLine() {
       this.lineSelection = {
         hoveredLine: -1,
         hoveredSet: -1,
@@ -226,10 +226,80 @@ export default defineComponent({
         selectedHalt: -1,
         selectedType: -1
       }
-      this.stationSelection ={
+    },
+    unselectStation() {
+      this.stationSelection = {
         hovered: -1,
         selected: -1
       }
+    },
+    unselectAll() {
+      this.unselectLine()
+      this.unselectStation()
+    },
+    insertStationAboveSelected(stationIndex) {
+      this.store.addStation({
+        pos: stationIndex,
+        name: "New station",
+        width: 100
+      })
+      this.stationSelection.selected = stationIndex
+    },
+    insertStationBelowSelected(stationIndex) {
+      this.store.addStation({
+        pos: stationIndex + 1,
+        name: "New station",
+        width: 100
+      })
+      this.stationSelection.selected = stationIndex + 1
+    },
+    deleteSelectedStation(stationIndex) {
+      const prevSelectedLine = this.store.lines[this.lineSelection.selectedLine]
+      this.store.deleteStation({
+        pos: stationIndex,
+      })
+      if (this.stationSelection.selected == stationIndex) {
+        this.stationSelection.selected = -1
+      }
+      const selectedLine = this.store.lines[this.lineSelection.selectedLine]
+      if (prevSelectedLine !== selectedLine) {
+        this.lineSelection.selectedLine = -1
+        this.lineSelection.selectedSet = -1
+        this.lineSelection.selectedHalt = -1
+        this.lineSelection.selectedType = -1
+      }
+    },
+    insertHaltToSelectedLine(haltIndex) {
+      const lineIndex = this.lineSelection.selectedLine
+      const setIndex = this.lineSelection.selectedSet
+      const line = this.store.lines[lineIndex]
+
+      const monthLength = this.store.monthLength
+      const halts = this.store.lines[lineIndex].halts
+      const halt = halts[haltIndex]
+      const nextHalt = halts[(haltIndex + 1)%halts.length]
+      const stationIndex = this.store.findStationIndex(halt.stationId)
+      const nextStationIndex = this.store.findStationIndex(nextHalt.stationId)
+      const time = (this.store.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
+
+      this.lineInsertOrigin = {
+        line: lineIndex,
+        halt: haltIndex,
+      }
+      this.mode = "input"
+      this.$refs.lineInputDefs.setTerminal(nextStationIndex)
+      this.$refs.lineInputDefs.addPoint({ station: stationIndex, time: time, skip: false })
+    },
+    deleteHaltFromSelectedLine(haltIndex) {
+      const lineIndex = this.lineSelection.selectedLine
+
+      this.lineSelection.selectedHalt = -1
+      this.lineSelection.selectedType = -1
+      this.store.deleteHalt({ lineIndex, haltIndex })
+    },
+    deleteSelectedLine(index) {
+      this.lineSelection.selectedLine = -1
+      this.store.deleteLine(index)
     },
     closeDialog() {
       return dialog.showMessageBox(remote.getCurrentWindow(), {
