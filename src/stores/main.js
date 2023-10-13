@@ -300,7 +300,6 @@ export const useMainStore = defineStore("main", {
     loadFromJsonString(filename, text) {
       const json = JSON.parse(text)
       this.$patch({
-        ...this,
         ...json,
         currentFile: filename
       })
