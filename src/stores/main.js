@@ -298,7 +298,10 @@ export const useMainStore = defineStore("main", {
     loadFromJsonString(filename, text) {
       const json = JSON.parse(text)
       this.$patch({
-        ...json,
+        monthLength: json.monthLength,
+        shiftDivisor: json.shiftDivisor,
+        stations: json.stations,
+        lines: json.lines,
         currentFile: filename
       })
       this.setModified(false)
