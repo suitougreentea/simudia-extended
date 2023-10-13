@@ -1,7 +1,7 @@
 <!-- NOTE: This component's data may be changed by the other components in the same folder for performances -->
 
 <template lang="pug">
-div(style="position: relative")
+div(style="position: relative" @dragover="dragover" @drop="drop")
   div.diagram(@click="clickBackground")
     div.toolbar
       div.toolbar-button(@click.prevent.stop="openFile") Open
@@ -338,6 +338,36 @@ export default defineComponent({
       URL.revokeObjectURL(url)
 
       this.store.setSaved(filename)
+    },
+    dragover(e) {
+      e.preventDefault()
+    },
+    async drop(e) {
+      e.preventDefault()
+
+      const item = e.dataTransfer.items?.[0]
+      const file = e.dataTransfer.files?.[0]
+      let fileToLoad
+      if (item != null) {
+        if (item.kind === "file") {
+          fileToLoad = item.getAsFile()
+        }
+      } else if (file != null) {
+        fileToLoad = file
+      }
+
+      const str = await fileToLoad.text()
+
+      if (this.store.modified) {
+        const result = window.confirm("Save modified data?")
+        if (!result) return
+        else {
+          this.downloadFile()
+        }
+      }
+
+      this.store.loadFromJsonString(file.name, str)
+      this.unselectAll()
     },
     beforeUnload(e) {
       if (this.store.modified) {
