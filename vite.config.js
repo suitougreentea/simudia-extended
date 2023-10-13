@@ -9,7 +9,28 @@ export default defineConfig({
   base: "/simudia-extended/",
   plugins: [
     vue(),
-    VitePWA({ registerType: 'autoUpdate' }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      manifest: {
+        name: "SimuDia-Extended",
+        short_name: "SimuDiaEx",
+        description: "An interactive editor for planning timetables used in Simutrans-Extended",
+        theme_color: "#ffffff",
+        icons: [
+          {
+            src: "pwa-icon-192.png",
+            sizes: "192x192",
+            type: "image/png"
+          },
+          {
+            src: "pwa-icon-512.png",
+            sizes: "512x512",
+            type: "image/png"
+          },
+        ],
+      }
+    }),
   ],
   resolve: {
     alias: {
