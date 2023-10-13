@@ -48,8 +48,6 @@ const getEmptyState = () => {
   }
 }
 
-const ignoredMutations = ["emptyState"]
-
 const findStationIndex = (state) => {
   return function(id) {
     return state.stations.findIndex(e => id === e.id)
@@ -309,5 +307,4 @@ export const useMainStore = defineStore("main", {
       this.modified = modified
     },
   },
-  strict: process.env.NODE_ENV !== "production"
 })
