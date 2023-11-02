@@ -41,7 +41,7 @@ div(style="height: 100%")
         label Reversing time:
         TimeInputControl(:value="currentLine.reversingTime" @change="changeLine('reversingTime', time($event))")
       div
-        button(@click="$parent.deleteLine($parent.lineSelection.selectedLine)") Delete line
+        button(@click="$parent.deleteSelectedLine($parent.lineSelection.selectedLine)") Delete line
     div(v-if="$parent.lineSelection.selectedHalt >= 0")
       div(v-if="$parent.lineSelection.selectedType == 0")
         div From: {{ stationName }}
