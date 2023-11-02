@@ -311,7 +311,7 @@ export default defineComponent({
         const result = window.confirm("Save modified data?")
         if (!result) return
         else {
-          this.saveFile()
+          await this.saveFile()
         }
       }
 
