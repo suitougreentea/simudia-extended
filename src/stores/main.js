@@ -43,7 +43,7 @@ const getEmptyState = () => {
     stations: [],
     lines: [],
 
-    currentFile: "",
+    currentFileHandle: null,
     modified: false
   }
 }
@@ -157,10 +157,7 @@ export const useMainStore = defineStore("main", {
       })
     },
     baseName(state) {
-      if (state.currentFile !== "") {
-        return state.currentFile
-      }
-      return "New File"
+      return state.currentFileHandle?.filename ?? "New File"
     },
     jsonString(state) {
       return JSON.stringify({
@@ -291,18 +288,18 @@ export const useMainStore = defineStore("main", {
       }
       this.setModified(true)
     },
-    setSaved(filename) {
-      this.currentFile = filename
+    setFileHandle(fileHandle) {
+      this.currentFileHandle = fileHandle
       this.setModified(false)
     },
-    loadFromJsonString(filename, text) {
-      const json = JSON.parse(text)
+    loadFromFileHandle(fileHandle) {
+      const json = JSON.parse(fileHandle.content)
       this.$patch({
         monthLength: json.monthLength,
         shiftDivisor: json.shiftDivisor,
         stations: json.stations,
         lines: json.lines,
-        currentFile: filename
+        currentFileHandle: fileHandle
       })
       this.setModified(false)
     },

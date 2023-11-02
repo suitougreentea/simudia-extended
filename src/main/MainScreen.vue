@@ -5,7 +5,8 @@ div(style="position: relative" @dragover="dragover" @drop="drop")
   div.diagram(@click="clickBackground")
     div.toolbar
       div.toolbar-button(@click.prevent.stop="openFile") Open
-      div.toolbar-button(@click.prevent.stop="downloadFile") Download
+      div.toolbar-button(@click.prevent.stop="saveFile") Save
+      div.toolbar-button(@click.prevent.stop="saveFileAs") Save As
       br
       //-button(v-if="$root.canUndo" @click="$root.undo") Undo
       //-button(v-else disabled) Undo
@@ -54,6 +55,7 @@ import { defineComponent } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
 import { SECOND_DIVISOR } from "../time-util"
+import { allAvailableApis as availableFileApis } from "../file"
 import Sidebar from "./Sidebar.vue"
 import LineDefs from "./LineDefs.vue"
 import StationDefs from "./StationDefs.vue"
@@ -304,40 +306,32 @@ export default defineComponent({
       this.lineSelection.selectedLine = -1
       this.store.deleteLine(index)
     },
-    openFile() {
+    async openFile() {
       if (this.store.modified) {
         const result = window.confirm("Save modified data?")
         if (!result) return
         else {
-          this.downloadFile()
+          this.saveFile()
         }
       }
 
-      const input = document.createElement("input")
-      input.type = "file"
-      input.onchange = async (ev) => {
-        if (input.files == 0) return
-        const file = input.files[0]
-        const str = await file.text()
-        this.store.loadFromJsonString(file.name, str)
-        this.unselectAll()
-      }
-      input.click()
+      const api = availableFileApis[0]
+      const fileHandle = await api.open()
+      this.store.loadFromFileHandle(fileHandle)
+      this.unselectAll()
     },
-    downloadFile() {
-      const jsonString = this.store.jsonString
-      const blob = new Blob([jsonString], { type: "application/json" })
-      const url = URL.createObjectURL(blob)
-      
-      const filename = this.store.currentFile != "" ? this.store.currentFile : "New File.simudiax"
-      const a = document.createElement("a")
-      a.href = url
-      a.download = filename
-      a.click()
-
-      URL.revokeObjectURL(url)
-
-      this.store.setSaved(filename)
+    async saveFile() {
+      if (this.store.currentFileHandle == null || !this.store.currentFileHandle.saveAvailable) {
+        await this.saveFileAs()
+      } else {
+        await this.store.currentFileHandle.save(this.store.jsonString)
+        this.store.setModified(false)
+      }
+    },
+    async saveFileAs() {
+      const api = availableFileApis[0]
+      const fileHandle = await api.saveAs(this.store.jsonString, this.store.currentFileHandle?.filename ?? "New File.simudiax")
+      this.store.setFileHandle(fileHandle)
     },
     dragover(e) {
       e.preventDefault()
@@ -345,28 +339,18 @@ export default defineComponent({
     async drop(e) {
       e.preventDefault()
 
-      const item = e.dataTransfer.items?.[0]
-      const file = e.dataTransfer.files?.[0]
-      let fileToLoad
-      if (item != null) {
-        if (item.kind === "file") {
-          fileToLoad = item.getAsFile()
-        }
-      } else if (file != null) {
-        fileToLoad = file
-      }
-
-      const str = await fileToLoad.text()
+      const api = availableFileApis[0]
+      const fileHandle = await api.onFileDrop(e)
 
       if (this.store.modified) {
         const result = window.confirm("Save modified data?")
         if (!result) return
         else {
-          this.downloadFile()
+          this.saveFile()
         }
       }
 
-      this.store.loadFromJsonString(file.name, str)
+      this.store.loadFromFileHandle(fileHandle)
       this.unselectAll()
     },
     beforeUnload(e) {
