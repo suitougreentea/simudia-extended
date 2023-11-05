@@ -302,6 +302,10 @@ export default defineComponent({
       this.lineSelection.selectedType = -1
       this.store.deleteHalt({ lineIndex, haltIndex })
     },
+    copySelectedLine(index) {
+      this.store.copyLine(index)
+      this.lineSelection.selectedLine = this.store.lines.length - 1
+    },
     deleteSelectedLine(index) {
       this.lineSelection.selectedLine = -1
       this.store.deleteLine(index)

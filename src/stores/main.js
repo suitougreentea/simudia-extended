@@ -230,6 +230,14 @@ export const useMainStore = defineStore("main", {
       this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * SECOND_DIVISOR, reversingTime: 60 * SECOND_DIVISOR, visible: true })
       this.setModified(true)
     },
+    copyLine(index) {
+      this.lines.push({
+        ...this.lines[index],
+        halts: this.lines[index].halts.map(e => ({ ...e })),
+        name: `Copy of ${this.lines[index].name}`,
+      })
+      this.setModified(true)
+    },
     deleteLine(index) {
       this.lines.splice(index, 1)
       this.setModified(true)
