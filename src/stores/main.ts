@@ -54,7 +54,7 @@ type State = {
   modified: boolean,
 }
 
-const getEmptyState: () => State = () => {
+const getEmptyState = (): State => {
   return {
     monthLength: TimeUtil.fromHMS(6, 24, 0),
     shiftDivisor: 1440,
@@ -66,7 +66,7 @@ const getEmptyState: () => State = () => {
   }
 }
 
-const getEmptyLineHalt: (number) => LineHalt = (defaultLoadingTime) => {
+const getEmptyLineHalt = (defaultLoadingTime: number): LineHalt => {
   return {
     stationId: -1,
     time: -1,
