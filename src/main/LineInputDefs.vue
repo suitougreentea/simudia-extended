@@ -10,9 +10,9 @@ defs
       circle(v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r=3 fill="gray")
   
 </template>
-<script>
+<script lang="ts">
 import { defineComponent } from "vue"
-import { SECOND_DIVISOR } from "../time-util"
+import * as TimeUtil from "../time-util"
 
 export default defineComponent({
   data: function() {
@@ -42,12 +42,12 @@ export default defineComponent({
       if (this.rubberbands[this.rubberbands.length - 1].station === station) {
         // if (this.rubberbands[this.rubberbands.length - 1].station != this.rubberbands[0].station) {
         if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
-          // return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
-          return [{ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR }]
+          // return [{ station: this.rubberbands[0].station, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * TimeUtil.SECOND_DIVISOR }]
+          return [{ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * TimeUtil.SECOND_DIVISOR }]
         }
         return []
       }
-      const time = Math.max(_time, this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR)
+      const time = Math.max(_time, this.rubberbands[this.rubberbands.length - 1].time + 30 * TimeUtil.SECOND_DIVISOR)
       if (skip) return [{ station, time }]
       const result = []
       const {time: lastTime, station: lastStation} = this.rubberbands[this.rubberbands.length - 1]
@@ -64,7 +64,7 @@ export default defineComponent({
     },
     finishInput() {
       if (this.rubberbands[this.rubberbands.length - 1].station !== this.terminal) {
-        this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * SECOND_DIVISOR })
+        this.rubberbands.push({ station: this.terminal, time: this.rubberbands[this.rubberbands.length - 1].time + 30 * TimeUtil.SECOND_DIVISOR })
       }
       if (this.rubberbands.length >= 3) {
         this.$parent.inputtingTime = true

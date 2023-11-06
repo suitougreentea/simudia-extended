@@ -23,7 +23,7 @@ defs
       @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
   
 </template>
-<script>
+<script lang="ts">
 import { defineComponent } from "vue"
 
 export default defineComponent({

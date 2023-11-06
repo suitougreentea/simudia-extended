@@ -41,7 +41,7 @@ defs
                 style="pointer-events: visibleStroke")
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from "vue"
 import { useMainStore } from "../stores/main"
 

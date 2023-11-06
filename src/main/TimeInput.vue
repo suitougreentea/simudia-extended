@@ -6,10 +6,10 @@ div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInput
       @keydown.enter.prevent="putTime" @input="inputTime")
   
 </template>
-<script>
+<script lang="ts">
 import { defineComponent, nextTick } from "vue"
 import { useMainStore } from "../stores/main"
-import TimeUtil from "../time-util"
+import * as TimeUtil from "../time-util"
 
 export default defineComponent({
   setup() {
@@ -34,7 +34,7 @@ export default defineComponent({
         const element = this.$refs.timeInput
         element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
         element.focus()
-        document.execCommand("selectAll", false, null)
+        document.execCommand("selectAll", false)
       })
     },
     inputTime() {
@@ -51,7 +51,7 @@ export default defineComponent({
         this.inputtingTimeIndex++
         element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
         element.focus()
-        document.execCommand("selectAll", false, null)
+        document.execCommand("selectAll", false)
       } else {
         if (this.$parent.lineInsertOrigin.line !== -1) {
           this.store.insertHalts({

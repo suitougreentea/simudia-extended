@@ -50,11 +50,11 @@ div(style="position: relative" @dragover="dragover" @drop="drop")
 
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
-import { SECOND_DIVISOR } from "../time-util"
+import * as TimeUtil from "../time-util"
 import { allAvailableApis as availableFileApis } from "../file"
 import Sidebar from "./Sidebar.vue"
 import LineDefs from "./LineDefs.vue"
@@ -398,14 +398,14 @@ export default defineComponent({
     verticalGrids() {
       const result = []
       const monthLength = this.store.monthLength
-      for (let i = 0; i <= monthLength; i += SECOND_DIVISOR * 60 * 3) {
+      for (let i = 0; i <= monthLength; i += TimeUtil.SECOND_DIVISOR * 60 * 3) {
         const x = this.x(i)
         let color
         let y
-        if (i % (SECOND_DIVISOR * 60 * 60) === 0) {
+        if (i % (TimeUtil.SECOND_DIVISOR * 60 * 60) === 0) {
           color = "black"
           y = this.layout.top
-        } else if (i % (SECOND_DIVISOR * 60 * 15) === 0) {
+        } else if (i % (TimeUtil.SECOND_DIVISOR * 60 * 15) === 0) {
           color = "gray"
           y = this.layout.top + this.layout.headerHeight
         } else {
@@ -419,8 +419,8 @@ export default defineComponent({
     verticalTexts() {
       const result = []
       const monthLength = this.store.monthLength
-      for (let i = 0; i <= monthLength / (SECOND_DIVISOR * 60 * 60); i++) {
-        const tick = i * SECOND_DIVISOR * 60 * 60
+      for (let i = 0; i <= monthLength / (TimeUtil.SECOND_DIVISOR * 60 * 60); i++) {
+        const tick = i * TimeUtil.SECOND_DIVISOR * 60 * 60
         result.push({ x: this.x(tick) + 5, y: this.layout.top + this.layout.headerHeight - 5, text: `${i}:00:00` })
       }
       return result

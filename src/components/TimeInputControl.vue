@@ -1,49 +1,47 @@
 <template lang="pug">
 div(style="display: contents")
-  input(type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input.stop="input" @change.stop="change")
+  input(type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input.stop="onInput" @change.stop="onChange")
 </template>
-<script>
-import { defineComponent } from "vue"
-import TimeUtil from "../time-util"
 
-export default defineComponent({
-  props: ["value", "disabled"],
-  data: function() {
-    return {
-      rawText: TimeUtil.joinStringSimple(this.value),
-      time: this.value,
-    }
-  },
-  methods: {
-    input(event) {
-      const element = event.target
-      const text = element.value.trim()
-      this.rawText = text
-      this.$emit("input", {target: this})
-    },
-    change(event) {
-      const element = event.target
-      const text = element.value.trim()
-      this.rawText = text
-      if (TimeUtil.isValidTimeInput(text)) {
-        this.time = TimeUtil.parse(text)
-        this.$emit("change", {target: this})
-      }
-    }
-  },
-  computed: {
-    stringified() {
-      return TimeUtil.joinStringSimple(this.value)
-    },
-    error() {
-      return !TimeUtil.isValidTimeInput(this.rawText)
-    }
-  },
-  watch: {
-    value() {
-      this.rawText = TimeUtil.joinStringSimple(this.value)
-    }
+<script setup lang="ts">
+import { computed, ref, toRefs, watch } from "vue";
+import * as TimeUtil from "../time-util"
+const props = withDefaults(defineProps<{
+  modelValue: number,
+  disabled?: boolean,
+}>(), {
+  disabled: false,
+})
+
+const emit = defineEmits<{
+  "update:modelValue": [newValue: number],
+}>()
+
+const rawText = ref(TimeUtil.joinStringSimple(props.modelValue))
+const time = ref(props.modelValue)
+
+const stringified = computed(() => TimeUtil.joinStringSimple(props.modelValue))
+const error = computed(() => !TimeUtil.isValidTimeInput(rawText.value))
+
+const onInput = (event) => {
+  const element = event.target
+  const text = element.value.trim()
+  rawText.value = text
+}
+
+const onChange = (event) => {
+  const element = event.target
+  const text = element.value.trim()
+  rawText.value = text
+  if (TimeUtil.isValidTimeInput(text)) {
+    time.value = TimeUtil.parse(text)
+    emit("update:modelValue", time.value)
   }
+}
+
+const propRefs = toRefs(props)
+watch(propRefs.modelValue, (newValue) => {
+  rawText.value = TimeUtil.joinStringSimple(newValue)
 })
 </script>
 

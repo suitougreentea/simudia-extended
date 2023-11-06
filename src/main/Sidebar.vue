@@ -6,7 +6,7 @@ div(style="height: 100%")
     div(v-if="$parent.stationSelection.selected == -1 && $parent.lineSelection.selectedLine == -1")
       div
         label Month length:
-        TimeInputControl(:value="store.monthLength" @change="changeMonthLength(time($event))")
+        TimeInputControl(:model-value="store.monthLength" @update:model-value="value => changeMonthLength(value)")
       div
         label Shift divisor:
         input(type="number" min=1 :value="store.shiftDivisor" @input="changeShiftDivisor(Math.max(Math.floor(Number(value($event))), 1))")
@@ -36,10 +36,10 @@ div(style="height: 100%")
         input(type="color" min=1 :value="currentLine.color" @input="changeLine('color', value($event))")
       div
         label Default loading time:
-        TimeInputControl(:value="currentLine.defaultLoadingTime" @change="changeLine('defaultLoadingTime', time($event))")
+        TimeInputControl(:model-value="currentLine.defaultLoadingTime" @update:model-value="value => changeLine('defaultLoadingTime', value)")
       div
         label Reversing time:
-        TimeInputControl(:value="currentLine.reversingTime" @change="changeLine('reversingTime', time($event))")
+        TimeInputControl(:model-value="currentLine.reversingTime" @update:model-value="value => changeLine('reversingTime', value)")
       div
         button(@click="$parent.copySelectedLine($parent.lineSelection.selectedLine)") Copy line
         button(@click="$parent.deleteSelectedLine($parent.lineSelection.selectedLine)") Delete line
@@ -52,7 +52,7 @@ div(style="height: 100%")
           label Skip
         div(v-if="!currentHalt.skip")
           label Journey time:
-          TimeInputControl(:value="currentHalt.time" @change="changeHalt('time', time($event))")
+          TimeInputControl(:model-value="currentHalt.time" @update:model-value="value => changeHalt('time', value)")
       div(v-if="$parent.lineSelection.selectedType == 1")
         div Stops at: {{ stationName }}
         div
@@ -62,18 +62,18 @@ div(style="height: 100%")
           div
             input(type="checkbox" :checked="currentHalt.wait", @change="changeHalt('wait', check($event))")
             label Wait:
-            TimeInputControl(:disabled="!currentHalt.wait" :value="currentHalt.waitTime" @change="changeHalt('waitTime', time($event))")
+            TimeInputControl(:disabled="!currentHalt.wait" :model-value="currentHalt.waitTime" @update:model-value="value => changeHalt('waitTime', value)")
           div
             input(type="checkbox" :checked="currentHalt.reverse", @change="changeHalt('reverse', check($event))")
             label Reverse
           div
             input(type="checkbox" :checked="currentHalt.overrideLoadingTime", @change="changeHalt('overrideLoadingTime', check($event))")
             label Override loading:
-            TimeInputControl(:disabled="!currentHalt.overrideLoadingTime" :value="currentHalt.loadingTime" @change="changeHalt('loadingTime', time($event))")
+            TimeInputControl(:disabled="!currentHalt.overrideLoadingTime" :model-value="currentHalt.loadingTime" @update:model-value="value => changeHalt('loadingTime', value)")
           div
             input(type="checkbox" :checked="currentHalt.scheduled", @change="changeHalt('scheduled', check($event))")
             label Schedule departure:
-            TimeInputControl(:disabled="!currentHalt.scheduled" :value="currentHalt.departureTime" @change="changeHalt('departureTime', time($event))")
+            TimeInputControl(:disabled="!currentHalt.scheduled" :model-value="currentHalt.departureTime" @update:model-value="value => changeHalt('departureTime', value)")
             div
               label In-game shift:
               input(:disabled="!currentHalt.scheduled" type="number" min="0" :value="departureTimeShift(currentHalt.departureTime)" @input="changeHalt('departureTime', shiftToTime(Number(value($event))))")
@@ -97,10 +97,10 @@ div(style="height: 100%")
 
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from "vue"
 import { useMainStore } from "../stores/main"
-import TimeUtil from "../time-util"
+import * as TimeUtil from "../time-util"
 import TimeInputControl from "../components/TimeInputControl.vue"
 
 export default defineComponent({
@@ -125,9 +125,6 @@ export default defineComponent({
     },
     check(event) {
       return event.target.checked
-    },
-    time(event) {
-      return event.target.time
     },
     changeLine(key, value) {
       this.store.modifyLine({ index: this.$parent.lineSelection.selectedLine, key, value })
