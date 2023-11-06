@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "pinia": "^2.1.6",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vuetify": "^3.3.23"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.3.3",
