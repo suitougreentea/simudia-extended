@@ -1,53 +1,48 @@
 <!-- NOTE: This component's data may be changed by the other components in the same folder for performances -->
 
-<template lang="pug">
-div(style="position: relative" @dragover="dragover" @drop="drop")
-  div.diagram(@click="clickBackground")
-    div.toolbar
-      div.toolbar-button(@click.prevent.stop="openFile") Open
-      div.toolbar-button(@click.prevent.stop="saveFile") Save
-      div.toolbar-button(@click.prevent.stop="saveFileAs") Save As
-      br
-      //-button(v-if="$root.canUndo" @click="$root.undo") Undo
-      //-button(v-else disabled) Undo
-      //-button(v-if="$root.canRedo" @click="$root.redo") Redo
-      //-button(v-else disabled) Redo
-      div.toolbar-button(:class="{ pressed: (mode == 'input') }" @click.prevent="toggleInputMode") Input
-      div.toolbar-button(@click.prevent.stop="zoomInHorizontal") ↔+
-      div.toolbar-button(@click.prevent.stop="zoomOutHorizontal") ↔-
-      div.toolbar-button(@click.prevent.stop="zoomInVertical") ↕+
-      div.toolbar-button(@click.prevent.stop="zoomOutVertical") ↕-
-    div.workspace
-      div(style="position: absolute; top: 0; left: 0;")
-      svg(:width="layout.width", :height="layout.height" ref="svg")
-        filter(id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%")
-          feGaussianBlur(in="SourceGraphic" result="blur" stdDeviation=2)
-          feBlend(in="SourceGraphic" in2="blur" mode="normal")
-        LineDefs(ref="lineDefs")
-        StationDefs(ref="stationDefs")
-        LineInputDefs(ref="lineInputDefs")
-
-        line(v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color")
-        text(v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14") {{ t.text }}
-        use(xlink:href="#stations")
-        use(v-if="mode == 'input'" xlink:href="#line-input")
-        use(xlink:href="#lines")
-
-        use(xlink:href="#stations-hover")
-        use(xlink:href="#lines-hover")
-      div(style="position: absolute; top: 0; left: 0;")
-        div.station-name(contenteditable v-for="(s, i) in stations" :style="{ top: accumulatedStationY[i] - 20 + 'px', left: '20px' }"
-            @focus="resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)"
-            ref="existingStation") {{ s.name }}
-        div.station-name(contenteditable :style="{ top: newStationY + 'px', left: '20px' }"
-            @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur"
-            ref="newStation")
-        div.station-name(:style="{ top: '-100px', left: '-100px' }"
-            ref="stationForMeasure")
-        TimeInput(ref="timeInput")
-  div.property-side
-    Sidebar(ref="sideBar")
-
+<template>  
+  <div style="position: relative" @dragover="dragover" @drop="drop">
+    <div class="diagram" @click="clickBackground">
+      <div class="toolbar">
+        <div class="toolbar-button" @click.prevent.stop="openFile">Open</div>
+        <div class="toolbar-button" @click.prevent.stop="saveFile">Save</div>
+        <div class="toolbar-button" @click.prevent.stop="saveFileAs">Save As</div><br>
+        <div class="toolbar-button" :class="{ pressed: (mode == 'input') }" @click.prevent="toggleInputMode">Input</div>
+        <div class="toolbar-button" @click.prevent.stop="zoomInHorizontal">↔+</div>
+        <div class="toolbar-button" @click.prevent.stop="zoomOutHorizontal">↔-</div>
+        <div class="toolbar-button" @click.prevent.stop="zoomInVertical">↕+</div>
+        <div class="toolbar-button" @click.prevent.stop="zoomOutVertical">↕-</div>
+      </div>
+      <div class="workspace">
+        <div style="position: absolute; top: 0; left: 0;"></div>
+        <svg :width="layout.width" :height="layout.height" ref="svg">
+          <filter id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
+            <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
+          </filter>
+          <LineDefs ref="lineDefs"></LineDefs>
+          <StationDefs ref="stationDefs"></StationDefs>
+          <LineInputDefs ref="lineInputDefs"></LineInputDefs>
+          <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color"></line>
+          <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
+          <use xlink:href="#stations"></use>
+          <use v-if="mode == 'input'" xlink:href="#line-input"></use>
+          <use xlink:href="#lines"></use>
+          <use xlink:href="#stations-hover"></use>
+          <use xlink:href="#lines-hover"></use>
+        </svg>
+        <div style="position: absolute; top: 0; left: 0;">
+          <div class="station-name" contenteditable v-for="(s, i) in stations" :style="{ top: accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
+          <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
+          <div class="station-name" :style="{ top: '-100px', left: '-100px' }" ref="stationForMeasure"></div>
+          <TimeInput ref="timeInput"></TimeInput>
+        </div>
+      </div>
+    </div>
+    <div class="property-side">
+      <Sidebar ref="sideBar"></Sidebar>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -538,79 +533,92 @@ defineExpose(exposed)
 export type ExposedType = typeof exposed;
 </script>
 
-<style lang="stylus">
-body
-  font-family: sans-serif
+<style>
+body {
+  font-family: sans-serif;
+}
 
-.station-name
-  min-width: 100px
-  line-height: 20px
-  position: absolute
-  white-space: nowrap
-  font-size: 14px
+.station-name {
+  min-width: 100px;
+  line-height: 20px;
+  position: absolute;
+  white-space: nowrap;
+  font-size: 14px;
+}
 
-.time-input-container
-  min-width: 100px
-  line-height: 20px
-  position: absolute
-  white-space: nowrap
-  background-color: rgba(255, 255, 255, 0.7)
-  box-shadow: 0px 0px 2px 1px black
-  .error
-    box-shadow: 0px 0px 2px 1px red
+.time-input-container {
+  min-width: 100px;
+  line-height: 20px;
+  position: absolute;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0px 0px 2px 1px black;
 
-.selectedLine
-  filter: url(#selected-shadow)
+  .error {
+    box-shadow: 0px 0px 2px 1px red;
+  }
+}
 
-.diagram
-  position: fixed
-  top: 0
-  left: 0
-  width: 70%
-  height: 100%
-  background-color: white
-  overflow-x: auto
-  overflow-y: auto
+.selectedLine {
+  filter: url(#selected-shadow);
+}
 
-.property-side
-  position: fixed
-  top: 0
-  right: 0
-  width: 30%
-  height: 100%
-  background-color: white
-  border-left: 2px solid black
+.diagram {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 70%;
+  height: 100%;
+  background-color: white;
+  overflow-x: auto;
+  overflow-y: auto;
+}
 
-.toolbar
-  position: fixed
-  top: 0
-  left: 0
-  width: 100%
-  height: 60px
-  background-color: #EEE
-  z-index: 100
-  font-size: 14px
+.property-side {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 30%;
+  height: 100%;
+  background-color: white;
+  border-left: 2px solid black;
+}
 
-.workspace
-  position: absolute
-  top: 60px
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #EEE;
+  z-index: 100;
+  font-size: 14px;
+}
 
-.toolbar-button
-  display: inline-block
-  border: 2px outset #EEE
-  background-color: #DDD
-  padding: 2px
-  cursor: default
-  user-select: none
-  min-width: 22px
-  height: 22px
-  line-height: 22px
-  text-align: center
+.workspace {
+  position: absolute;
+  top: 60px;
+}
 
-  &.pressed
-    border: 2px inset #BBB
-    background-color: #AAA
-  &:active
-    border: 2px inset #BBB
-    background-color: #AAA
+.toolbar-button {
+  display: inline-block;
+  border: 2px outset #EEE;
+  background-color: #DDD;
+  padding: 2px;
+  cursor: default;
+  user-select: none;
+  min-width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+
+  &.pressed {
+    border: 2px inset #BBB;
+    background-color: #AAA;
+  }
+  &:active {
+    border: 2px inset #BBB;
+    background-color: #AAA;
+  }
+}
 </style>

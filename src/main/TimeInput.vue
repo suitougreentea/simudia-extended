@@ -1,10 +1,9 @@
 <!-- NOTE: This component must be a child of MainScreen -->
 
-<template lang="pug">
-div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }")
-  div(contenteditable :class="{ error: errorTime }" ref="timeInput"
-      @keydown.enter.prevent="putTime" @input="inputTime")
-  
+<template>  
+  <div class="time-input-container" v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
+    <div contenteditable :class="{ error: errorTime }" ref="timeInput" @keydown.enter.prevent="putTime" @input="inputTime"></div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -86,5 +85,5 @@ defineExpose({
 })
 </script>
 
-<style lang="stylus">
+<style>
 </style>

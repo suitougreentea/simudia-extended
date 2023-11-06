@@ -1,6 +1,7 @@
-<template lang="pug">
-div(style="display: contents")
-  input(type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input.stop="onInput" @change.stop="onChange")
+<template>  
+  <div style="display: contents">
+    <input type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input.stop="onInput" @change.stop="onChange">
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -45,8 +46,9 @@ watch(propRefs.modelValue, (newValue) => {
 })
 </script>
 
-<style lang="stylus">
-input.error
-  box-shadow: 0px 0px 2px 1px red
+<style>
+input.error {
+  box-shadow: 0px 0px 2px 1px red;
+}
 </style>
 

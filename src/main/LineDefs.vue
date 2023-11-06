@@ -1,44 +1,36 @@
 <!-- NOTE: This component must be a child of MainScreen -->
 
-<template lang="pug">
-defs
-  symbol#lines
-    polyline(v-for="path in linePaths"
-      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
-    polyline(v-for="path in hoveredLinePaths"
-      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray")
-    g(v-if="$parent.lineSelection.selectedSet == -1")
-      polyline.selectedLine(v-for="path in selectedLinePaths"
-        :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
-    polyline(v-for="path in hoveredSetPaths"
-      :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray")
-    g(v-if="$parent.lineSelection.selectedHalt == -1")
-      polyline.selectedLine(v-for="path in selectedSetPaths"
-        :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray")
-    line(v-for="seg in hoveredHaltSegments"
-      :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray")
-    line.selectedLine(v-for="seg in selectedHaltSegments"
-      :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray")
-  symbol#lines-hover
-    g(v-if="$parent.mode == 'edit'")
-      g(v-for="path in linePaths")
-        polyline(v-if="path.lineIndex != $parent.lineSelection.selectedLine"
-                :points="path.d" fill="transparent" stroke="transparent" stroke-width="10"
-                @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)"
-                @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)"
-                style="pointer-events: visibleStroke")
-      g(v-for="path in selectedLinePaths")
-        polyline(v-if="path.setIndex != $parent.lineSelection.selectedSet"
-                :points="path.d" fill="transparent" stroke="transparent" stroke-width="10"
-                @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)"
-                @click.prevent.stop="clickSet(path.setIndex, $event)"
-                style="pointer-events: visibleStroke")
-      g(v-for="(t, type) in currentHaltSegments")
-        g(v-for="seg in t")
-          line(:x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10"
-                @mouseenter="hoverSegment(seg.haltIndex, type, $event)" @mouseleave="unhoverSegment(seg.haltIndex, type, $event)"
-                @click.prevent.stop="clickSegment(seg.haltIndex, type, $event)" @contextmenu.prevent.stop="contextSegment(seg.haltIndex, type, $event)"
-                style="pointer-events: visibleStroke")
+<template>  
+  <defs>
+    <symbol id="lines">
+      <polyline v-for="path in linePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      <polyline v-for="path in hoveredLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
+      <g v-if="$parent.lineSelection.selectedSet == -1">
+        <polyline class="selectedLine" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      </g>
+      <polyline v-for="path in hoveredSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
+      <g v-if="$parent.lineSelection.selectedHalt == -1">
+        <polyline class="selectedLine" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      </g>
+      <line v-for="seg in hoveredHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
+      <line class="selectedLine" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
+    </symbol>
+    <symbol id="lines-hover">
+      <g v-if="$parent.mode == 'edit'">
+        <g v-for="path in linePaths">
+          <polyline v-if="path.lineIndex != $parent.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)" @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+        </g>
+        <g v-for="path in selectedLinePaths">
+          <polyline v-if="path.setIndex != $parent.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)" @click.prevent.stop="clickSet(path.setIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+        </g>
+        <g v-for="(t, type) in currentHaltSegments">
+          <g v-for="seg in t">
+            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="hoverSegment(seg.haltIndex, type, $event)" @mouseleave="unhoverSegment(seg.haltIndex, type, $event)" @click.prevent.stop="clickSegment(seg.haltIndex, type, $event)" @contextmenu.prevent.stop="contextSegment(seg.haltIndex, type, $event)" style="pointer-events: visibleStroke"></line>
+          </g>
+        </g>
+      </g>
+    </symbol>
+  </defs>
 </template>
 
 <script setup lang="ts">
@@ -304,5 +296,5 @@ defineExpose({
 
 </script>
 
-<style lang="stylus">
+<style>
 </style>

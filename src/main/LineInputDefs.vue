@@ -1,14 +1,16 @@
 <!-- NOTE: This component must be a child of MainScreen -->
 
-<template lang="pug">
-defs
-  symbol#line-input
-    path(:d="displayPath", fill="none", stroke="black")
-    circle(v-for="c in displayCircles" :cx="c.x" :cy="c.y" r=3 fill="black")
-    g(v-if="$parent.stationSelection.hovered >= 0 && $parent.hoveredTime >= 0")
-      path(:d="displayPathNew", fill="none", stroke="gray")
-      circle(v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r=3 fill="gray")
-  
+<template>  
+  <defs>
+    <symbol id="line-input">
+      <path :d="displayPath" fill="none" stroke="black"></path>
+      <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
+      <g v-if="$parent.stationSelection.hovered >= 0 && $parent.hoveredTime >= 0">
+        <path :d="displayPathNew" fill="none" stroke="gray"></path>
+        <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="gray"></circle>
+      </g>
+    </symbol>
+  </defs>
 </template>
 
 <script setup lang="ts">
@@ -129,5 +131,5 @@ defineExpose({
 })
 </script>
 
-<style lang="stylus">
+<style>
 </style>

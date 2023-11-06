@@ -1,26 +1,21 @@
 <!-- NOTE: This component must be a child of MainScreen -->
 
-<template lang="pug">
-defs
-  symbol#stations
-    line(v-for="(s, i) in $parent.stations"
-      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]"
-      stroke="black" :stroke-width="1")
-    g(v-if="$parent.stationSelection.hovered >= 0")
-      line(
-        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.hovered]" :y2="$parent.accumulatedStationY[$parent.stationSelection.hovered]"
-        stroke="black" :stroke-width="2.5")
-    g(v-if="$parent.stationSelection.selected >= 0")
-      line.selectedLine(
-        :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.selected]" :y2="$parent.accumulatedStationY[$parent.stationSelection.selected]"
-        stroke="black" :stroke-width="1")
-    line(v-if="$parent.stations.length == 0"
-      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.layout.top + $parent.layout.headerHeight" :y2="$parent.layout.top + $parent.layout.headerHeight"
-      stroke="black")
-  symbol#stations-hover
-    line(v-for="(s, i) in $parent.stations"
-      :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="transparent" stroke-width=10
-      @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
+<template>  
+  <defs>
+    <symbol id="stations">
+      <line v-for="(s, i) in $parent.stations" :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="black" :stroke-width="1"></line>
+      <g v-if="$parent.stationSelection.hovered >= 0">
+        <line :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.hovered]" :y2="$parent.accumulatedStationY[$parent.stationSelection.hovered]" stroke="black" :stroke-width="2.5"></line>
+      </g>
+      <g v-if="$parent.stationSelection.selected >= 0">
+        <line class="selectedLine" :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[$parent.stationSelection.selected]" :y2="$parent.accumulatedStationY[$parent.stationSelection.selected]" stroke="black" :stroke-width="1"></line>
+      </g>
+      <line v-if="$parent.stations.length == 0" :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.layout.top + $parent.layout.headerHeight" :y2="$parent.layout.top + $parent.layout.headerHeight" stroke="black"></line>
+    </symbol>
+    <symbol id="stations-hover">
+      <line v-for="(s, i) in $parent.stations" :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="transparent" stroke-width="10" @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)"></line>
+    </symbol>
+  </defs>
 </template>
 
 <script setup lang="ts">
@@ -86,5 +81,5 @@ const contextStationLine = (i, e) => {
 }
 </script>
 
-<style lang="stylus">
+<style>
 </style>
