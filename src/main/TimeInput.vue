@@ -2,86 +2,89 @@
 
 <template lang="pug">
 div.time-input-container(v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }")
-  div(contenteditable :class="{error: errorTime}" ref="timeInput"
+  div(contenteditable :class="{ error: errorTime }" ref="timeInput"
       @keydown.enter.prevent="putTime" @input="inputTime")
   
 </template>
-<script lang="ts">
-import { defineComponent, nextTick } from "vue"
+
+<script setup lang="ts">
+import { computed, getCurrentInstance, nextTick, ref } from "vue"
 import { useMainStore } from "../stores/main"
 import * as TimeUtil from "../time-util"
+import { type ExposedType } from "./MainScreen.vue"
 
-export default defineComponent({
-  setup() {
-    const store = useMainStore()
-    return {
-      store
-    }
-  },
-  data: function() {
-    return {
-      rubberbands: [],
-      inputtingTimeIndex: -1,
-      errorTime: false,
-      inputtingTimes: []
-    }
-  },
-  methods: {
-    start(rubberbands) {
-      this.rubberbands = rubberbands
-      this.inputtingTimeIndex = 0
-      nextTick(() => {
-        const element = this.$refs.timeInput
-        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
-        element.focus()
-        document.execCommand("selectAll", false)
+// TODO: remove
+const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+
+const store = useMainStore()
+
+const timeInput = ref(null)
+
+const rubberbands = ref([])
+const inputtingTimeIndex = ref(-1)
+const errorTime = ref(false)
+const inputtingTimes = ref([])
+
+const timeInputPosition = computed(() => {
+  if (inputtingTimeIndex.value > rubberbands.value.length - 2) return { x: 0, y: 0 }
+  const { time: firstTime, station: firstStation } = rubberbands.value[inputtingTimeIndex.value]
+  const { time: secondTime, station: secondStation } = rubberbands.value[inputtingTimeIndex.value + 1]
+  const x = instance.parent.exposed.x((firstTime + secondTime) / 2) - 50
+  const y = (instance.parent.exposed.accumulatedStationY.value[firstStation] + instance.parent.exposed.accumulatedStationY.value[secondStation]) / 2 - 10
+  return { x, y }
+})
+
+const start = (inRubberbands) => {
+  rubberbands.value = inRubberbands
+  inputtingTimeIndex.value = 0
+  nextTick(() => {
+    const element = timeInput
+    element.value.innerText = TimeUtil.joinStringSimple(rubberbands.value[inputtingTimeIndex.value + 1].time - rubberbands.value[inputtingTimeIndex.value].time)
+    element.value.focus()
+    document.execCommand("selectAll", false)
+  })
+}
+
+const inputTime = () => {
+  const element = timeInput
+  const text = element.value.innerText.trim()
+  errorTime.value = !TimeUtil.isValidTimeInput(text)
+}
+
+const putTime = () => {
+  const element = timeInput
+  const text = element.value.innerText.trim()
+  if (!TimeUtil.isValidTimeInput(text)) return
+  inputtingTimes.value.push(TimeUtil.parse(text))
+  if (inputtingTimeIndex.value < rubberbands.value.length - 2) {
+    inputtingTimeIndex.value++
+    element.value.innerText = TimeUtil.joinStringSimple(rubberbands.value[inputtingTimeIndex.value + 1].time - rubberbands.value[inputtingTimeIndex.value].time)
+    element.value.focus()
+    document.execCommand("selectAll", false)
+  } else {
+    if (instance.parent.exposed.lineInsertOrigin.value.line !== -1) {
+      store.insertHalts({
+        lineIndex: instance.parent.exposed.lineInsertOrigin.value.line, haltIndex: instance.parent.exposed.lineInsertOrigin.value.halt,
+        stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value
       })
-    },
-    inputTime() {
-      const element = this.$refs.timeInput
-      const text = element.innerText.trim()
-      this.errorTime = !TimeUtil.isValidTimeInput(text)
-    },
-    putTime() {
-      const element = this.$refs.timeInput
-      const text = element.innerText.trim()
-      if (!TimeUtil.isValidTimeInput(text)) return
-      this.inputtingTimes.push(TimeUtil.parse(text))
-      if (this.inputtingTimeIndex < this.rubberbands.length - 2) {
-        this.inputtingTimeIndex++
-        element.innerText = TimeUtil.joinStringSimple(this.rubberbands[this.inputtingTimeIndex+1].time - this.rubberbands[this.inputtingTimeIndex].time)
-        element.focus()
-        document.execCommand("selectAll", false)
-      } else {
-        if (this.$parent.lineInsertOrigin.line !== -1) {
-          this.store.insertHalts({
-            lineIndex: this.$parent.lineInsertOrigin.line, haltIndex: this.$parent.lineInsertOrigin.halt,
-            stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes
-          })
-        } else {
-          this.store.addLine({ stationIndices: this.rubberbands.map(e => e.station), times: this.inputtingTimes, firstTime: this.rubberbands[0].time })
-        }
-        this.$parent.resetInput()
-      }
-    },
-    reset() {
-      this.rubberbands = []
-      this.inputtingTimeIndex = -1
-      this.inputtingTimes = []
+    } else {
+      store.addLine({ stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value, firstTime: rubberbands.value[0].time })
     }
-  },
-  computed: {
-    timeInputPosition() {
-      if (this.inputtingTimeIndex > this.rubberbands.length - 2) return {x: 0, y: 0}
-      const {time: firstTime, station: firstStation} = this.rubberbands[this.inputtingTimeIndex]
-      const {time: secondTime, station: secondStation} = this.rubberbands[this.inputtingTimeIndex+1]
-      const x = this.$parent.x((firstTime + secondTime) / 2) - 50
-      const y = (this.$parent.accumulatedStationY[firstStation] + this.$parent.accumulatedStationY[secondStation]) / 2 - 10
-      return {x, y}
-    },
+    instance.parent.exposed.resetInput()
   }
+}
+
+const reset = () =>  {
+  rubberbands.value = []
+  inputtingTimeIndex.value = -1
+  inputtingTimes.value = []
+}
+
+defineExpose({
+  start,
+  reset,
 })
 </script>
-<style lang="stylus">
 
+<style lang="stylus">
 </style>

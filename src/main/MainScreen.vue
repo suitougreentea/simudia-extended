@@ -50,8 +50,8 @@ div(style="position: relative" @dragover="dragover" @drop="drop")
 
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue"
+<script setup lang="ts">
+import { computed, defineComponent, ref, watch } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
 import * as TimeUtil from "../time-util"
@@ -65,421 +65,477 @@ import TimeInput from "./TimeInput.vue"
 const MARGIN = 20
 const HEADER_HEIGHT = 20
 
-export default defineComponent({
-  setup() {
-    const store = useMainStore()
-    return {
-      store
-    }
-  },
-  components: {
-    Sidebar,
-    LineDefs,
-    StationDefs,
-    LineInputDefs,
-    TimeInput
-  },
-  data: function() {
-    return {
-      mode: "edit",
-      inputtingTime: false,
-      lineSelection: {
-        hoveredLine: -1,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1,
-        selectedLine: -1,
-        selectedSet: -1,
-        selectedHalt: -1,
-        selectedType: -1
-      },
-      stationSelection: {
-        hovered: -1,
-        selected: -1
-      },
-      hoveredTime: -1,
-      modifierStates: {
-        control: false,
-        shift: false
-      },
-      lineInsertOrigin: {
-        line: -1,
-        halt: -1
-      },
-      zoom: {
-        horizontal: 0,
-        vertical: 0
-      }
-    }
-  },
-  methods: {
-    x(tick) {
-      return this.layout.left + this.layout.stationsWidth + tick / (7200 * Math.pow(2, -this.zoom.horizontal / 2))
-    },
-    xi(x) {
-      return (x - this.layout.left - this.layout.stationsWidth) * (7200 * Math.pow(2, -this.zoom.horizontal / 2))
-    },
-    zoomInHorizontal() { this.zoom.horizontal++ },
-    zoomOutHorizontal() { this.zoom.horizontal-- },
-    zoomInVertical() { this.zoom.vertical++ },
-    zoomOutVertical() { this.zoom.vertical-- },
-    newStationFocus() {
-      this.resetInput()
-      const element = this.$refs.newStation
-      element.innerText = ""
-    },
-    newStationKeyProceed() {
-      const element = this.$refs.newStation
-      const text = element.innerText.trim()
-      if (text !== "") {
-        this.store.addStation({ name: text, width: this.measureStationWidth(text) })
-        element.innerText = ""
-      } else {
-        element.blur()
-      }
-    },
-    newStationKeyCancel() {
-      const element = this.$refs.newStation
-      element.innerText = ""
-      element.blur()
-    },
-    newStationBlur() {
-      const element = this.$refs.newStation
-      const text = element.innerText.trim()
-      if (text !== "") {
-        this.store.addStation({ name: text, width: this.measureStationWidth(text) })
-        element.innerText = ""
-      }
-    },
-    modifyStationKeyProceed(i) {
-      const array = this.$refs.existingStation
-      const element = array[i]
-      const text = element.innerText.trim()
-      if (text !== this.stations[i].name) {
-        this.store.modifyStation({ pos: i, name: text, width: this.measureStationWidth(text) })
-      }
-      if (array.length === i + 1) {
-        this.$refs.newStation.focus()
-      } else {
-        array[i + 1].focus()
-      }
-    },
-    modifyStationKeyCancel(i) {
-      const array = this.$refs.existingStation
-      const element = array[i]
-      element.innerText = this.stations[i].name
-      element.blur()
-    },
-    modifyStationBlur(i) {
-      const array = this.$refs.existingStation
-      const element = array[i]
-      const text = element.innerText.trim()
-      if (text !== this.stations[i].name) {
-        this.store.modifyStation({ pos: i, name: text, width: this.measureStationWidth(text) })
-      }
-    },
-    measureStationWidth(name) {
-      const element = this.$refs.stationForMeasure
-      element.innerText = name
-      return element.clientWidth
-    },
-    updateLineSelection(selection) {
-      Vue.set(this, "lineSelection", {...this.lineSelection, ...selection})
-    },
-    updateStationSelection(selection) {
-      Vue.set(this, "stationSelection", {...this.stationSelection, ...selection})
-    },
-    updateHoveredTime(time) {
-      this.hoveredTime = time
-    },
-    relativeX(x) {
-      return x - this.$refs.svg.getBoundingClientRect().left
-    },
-    relativeY(y) {
-      return y - this.$refs.svg.getBoundingClientRect().top
-    },
-    resetInput() {
-      this.$refs.timeInput.reset()
-      this.$refs.lineInputDefs.reset()
-      this.lineInsertOrigin = {
-        line: -1,
-        halt: -1
-      }
-      this.inputtingTime = false
-      this.mode = "edit"
-    },
-    toggleInputMode() {
-      if (this.mode === "input") {
-        this.resetInput()
-        this.mode = "edit"
-      } else {
-        this.unselectAll()
-        this.mode = "input"
-      }
-    },
-    clickBackground() {
-      this.unselectAll()
-    },
-    unselectLine() {
-      this.lineSelection = {
-        hoveredLine: -1,
-        hoveredSet: -1,
-        hoveredHalt: -1,
-        hoveredType: -1,
-        selectedLine: -1,
-        selectedSet: -1,
-        selectedHalt: -1,
-        selectedType: -1
-      }
-    },
-    unselectStation() {
-      this.stationSelection = {
-        hovered: -1,
-        selected: -1
-      }
-    },
-    unselectAll() {
-      this.unselectLine()
-      this.unselectStation()
-    },
-    insertStationAboveSelected(stationIndex) {
-      this.store.addStation({
-        pos: stationIndex,
-        name: "New station",
-        width: 100
-      })
-      this.stationSelection.selected = stationIndex
-    },
-    insertStationBelowSelected(stationIndex) {
-      this.store.addStation({
-        pos: stationIndex + 1,
-        name: "New station",
-        width: 100
-      })
-      this.stationSelection.selected = stationIndex + 1
-    },
-    deleteSelectedStation(stationIndex) {
-      const prevSelectedLine = this.store.lines[this.lineSelection.selectedLine]
-      this.store.deleteStation({
-        pos: stationIndex,
-      })
-      if (this.stationSelection.selected == stationIndex) {
-        this.stationSelection.selected = -1
-      }
-      const selectedLine = this.store.lines[this.lineSelection.selectedLine]
-      if (prevSelectedLine !== selectedLine) {
-        this.lineSelection.selectedLine = -1
-        this.lineSelection.selectedSet = -1
-        this.lineSelection.selectedHalt = -1
-        this.lineSelection.selectedType = -1
-      }
-    },
-    insertHaltToSelectedLine(haltIndex) {
-      const lineIndex = this.lineSelection.selectedLine
-      const setIndex = this.lineSelection.selectedSet
-      const line = this.store.lines[lineIndex]
+const store = useMainStore()
 
-      const monthLength = this.store.monthLength
-      const halts = this.store.lines[lineIndex].halts
-      const halt = halts[haltIndex]
-      const nextHalt = halts[(haltIndex + 1)%halts.length]
-      const stationIndex = this.store.findStationIndex(halt.stationId)
-      const nextStationIndex = this.store.findStationIndex(nextHalt.stationId)
-      const time = (this.store.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
-
-      this.lineInsertOrigin = {
-        line: lineIndex,
-        halt: haltIndex,
-      }
-      this.mode = "input"
-      this.$refs.lineInputDefs.setTerminal(nextStationIndex)
-      this.$refs.lineInputDefs.addPoint({ station: stationIndex, time: time, skip: false })
-    },
-    deleteHaltFromSelectedLine(haltIndex) {
-      const lineIndex = this.lineSelection.selectedLine
-
-      this.lineSelection.selectedHalt = -1
-      this.lineSelection.selectedType = -1
-      this.store.deleteHalt({ lineIndex, haltIndex })
-    },
-    copySelectedLine(index) {
-      this.store.copyLine(index)
-      this.lineSelection.selectedLine = this.store.lines.length - 1
-    },
-    deleteSelectedLine(index) {
-      this.lineSelection.selectedLine = -1
-      this.store.deleteLine(index)
-    },
-    async openFile() {
-      if (this.store.modified) {
-        const result = window.confirm("Save modified data?")
-        if (!result) return
-        else {
-          await this.saveFile()
-        }
-      }
-
-      const api = availableFileApis[0]
-      const fileHandle = await api.open()
-      this.store.loadFromFileHandle(fileHandle)
-      this.unselectAll()
-    },
-    async saveFile() {
-      if (this.store.currentFileHandle == null || !this.store.currentFileHandle.saveAvailable) {
-        await this.saveFileAs()
-      } else {
-        await this.store.currentFileHandle.save(this.store.jsonString)
-        this.store.setModified(false)
-      }
-    },
-    async saveFileAs() {
-      const api = availableFileApis[0]
-      const fileHandle = await api.saveAs(this.store.jsonString, this.store.currentFileHandle?.filename ?? "New File.simudiax")
-      this.store.setFileHandle(fileHandle)
-    },
-    dragover(e) {
-      e.preventDefault()
-    },
-    async drop(e) {
-      e.preventDefault()
-
-      const api = availableFileApis[0]
-      const fileHandle = await api.onFileDrop(e)
-
-      if (this.store.modified) {
-        const result = window.confirm("Save modified data?")
-        if (!result) return
-        else {
-          this.saveFile()
-        }
-      }
-
-      this.store.loadFromFileHandle(fileHandle)
-      this.unselectAll()
-    },
-    beforeUnload(e) {
-      if (this.store.modified) {
-        e.returnValue = ""
-        e.preventDefault()
-      }
-    }
-  },
-  computed: {
-    layout() {
-      const stationsWidth = Math.max(100, ...this.stations.map(e => e.width)) + 10
-
-      const monthLength = this.store.monthLength
-      const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -this.zoom.horizontal / 2)) + MARGIN
-
-      const ys = this.accumulatedStationY
-      let height
-      if (ys.length === 0) height = 60
-      else height = ys[ys.length - 1] + MARGIN
-
-      return {
-        top: MARGIN,
-        left: MARGIN,
-        right: width - MARGIN,
-        bottom: height - MARGIN,
-        width,
-        height,
-        headerHeight: HEADER_HEIGHT,
-        stationsWidth
-      }
-    },
-    newStationY() {
-      const stations = this.store.stations
-      if (stations.length === 0) {
-        return 20
-      } else {
-        return this.layout.height - 20
-      }
-    },
-    verticalGrids() {
-      const result = []
-      const monthLength = this.store.monthLength
-      for (let i = 0; i <= monthLength; i += TimeUtil.SECOND_DIVISOR * 60 * 3) {
-        const x = this.x(i)
-        let color
-        let y
-        if (i % (TimeUtil.SECOND_DIVISOR * 60 * 60) === 0) {
-          color = "black"
-          y = this.layout.top
-        } else if (i % (TimeUtil.SECOND_DIVISOR * 60 * 15) === 0) {
-          color = "gray"
-          y = this.layout.top + this.layout.headerHeight
-        } else {
-          color = "lightgray"
-          y = this.layout.top + this.layout.headerHeight
-        }
-        result.push({ x: x, y: y, color: color })
-      }
-      return result
-    },
-    verticalTexts() {
-      const result = []
-      const monthLength = this.store.monthLength
-      for (let i = 0; i <= monthLength / (TimeUtil.SECOND_DIVISOR * 60 * 60); i++) {
-        const tick = i * TimeUtil.SECOND_DIVISOR * 60 * 60
-        result.push({ x: this.x(tick) + 5, y: this.layout.top + this.layout.headerHeight - 5, text: `${i}:00:00` })
-      }
-      return result
-    },
-    stations() { return this.store.stations },
-    accumulatedStationY() { return this.store.accumulatedStationTimes.map(e => (MARGIN + 20 + e / (3600 * Math.pow(2, -this.zoom.vertical / 2)))) },
-    title() {
-      return (this.store.modified ? "*" : "") + this.store.baseName + " - SimuDia-Extended " + VERSION
-    }
-  },
-  watch: {
-    title() {
-      document.title = this.title
-    }
-  },
-  created: function() {
-    document.title = this.title
-
-    console.warn("TODO: implement menu")
-    /*
-    const menu = new Menu()
-    const fileMenu = new Menu()
-    fileMenu.append(new MenuItem({ label: "&Open...", click: () => this.openFile() }))
-    fileMenu.append(new MenuItem({ label: "&Save", click: () => this.saveFile() }))
-    fileMenu.append(new MenuItem({ label: "Save &As...", click: () => this.saveAs() }))
-    menu.append(new MenuItem({ label: "&File", submenu: fileMenu }))
-    if (remote.getGlobal("process").env.NODE_ENV === "development") {
-      menu.append(new MenuItem({ label: "&Reload", role: "forcereload" }))
-    }
-    Menu.setApplicationMenu(menu)
-    */
-
-    window.addEventListener("keydown", event => {
-      if (event.key === "Enter") {
-        const lineInputDefs = this.$refs.lineInputDefs
-        if (this.mode === "input" && !this.inputtingTime && lineInputDefs.rubberbands.length > 0) {
-          event.preventDefault()
-          event.stopPropagation()
-          lineInputDefs.finishInput()
-        }
-      }
-      if (event.key === "Escape") {
-        if (this.mode === "input") {
-          this.resetInput()
-        }
-        if (this.mode === "edit") {
-          this.unselectAll()
-        }
-      }
-      if (event.key === "Shift") this.modifierStates = { ...this.modifierStates, shift: true }
-      if (event.key === "Control") this.modifierStates = { ...this.modifierStates, control: true }
-    })
-    window.addEventListener("keyup", event => {
-      if (event.key === "Shift") this.modifierStates = { ...this.modifierStates, shift: false }
-      if (event.key === "Control") this.modifierStates = { ...this.modifierStates, control: false }
-    })
-    window.addEventListener("beforeunload", e => this.beforeUnload(e))
-  },
+const mode = ref("edit")
+const inputtingTime = ref(false)
+const lineSelection = ref({
+  hoveredLine: -1,
+  hoveredSet: -1,
+  hoveredHalt: -1,
+  hoveredType: -1,
+  selectedLine: -1,
+  selectedSet: -1,
+  selectedHalt: -1,
+  selectedType: -1
 })
+const stationSelection = ref({
+  hovered: -1,
+  selected: -1
+})
+const hoveredTime = ref(-1)
+const modifierStates = ref({
+  control: false,
+  shift: false
+})
+const lineInsertOrigin = ref({
+  line: -1,
+  halt: -1
+})
+const zoom = ref({
+  horizontal: 0,
+  vertical: 0
+})
+
+const newStation = ref(null)
+const existingStation = ref(null)
+const stationForMeasure = ref(null)
+const svg = ref(null)
+const timeInput = ref(null)
+const lineInputDefs = ref(null)
+
+const layout = computed(() => {
+  const stationsWidth = Math.max(100, ...stations.value.map(e => e.width)) + 10
+
+  const monthLength = store.monthLength
+  const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -zoom.value.horizontal / 2)) + MARGIN
+
+  const ys = accumulatedStationY.value
+  let height
+  if (ys.length === 0) height = 60
+  else height = ys[ys.length - 1] + MARGIN
+
+  return {
+    top: MARGIN,
+    left: MARGIN,
+    right: width - MARGIN,
+    bottom: height - MARGIN,
+    width,
+    height,
+    headerHeight: HEADER_HEIGHT,
+    stationsWidth
+  }
+})
+
+const newStationY = computed(() => {
+  const stations = store.stations
+  if (stations.length === 0) {
+    return 20
+  } else {
+    return layout.value.height - 20
+  }
+})
+
+const verticalGrids = computed(() => {
+  const result = []
+  const monthLength = store.monthLength
+  for (let i = 0; i <= monthLength; i += TimeUtil.SECOND_DIVISOR * 60 * 3) {
+    const x_ = x(i)
+    let color
+    let y
+    if (i % (TimeUtil.SECOND_DIVISOR * 60 * 60) === 0) {
+      color = "black"
+      y = layout.value.top
+    } else if (i % (TimeUtil.SECOND_DIVISOR * 60 * 15) === 0) {
+      color = "gray"
+      y = layout.value.top + layout.value.headerHeight
+    } else {
+      color = "lightgray"
+      y = layout.value.top + layout.value.headerHeight
+    }
+    result.push({ x: x_, y: y, color: color })
+  }
+  return result
+})
+
+const verticalTexts = computed(() => {
+  const result = []
+  const monthLength = store.monthLength
+  for (let i = 0; i <= monthLength / (TimeUtil.SECOND_DIVISOR * 60 * 60); i++) {
+    const tick = i * TimeUtil.SECOND_DIVISOR * 60 * 60
+    result.push({ x: x(tick) + 5, y: layout.value.top + layout.value.headerHeight - 5, text: `${i}:00:00` })
+  }
+  return result
+})
+
+const stations = computed(() => { return store.stations })
+
+const accumulatedStationY = computed(() => { return store.accumulatedStationTimes.map(e => (MARGIN + 20 + e / (3600 * Math.pow(2, -zoom.value.vertical / 2)))) })
+
+const title = computed(() => {
+  return (store.modified ? "*" : "") + store.baseName + " - SimuDia-Extended " + VERSION
+})
+
+const x = (tick) => {
+  return layout.value.left + layout.value.stationsWidth + tick / (7200 * Math.pow(2, -zoom.value.horizontal / 2))
+}
+
+const xi = (x) => {
+  return (x - layout.value.left - layout.value.stationsWidth) * (7200 * Math.pow(2, -zoom.value.horizontal / 2))
+}
+
+const zoomInHorizontal = () => { zoom.value.horizontal++ }
+const zoomOutHorizontal = () => { zoom.value.horizontal-- }
+const zoomInVertical = () => { zoom.value.vertical++ }
+const zoomOutVertical = () => { zoom.value.vertical-- }
+
+const newStationFocus = () => {
+  resetInput()
+  const element = newStation.value
+  element.innerText = ""
+}
+
+const newStationKeyProceed = () => {
+  const element = newStation.value
+  const text = element.innerText.trim()
+  if (text !== "") {
+    store.addStation({ name: text, width: measureStationWidth(text) })
+    element.innerText = ""
+  } else {
+    element.blur()
+  }
+}
+
+const newStationKeyCancel = () => {
+  const element = newStation.value
+  element.innerText = ""
+  element.blur()
+}
+
+const newStationBlur = () => {
+  const element = newStation.value
+  const text = element.innerText.trim()
+  if (text !== "") {
+    store.addStation({ name: text, width: measureStationWidth(text) })
+    element.innerText = ""
+  }
+}
+
+const modifyStationKeyProceed = (i) => {
+  const array = existingStation.value
+  const element = array[i]
+  const text = element.innerText.trim()
+  if (text !== stations.value[i].name) {
+    store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
+  }
+  if (array.length === i + 1) {
+    newStation.value.focus()
+  } else {
+    array[i + 1].focus()
+  }
+}
+
+const modifyStationKeyCancel = (i) => {
+  const array = existingStation.value
+  const element = array[i]
+  element.innerText = stations.value[i].name
+  element.blur()
+}
+
+const modifyStationBlur = (i) => {
+  const array = existingStation.value
+  const element = array[i]
+  const text = element.innerText.trim()
+  if (text !== stations.value[i].name) {
+    store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
+  }
+}
+
+const measureStationWidth = (name) => {
+  const element = stationForMeasure.value
+  element.innerText = name
+  return element.clientWidth
+}
+
+const updateLineSelection = (selection) => {
+  lineSelection.value = {...lineSelection.value, ...selection}
+}
+
+const updateStationSelection = (selection) => {
+  stationSelection.value = {...stationSelection.value, ...selection}
+}
+
+const updateHoveredTime = (time) => {
+  hoveredTime.value = time
+}
+
+const relativeX = (x) => {
+  return x - svg.value.getBoundingClientRect().left
+}
+
+const relativeY = (y) => {
+  return y - svg.value.getBoundingClientRect().top
+}
+
+const resetInput = () => {
+  timeInput.value.reset()
+  lineInputDefs.value.reset()
+  lineInsertOrigin.value = {
+    line: -1,
+    halt: -1
+  }
+  inputtingTime.value = false
+  mode.value = "edit"
+}
+
+const toggleInputMode = () => {
+  if (mode.value === "input") {
+    resetInput()
+    mode.value = "edit"
+  } else {
+    unselectAll()
+    mode.value = "input"
+  }
+}
+
+const clickBackground = () => {
+  unselectAll()
+}
+
+const unselectLine = () => {
+  lineSelection.value = {
+    hoveredLine: -1,
+    hoveredSet: -1,
+    hoveredHalt: -1,
+    hoveredType: -1,
+    selectedLine: -1,
+    selectedSet: -1,
+    selectedHalt: -1,
+    selectedType: -1
+  }
+}
+
+const unselectStation = () => {
+  stationSelection.value = {
+    hovered: -1,
+    selected: -1
+  }
+}
+
+const unselectAll = () => {
+  unselectLine()
+  unselectStation()
+}
+
+const insertStationAboveSelected = (stationIndex) => {
+  store.addStation({
+    pos: stationIndex,
+    name: "New station",
+    width: 100
+  })
+  stationSelection.value.selected = stationIndex
+}
+
+const insertStationBelowSelected = (stationIndex) => {
+  store.addStation({
+    pos: stationIndex + 1,
+    name: "New station",
+    width: 100
+  })
+  stationSelection.value.selected = stationIndex + 1
+}
+
+const deleteSelectedStation = (stationIndex) => {
+  const prevSelectedLine = store.lines[lineSelection.value.selectedLine]
+  store.deleteStation({
+    pos: stationIndex,
+  })
+  if (stationSelection.value.selected == stationIndex) {
+    stationSelection.value.selected = -1
+  }
+  const selectedLine = store.lines[lineSelection.value.selectedLine]
+  if (prevSelectedLine !== selectedLine) {
+    lineSelection.value.selectedLine = -1
+    lineSelection.value.selectedSet = -1
+    lineSelection.value.selectedHalt = -1
+    lineSelection.value.selectedType = -1
+  }
+}
+
+const insertHaltToSelectedLine = (haltIndex) => {
+  const lineIndex = lineSelection.value.selectedLine
+  const setIndex = lineSelection.value.selectedSet
+  const line = store.lines[lineIndex]
+
+  const monthLength = store.monthLength
+  const halts = store.lines[lineIndex].halts
+  const halt = halts[haltIndex]
+  const nextHalt = halts[(haltIndex + 1)%halts.length]
+  const stationIndex = store.findStationIndex(halt.stationId)
+  const nextStationIndex = store.findStationIndex(nextHalt.stationId)
+  const time = (store.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
+
+  lineInsertOrigin.value = {
+    line: lineIndex,
+    halt: haltIndex,
+  }
+  mode.value = "input"
+  lineInputDefs.value.setTerminal(nextStationIndex)
+  lineInputDefs.value.addPoint({ station: stationIndex, time: time, skip: false })
+}
+
+const deleteHaltFromSelectedLine = (haltIndex) => {
+  const lineIndex = lineSelection.value.selectedLine
+
+  lineSelection.value.selectedHalt = -1
+  lineSelection.value.selectedType = -1
+  store.deleteHalt({ lineIndex, haltIndex })
+}
+
+const copySelectedLine = (index) => {
+  store.copyLine(index)
+  lineSelection.value.selectedLine = store.lines.length - 1
+}
+
+const deleteSelectedLine = (index) => {
+  lineSelection.value.selectedLine = -1
+  store.deleteLine(index)
+}
+
+const openFile = async () => {
+  if (store.modified) {
+    const result = window.confirm("Save modified data?")
+    if (!result) return
+    else {
+      await saveFile()
+    }
+  }
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.open()
+  store.loadFromFileHandle(fileHandle)
+  unselectAll()
+}
+
+const saveFile = async () => {
+  if (store.currentFileHandle == null || !store.currentFileHandle.saveAvailable) {
+    await saveFileAs()
+  } else {
+    await store.currentFileHandle.save(store.jsonString)
+    store.setModified(false)
+  }
+}
+
+const saveFileAs = async () => {
+  const api = availableFileApis[0]
+  const fileHandle = await api.saveAs(store.jsonString, store.currentFileHandle?.filename ?? "New File.simudiax")
+  store.setFileHandle(fileHandle)
+}
+
+const dragover = (e) => {
+  e.preventDefault()
+}
+
+const drop = async (e) => {
+  e.preventDefault()
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.onFileDrop(e)
+
+  if (store.modified) {
+    const result = window.confirm("Save modified data?")
+    if (!result) return
+    else {
+      saveFile()
+    }
+  }
+
+  store.loadFromFileHandle(fileHandle)
+  unselectAll()
+}
+
+const beforeUnload = (e) => {
+  if (store.modified) {
+    e.returnValue = ""
+    e.preventDefault()
+  }
+}
+
+document.title = title.value
+watch(title, (value) => {
+  document.title = value
+})
+
+console.warn("TODO: implement menu")
+/*
+const menu = new Menu()
+const fileMenu = new Menu()
+fileMenu.append(new MenuItem({ label: "&Open...", click: () => this.openFile() }))
+fileMenu.append(new MenuItem({ label: "&Save", click: () => this.saveFile() }))
+fileMenu.append(new MenuItem({ label: "Save &As...", click: () => this.saveAs() }))
+menu.append(new MenuItem({ label: "&File", submenu: fileMenu }))
+if (remote.getGlobal("process").env.NODE_ENV === "development") {
+  menu.append(new MenuItem({ label: "&Reload", role: "forcereload" }))
+}
+Menu.setApplicationMenu(menu)
+*/
+
+window.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    const lineInputDefsElement = lineInputDefs.value
+    if (mode.value === "input" && !inputtingTime.value && lineInputDefsElement.rubberbands.length > 0) {
+      event.preventDefault()
+      event.stopPropagation()
+      lineInputDefsElement.finishInput()
+    }
+  }
+  if (event.key === "Escape") {
+    if (mode.value === "input") {
+      resetInput()
+    }
+    if (mode.value === "edit") {
+      unselectAll()
+    }
+  }
+  if (event.key === "Shift") modifierStates.value = { ...modifierStates.value, shift: true }
+  if (event.key === "Control") modifierStates.value = { ...modifierStates.value, control: true }
+})
+window.addEventListener("keyup", event => {
+  if (event.key === "Shift") modifierStates.value = { ...modifierStates.value, shift: false }
+  if (event.key === "Control") modifierStates.value = { ...modifierStates.value, control: false }
+})
+window.addEventListener("beforeunload", e => beforeUnload(e))
+
+const exposed = {
+  mode,
+  inputtingTime,
+  lineSelection,
+  stationSelection,
+  hoveredTime,
+  modifierStates,
+  lineInsertOrigin,
+  layout,
+  stations,
+  accumulatedStationY,
+  timeInput,
+  lineInputDefs,
+  x,
+  xi,
+  relativeX,
+  relativeY,
+  resetInput,
+  unselectLine,
+  unselectStation,
+  insertStationAboveSelected,
+  insertStationBelowSelected,
+  deleteSelectedStation,
+  insertHaltToSelectedLine,
+  deleteHaltFromSelectedLine,
+  copySelectedLine,
+  deleteSelectedLine,
+}
+defineExpose(exposed)
+export type ExposedType = typeof exposed;
 </script>
 
 <style lang="stylus">

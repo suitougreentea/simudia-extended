@@ -21,67 +21,70 @@ defs
     line(v-for="(s, i) in $parent.stations"
       :x1="$parent.layout.left" :x2="$parent.layout.right" :y1="$parent.accumulatedStationY[i]" :y2="$parent.accumulatedStationY[i]" stroke="transparent" stroke-width=10
       @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)")
-  
 </template>
-<script lang="ts">
-import { defineComponent } from "vue"
 
-export default defineComponent({
-  methods: {
-    hoverStation(i, e) {
-      this.$parent.stationSelection.hovered = i
-      const x = this.$parent.relativeX(e.clientX)
-      const hoveredTime = this.$parent.xi(x)
-      this.$parent.hoveredTime = hoveredTime
-    },
-    unhoverStation(i) {
-      if (this.$parent.stationSelection.hovered === i) {
-        this.$parent.stationSelection.hovered = -1
-      }
-    },
-    clickStationLine(i, e) {
-      if (this.$parent.mode === "input" && !this.$parent.inputtingTime) {
-        const x = this.$parent.relativeX(e.clientX)
-        const cursorTime = this.$parent.xi(x)
-        if (cursorTime >= 0) {
-          this.$parent.$refs.lineInputDefs.addPoint({ station: i, time: cursorTime, skip: !e.getModifierState("Shift") })
-        }
-      } else if (this.$parent.mode === "edit") {
-        this.$parent.unselectLine()
-        this.$parent.stationSelection.hovered = i
-        this.$parent.stationSelection.selected = i
-      }
-    },
-    contextStationLine(i, e) {
-      if (this.$parent.mode === "edit") {
-        console.warn("TODO: implement menu")
-        /*
-        const menu = new Menu()
-        menu.append(new MenuItem({
-          label: "Insert station above",
-          click: () => {
-            this.$parent.insertStationAboveSelected(i)
-          }
-        }))
-        menu.append(new MenuItem({
-          label: "Insert station below",
-          click: () => {
-            this.$parent.insertStationBelowSelected(i)
-          }
-        }))
-        menu.append(new MenuItem({
-          label: "Delete station",
-          click: () => {
-            this.$parent.deleteSelectedStation(i)
-          }
-        }))
-        menu.popup()
-        */
-      }
-    },
+<script setup lang="ts">
+import { getCurrentInstance } from "vue"
+import { type ExposedType } from "./MainScreen.vue";
+
+// TODO: remove
+const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+
+const hoverStation = (i, e) => {
+  instance.parent.exposed.stationSelection.value.hovered = i
+  const x = instance.parent.exposed.relativeX(e.clientX)
+  const hoveredTime = instance.parent.exposed.xi(x)
+  instance.parent.exposed.hoveredTime.value = hoveredTime
+}
+
+const unhoverStation = (i) => {
+  if (instance.parent.exposed.stationSelection.value.hovered === i) {
+    instance.parent.exposed.stationSelection.value.hovered = -1
   }
-})
-</script>
-<style lang="stylus">
+}
 
+const clickStationLine = (i, e) => {
+  if (instance.parent.exposed.mode.value === "input" && !instance.parent.exposed.inputtingTime.value) {
+    const x = instance.parent.exposed.relativeX(e.clientX)
+    const cursorTime = instance.parent.exposed.xi(x)
+    if (cursorTime >= 0) {
+      instance.parent.exposed.lineInputDefs.value.addPoint({ station: i, time: cursorTime, skip: !e.getModifierState("Shift") })
+    }
+  } else if (instance.parent.exposed.mode.value === "edit") {
+    instance.parent.exposed.unselectLine()
+    instance.parent.exposed.stationSelection.value.hovered = i
+    instance.parent.exposed.stationSelection.value.selected = i
+  }
+}
+
+const contextStationLine = (i, e) => {
+  if (instance.parent.exposed.mode.value === "edit") {
+    console.warn("TODO: implement menu")
+    /*
+    const menu = new Menu()
+    menu.append(new MenuItem({
+      label: "Insert station above",
+      click: () => {
+        instance.parent.exposed.insertStationAboveSelected(i)
+      }
+    }))
+    menu.append(new MenuItem({
+      label: "Insert station below",
+      click: () => {
+        instance.parent.exposed.insertStationBelowSelected(i)
+      }
+    }))
+    menu.append(new MenuItem({
+      label: "Delete station",
+      click: () => {
+        instance.parent.exposed.deleteSelectedStation(i)
+      }
+    }))
+    menu.popup()
+    */
+  }
+}
+</script>
+
+<style lang="stylus">
 </style>

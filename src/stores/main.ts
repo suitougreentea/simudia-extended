@@ -193,7 +193,7 @@ export const useMainStore = defineStore("main", {
       this.shiftDivisor = value
       this.setModified(true)
     },
-    addStation({ pos: _pos, name, width }) {
+    addStation({ pos: _pos, name, width }: { pos?: number, name: string, width: number }) {
       const pos = (_pos == null) ? this.stations.length : _pos
       // get unused ID
       let id
