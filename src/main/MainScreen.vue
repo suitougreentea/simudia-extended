@@ -119,7 +119,7 @@ const zoomInVertical = () => { gui.zoom.vertical++ }
 const zoomOutVertical = () => { gui.zoom.vertical-- }
 
 const newStationFocus = () => {
-  gui.resetInput(timeInput.value, lineInputDefs.value)
+  gui.resetInput()
   const element = newStation.value
   element.innerText = ""
 }
@@ -198,17 +198,9 @@ const updateHoveredTime = (time) => {
   gui.hoveredTime = time
 }
 
-const relativeX = (x) => {
-  return x - svg.value.getBoundingClientRect().left
-}
-
-const relativeY = (y) => {
-  return y - svg.value.getBoundingClientRect().top
-}
-
 const toggleInputMode = () => {
   if (gui.mode === "input") {
-    gui.resetInput(timeInput.value, lineInputDefs.value)
+    gui.resetInput()
     gui.mode = "edit"
   } else {
     gui.unselectAll()
@@ -309,7 +301,7 @@ window.addEventListener("keydown", event => {
   }
   if (event.key === "Escape") {
     if (gui.mode === "input") {
-      gui.resetInput(timeInput.value, lineInputDefs.value)
+      gui.resetInput()
     }
     if (gui.mode === "edit") {
       gui.unselectAll()
@@ -323,15 +315,6 @@ window.addEventListener("keyup", event => {
   if (event.key === "Control") gui.modifierStates.control = false
 })
 window.addEventListener("beforeunload", e => beforeUnload(e))
-
-const exposed = {
-  timeInput,
-  lineInputDefs,
-  relativeX,
-  relativeY,
-}
-defineExpose(exposed)
-export type ExposedType = typeof exposed;
 </script>
 
 <style>

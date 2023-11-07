@@ -7,17 +7,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, ref } from "vue"
+import { computed, nextTick, ref } from "vue"
 import { useMainStore } from "../stores/main"
-import * as TimeUtil from "../time-util"
-import { type ExposedType } from "./MainScreen.vue"
 import { useGuiStore } from "../stores/gui";
-
-// TODO: remove
-const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+import { useGuiMessageStore } from "../stores/gui-message";
+import * as TimeUtil from "../time-util"
 
 const store = useMainStore()
 const gui = useGuiStore()
+const message = useGuiMessageStore()
 
 const timeInput = ref(null)
 
@@ -71,7 +69,7 @@ const putTime = () => {
     } else {
       store.addLine({ stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value, firstTime: rubberbands.value[0].time })
     }
-    gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value)
+    gui.resetInput()
   }
 }
 
@@ -81,9 +79,18 @@ const reset = () =>  {
   inputtingTimes.value = []
 }
 
+message.$onAction(({ name, args: _args }) => {
+  if (name == "resetInput") {
+    reset()
+  }
+  if (name == "startTimeInput") {
+    const args = _args[0]
+    start(args.rubberbands)
+  }
+})
+
 defineExpose({
   start,
-  reset,
 })
 </script>
 

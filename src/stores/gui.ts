@@ -1,12 +1,14 @@
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import { useMainStore } from "./main"
+import { useGuiMessageStore } from "./gui-message"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
 
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
+  const message = useGuiMessageStore()
 
   const mode = ref("edit")
   const inputtingTime = ref(false)
@@ -73,15 +75,125 @@ export const useGuiStore = defineStore("gui", () => {
     return (x - layout.value.left - layout.value.stationsWidth) * (7200 * Math.pow(2, -zoom.value.horizontal / 2))
   }
 
-  const resetInput = (timeInput, lineInputDefs) => {
-    timeInput.reset()
-    lineInputDefs.reset()
+  const resetInput = () => {
     lineInsertOrigin.value = {
       line: -1,
       halt: -1
     }
     inputtingTime.value = false
     mode.value = "edit"
+
+    message.resetInput({})
+  }
+
+  const hoverLine = (index) => {
+    lineSelection.value.hoveredLine = index
+    lineSelection.value.hoveredSet = -1
+    lineSelection.value.hoveredHalt = -1
+    lineSelection.value.hoveredType = -1
+  }
+
+  const unhoverLine = (index) => {
+    if (lineSelection.value.hoveredLine === index) {
+      lineSelection.value.hoveredLine = -1
+    }
+  }
+
+  const clickLine = (index) => {
+    resetInput() // needed by Sidebar
+    unselectStation()
+    lineSelection.value.selectedLine = index
+    lineSelection.value.selectedSet = -1
+    lineSelection.value.selectedHalt = -1
+    lineSelection.value.selectedType = -1
+    lineSelection.value.hoveredLine = index
+    lineSelection.value.hoveredSet = -1
+    lineSelection.value.hoveredHalt = -1
+    lineSelection.value.hoveredType = -1
+  }
+
+  const contextLine = (index) => {
+    resetInput() // needed by Sidebar
+    console.warn("TODO: implement menu")
+    /*
+    const menu = new Menu()
+    menu.append(new MenuItem({
+      label: "Delete line",
+      click: () => {
+        gui.deleteSelectedLine(index)
+      }
+    }))
+    menu.popup()
+    */
+  }
+
+  const hoverSet = (index) => {
+    lineSelection.value.hoveredLine = -1
+    lineSelection.value.hoveredSet = index
+    lineSelection.value.hoveredHalt = -1
+    lineSelection.value.hoveredType = -1
+  }
+
+  const unhoverSet = (index) => {
+    if (lineSelection.value.hoveredSet === index) {
+      lineSelection.value.hoveredLine = -1
+      lineSelection.value.hoveredSet = -1
+    }
+  }
+
+  const clickSet = (index) => {
+    unselectStation()
+    lineSelection.value.selectedSet = index
+    lineSelection.value.selectedHalt = -1
+    lineSelection.value.selectedType = -1
+    lineSelection.value.hoveredSet = index
+    lineSelection.value.hoveredHalt = -1
+    lineSelection.value.hoveredType = -1
+  }
+
+  const contextSegment = (haltIndex, type) => {
+    if (type === 1) {
+      console.warn("TODO: implement menu")
+      /*
+      const menu = new Menu()
+      menu.append(new MenuItem({
+        label: "Insert halt",
+        click: () => {
+          gui.insertHaltToSelectedLine(haltIndex)
+        }
+      }))
+      menu.append(new MenuItem({
+        label: "Delete halt",
+        enabled: store.lines[gui.lineSelection.value.selectedLine].halts.length >= 3,
+        click: () => {
+          gui.deleteHaltFromSelectedLine(haltIndex)
+        }
+      }))
+      menu.popup()
+      */
+    }
+  }
+
+  const hoverSegment = (haltIndex, type) => {
+    lineSelection.value.hoveredHalt = haltIndex
+    lineSelection.value.hoveredType = type
+  }
+
+  const unhoverSegment = (haltIndex, type) => {
+    if (lineSelection.value.hoveredHalt === haltIndex && lineSelection.value.hoveredType === type) {
+      lineSelection.value.hoveredLine = -1
+      lineSelection.value.hoveredSet = -1
+      lineSelection.value.hoveredHalt = -1
+      lineSelection.value.hoveredType = -1
+    }
+  }
+
+  const clickSegment = (haltIndex, type) => {
+    unselectStation()
+    lineSelection.value.selectedHalt = haltIndex
+    lineSelection.value.selectedType = type
+    lineSelection.value.hoveredHalt = haltIndex
+    lineSelection.value.hoveredType = type
   }
 
   const unselectLine = () => {
@@ -144,7 +256,7 @@ export const useGuiStore = defineStore("gui", () => {
     }
   }
 
-  const insertHaltToSelectedLine = (haltIndex, lineInputDefs) => {
+  const insertHaltToSelectedLine = (haltIndex) => {
     const lineIndex = lineSelection.value.selectedLine
     const setIndex = lineSelection.value.selectedSet
     const line = data.lines[lineIndex]
@@ -162,8 +274,9 @@ export const useGuiStore = defineStore("gui", () => {
       halt: haltIndex,
     }
     mode.value = "input"
-    lineInputDefs.setTerminal(nextStationIndex)
-    lineInputDefs.addPoint({ station: stationIndex, time: time, skip: false })
+
+    message.setLineInputTerminal({ stationIndex: nextStationIndex })
+    message.addLineInputPoint({ stationIndex, time, skip: false })
   }
 
   const deleteHaltFromSelectedLine = (haltIndex) => {
@@ -199,6 +312,17 @@ export const useGuiStore = defineStore("gui", () => {
     x,
     xi,
     resetInput,
+    hoverLine,
+    unhoverLine,
+    clickLine,
+    contextLine,
+    hoverSet,
+    unhoverSet,
+    clickSet,
+    contextSegment,
+    hoverSegment,
+    unhoverSegment,
+    clickSegment,
     unselectLine,
     unselectStation,
     unselectAll,

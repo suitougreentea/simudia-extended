@@ -20,17 +20,16 @@
 
 <script setup lang="ts">
 import { getCurrentInstance } from "vue"
-import { type ExposedType } from "./MainScreen.vue";
 import { useGuiStore } from "../stores/gui";
-
-// TODO: remove
-const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+import { useGuiMessageStore } from "../stores/gui-message";
 
 const gui = useGuiStore()
+const message = useGuiMessageStore()
 
 const hoverStation = (i, e) => {
   gui.stationSelection.hovered = i
-  const x = instance.parent.exposed.relativeX(e.clientX)
+  const root = (e.target as HTMLElement).getRootNode().firstChild as HTMLElement
+  const x = e.clientX - root.getBoundingClientRect().left + 20 // TODO
   const hoveredTime = gui.xi(x)
   gui.hoveredTime = hoveredTime
 }
@@ -43,10 +42,11 @@ const unhoverStation = (i) => {
 
 const clickStationLine = (i, e) => {
   if (gui.mode === "input" && !gui.inputtingTime) {
-    const x = instance.parent.exposed.relativeX(e.clientX)
+    const root = (e.target as HTMLElement).getRootNode().firstChild as HTMLElement
+    const x = e.clientX - root.getBoundingClientRect().left + 20 // TODO
     const cursorTime = gui.xi(x)
     if (cursorTime >= 0) {
-      instance.parent.exposed.lineInputDefs.value.addPoint({ station: i, time: cursorTime, skip: !e.getModifierState("Shift") })
+      message.addLineInputPoint({ stationIndex: i, time: cursorTime, skip: !e.getModifierState("Shift") })
     }
   } else if (gui.mode === "edit") {
     gui.unselectLine()

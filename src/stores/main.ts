@@ -5,7 +5,7 @@ import { OpenFileHandle } from "../file"
 
 const fileVersion = 0
 
-type Time = number
+export type Time = number
 
 type Station = {
   name: string

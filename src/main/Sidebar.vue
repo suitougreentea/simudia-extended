@@ -100,7 +100,7 @@
             </div>
           </div>
           <div>
-            <button @click="gui.insertHaltToSelectedLine(gui.lineSelection.selectedHalt, instance.parent.exposed.lineInputDefs.value)">Insert halt</button>
+            <button @click="gui.insertHaltToSelectedLine(gui.lineSelection.selectedHalt)">Insert halt</button>
             <button @click="gui.deleteHaltFromSelectedLine(gui.lineSelection.selectedHalt)" :disabled="store.lines[gui.lineSelection.selectedLine].halts.length < 3">Delete halt</button>
           </div>
         </div>
@@ -109,7 +109,7 @@
     <div id="sidebar-below">
       <div v-if="gui.lineSelection.selectedLine == -1">
         <div v-for="(line, lineIndex) in store.lines">
-          <div :class="{ 'hovered-line': gui.lineSelection.hoveredLine == lineIndex }" :style="{ borderBottom: '2px solid ' + line.color }" @mouseenter="$parent.$refs.lineDefs.hoverLine(lineIndex, $event)" @mouseleave="$parent.$refs.lineDefs.unhoverLine(lineIndex, $event)" @click.prevent.stop="$parent.$refs.lineDefs.clickLine(lineIndex, $event)" @contextmenu.prevent.stop="$parent.$refs.lineDefs.contextLine(lineIndex, $event)">
+          <div :class="{ 'hovered-line': gui.lineSelection.hoveredLine == lineIndex }" :style="{ borderBottom: '2px solid ' + line.color }" @mouseenter="gui.hoverLine(lineIndex)" @mouseleave="gui.unhoverLine(lineIndex)" @click.prevent.stop="gui.clickLine(lineIndex)" @contextmenu.prevent.stop="gui.contextLine(lineIndex)">
             <input type="checkbox" :checked="line.visible" @change="changeLineVisibility(lineIndex, ($event.target as HTMLInputElement).checked)" @click.stop=""><span>{{ line.name }}</span>
           </div>
         </div>
@@ -122,20 +122,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref } from "vue"
+import { computed } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui";
 import * as TimeUtil from "../time-util"
 import TimeInputControl from "../components/TimeInputControl.vue"
-import { type ExposedType } from "./MainScreen.vue";
-
-// TODO: remove
-const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
 
 const store = useMainStore()
 const gui = useGuiStore()
-
-const errorTime = ref(false)
 
 const currentStation = computed(() => { return store.stations[gui.stationSelection.selected] })
 const currentLine = computed(() => { return store.lines[gui.lineSelection.selectedLine] })

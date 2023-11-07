@@ -14,15 +14,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref } from "vue"
+import { computed, ref } from "vue"
 import * as TimeUtil from "../time-util"
-import { type ExposedType } from "./MainScreen.vue";
 import { useGuiStore } from "../stores/gui";
-
-// TODO: remove
-const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+import { useGuiMessageStore } from "../stores/gui-message";
 
 const gui = useGuiStore()
+const message = useGuiMessageStore()
 
 const rubberbands = ref([]) // {time, station, done}
 const terminal = ref(-1)
@@ -116,7 +114,7 @@ const finishInput = () => {
   }
   if (rubberbands.value.length >= 3) {
     gui.inputtingTime = true
-    instance.parent.exposed.timeInput.value.start(rubberbands.value)
+    message.startTimeInput({ rubberbands: rubberbands.value })
   }
 }
 
@@ -125,12 +123,25 @@ const reset = () => {
   terminal.value = -1
 }
 
+message.$onAction(({ name, args: _args }) => {
+  if (name == "resetInput") {
+    reset()
+  }
+  if (name == "addLineInputPoint") {
+    const args = _args[0]
+    addPoint({ station: args.stationIndex, time: args.time, skip: args.skip })
+  }
+  if (name == "setLineInputTerminal") {
+    const args = _args[0]
+    setTerminal(args.stationIndex)
+  }
+})
+
 defineExpose({
   rubberbands,
   setTerminal,
   addPoint,
   finishInput,
-  reset,
 })
 </script>
 

@@ -18,14 +18,14 @@
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
         <g v-for="path in linePaths">
-          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)" @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverLine(path.lineIndex)" @mouseleave="gui.unhoverLine(path.lineIndex)" @click.prevent.stop="gui.clickLine(path.lineIndex)" @contextmenu.prevent.stop="gui.contextLine(path.lineIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="path in selectedLinePaths">
-          <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)" @click.prevent.stop="clickSet(path.setIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+          <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="(t, type) in currentHaltSegments">
           <g v-for="seg in t">
-            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="hoverSegment(seg.haltIndex, type, $event)" @mouseleave="unhoverSegment(seg.haltIndex, type, $event)" @click.prevent.stop="clickSegment(seg.haltIndex, type, $event)" @contextmenu.prevent.stop="contextSegment(seg.haltIndex, type, $event)" style="pointer-events: visibleStroke"></line>
+            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSegment(seg.haltIndex, type)" @mouseleave="gui.unhoverSegment(seg.haltIndex, type)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, type)" @contextmenu.prevent.stop="gui.contextSegment(seg.haltIndex, type)" style="pointer-events: visibleStroke"></line>
           </g>
         </g>
       </g>
@@ -34,13 +34,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance } from "vue"
+import { computed } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui";
-import { type ExposedType } from "./MainScreen.vue";
-
-// TODO: remove
-const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
 
 const store = useMainStore()
 const gui = useGuiStore()
@@ -179,123 +175,6 @@ const selectedHaltSegments = computed(() => {
   if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
   return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
 })
-
-const hoverLine = (index, event) => {
-  gui.lineSelection.hoveredLine = index
-  gui.lineSelection.hoveredSet = -1
-  gui.lineSelection.hoveredHalt = -1
-  gui.lineSelection.hoveredType = -1
-}
-
-const unhoverLine = (index, event) => {
-  if (gui.lineSelection.hoveredLine === index) {
-    gui.lineSelection.hoveredLine = -1
-  }
-}
-
-const clickLine = (index, event) => {
-  gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value) // needed by Sidebar
-  gui.unselectStation()
-  gui.lineSelection.selectedLine = index
-  gui.lineSelection.selectedSet = -1
-  gui.lineSelection.selectedHalt = -1
-  gui.lineSelection.selectedType = -1
-  gui.lineSelection.hoveredLine = index
-  gui.lineSelection.hoveredSet = -1
-  gui.lineSelection.hoveredHalt = -1
-  gui.lineSelection.hoveredType = -1
-}
-
-const contextLine = (index, event) => {
-  gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value) // needed by Sidebar
-  console.warn("TODO: implement menu")
-  /*
-  const menu = new Menu()
-  menu.append(new MenuItem({
-    label: "Delete line",
-    click: () => {
-      gui.deleteSelectedLine(index)
-    }
-  }))
-  menu.popup()
-  */
-}
-
-const hoverSet = (index, event) => {
-  gui.lineSelection.hoveredLine = -1
-  gui.lineSelection.hoveredSet = index
-  gui.lineSelection.hoveredHalt = -1
-  gui.lineSelection.hoveredType = -1
-}
-
-const unhoverSet = (index, event) => {
-  if (gui.lineSelection.hoveredSet === index) {
-    gui.lineSelection.hoveredLine = -1
-    gui.lineSelection.hoveredSet = -1
-  }
-}
-
-const clickSet = (index, event) => {
-  gui.unselectStation()
-  gui.lineSelection.selectedSet = index
-  gui.lineSelection.selectedHalt = -1
-  gui.lineSelection.selectedType = -1
-  gui.lineSelection.hoveredSet = index
-  gui.lineSelection.hoveredHalt = -1
-  gui.lineSelection.hoveredType = -1
-}
-
-const hoverSegment = (haltIndex, type, event) => {
-  gui.lineSelection.hoveredHalt = haltIndex
-  gui.lineSelection.hoveredType = type
-}
-
-const unhoverSegment = (haltIndex, type, event) => {
-  if (gui.lineSelection.hoveredHalt === haltIndex && gui.lineSelection.hoveredType === type) {
-    gui.lineSelection.hoveredLine = -1
-    gui.lineSelection.hoveredSet = -1
-    gui.lineSelection.hoveredHalt = -1
-    gui.lineSelection.hoveredType = -1
-  }
-}
-
-const clickSegment = (haltIndex, type, event) => {
-  gui.unselectStation()
-  gui.lineSelection.selectedHalt = haltIndex
-  gui.lineSelection.selectedType = type
-  gui.lineSelection.hoveredHalt = haltIndex
-  gui.lineSelection.hoveredType = type
-}
-
-const contextSegment = (haltIndex, type, event) => {
-  if (type === 1) {
-    console.warn("TODO: implement menu")
-    /*
-    const menu = new Menu()
-    menu.append(new MenuItem({
-      label: "Insert halt",
-      click: () => {
-        gui.insertHaltToSelectedLine(haltIndex)
-      }
-    }))
-    menu.append(new MenuItem({
-      label: "Delete halt",
-      enabled: store.lines[gui.lineSelection.value.selectedLine].halts.length >= 3,
-      click: () => {
-        gui.deleteHaltFromSelectedLine(haltIndex)
-      }
-    }))
-    menu.popup()
-    */
-  }
-}
-
-defineExpose({
-  hoverLine,
-  unhoverLine,
-  clickLine,
-})
-
 </script>
 
 <style>
