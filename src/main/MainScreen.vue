@@ -7,7 +7,7 @@
         <div class="toolbar-button" @click.prevent.stop="openFile">Open</div>
         <div class="toolbar-button" @click.prevent.stop="saveFile">Save</div>
         <div class="toolbar-button" @click.prevent.stop="saveFileAs">Save As</div><br>
-        <div class="toolbar-button" :class="{ pressed: (mode == 'input') }" @click.prevent="toggleInputMode">Input</div>
+        <div class="toolbar-button" :class="{ pressed: (gui.mode == 'input') }" @click.prevent="toggleInputMode">Input</div>
         <div class="toolbar-button" @click.prevent.stop="zoomInHorizontal">↔+</div>
         <div class="toolbar-button" @click.prevent.stop="zoomOutHorizontal">↔-</div>
         <div class="toolbar-button" @click.prevent.stop="zoomInVertical">↕+</div>
@@ -15,7 +15,7 @@
       </div>
       <div class="workspace">
         <div style="position: absolute; top: 0; left: 0;"></div>
-        <svg :width="layout.width" :height="layout.height" ref="svg">
+        <svg :width="gui.layout.width" :height="gui.layout.height" ref="svg">
           <filter id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%">
             <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
             <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
@@ -23,16 +23,16 @@
           <LineDefs ref="lineDefs"></LineDefs>
           <StationDefs ref="stationDefs"></StationDefs>
           <LineInputDefs ref="lineInputDefs"></LineInputDefs>
-          <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="layout.bottom" :stroke="l.color"></line>
+          <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
           <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
           <use xlink:href="#stations"></use>
-          <use v-if="mode == 'input'" xlink:href="#line-input"></use>
+          <use v-if="gui.mode == 'input'" xlink:href="#line-input"></use>
           <use xlink:href="#lines"></use>
           <use xlink:href="#stations-hover"></use>
           <use xlink:href="#lines-hover"></use>
         </svg>
         <div style="position: absolute; top: 0; left: 0;">
-          <div class="station-name" contenteditable v-for="(s, i) in stations" :style="{ top: accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
+          <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
           <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
           <div class="station-name" :style="{ top: '-100px', left: '-100px' }" ref="stationForMeasure"></div>
           <TimeInput ref="timeInput"></TimeInput>
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
 import * as TimeUtil from "../time-util"
@@ -56,41 +56,10 @@ import LineDefs from "./LineDefs.vue"
 import StationDefs from "./StationDefs.vue"
 import LineInputDefs from "./LineInputDefs.vue"
 import TimeInput from "./TimeInput.vue"
-
-const MARGIN = 20
-const HEADER_HEIGHT = 20
+import { useGuiStore } from "../stores/gui"
 
 const store = useMainStore()
-
-const mode = ref("edit")
-const inputtingTime = ref(false)
-const lineSelection = ref({
-  hoveredLine: -1,
-  hoveredSet: -1,
-  hoveredHalt: -1,
-  hoveredType: -1,
-  selectedLine: -1,
-  selectedSet: -1,
-  selectedHalt: -1,
-  selectedType: -1
-})
-const stationSelection = ref({
-  hovered: -1,
-  selected: -1
-})
-const hoveredTime = ref(-1)
-const modifierStates = ref({
-  control: false,
-  shift: false
-})
-const lineInsertOrigin = ref({
-  line: -1,
-  halt: -1
-})
-const zoom = ref({
-  horizontal: 0,
-  vertical: 0
-})
+const gui = useGuiStore()
 
 const newStation = ref(null)
 const existingStation = ref(null)
@@ -99,35 +68,12 @@ const svg = ref(null)
 const timeInput = ref(null)
 const lineInputDefs = ref(null)
 
-const layout = computed(() => {
-  const stationsWidth = Math.max(100, ...stations.value.map(e => e.width)) + 10
-
-  const monthLength = store.monthLength
-  const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -zoom.value.horizontal / 2)) + MARGIN
-
-  const ys = accumulatedStationY.value
-  let height
-  if (ys.length === 0) height = 60
-  else height = ys[ys.length - 1] + MARGIN
-
-  return {
-    top: MARGIN,
-    left: MARGIN,
-    right: width - MARGIN,
-    bottom: height - MARGIN,
-    width,
-    height,
-    headerHeight: HEADER_HEIGHT,
-    stationsWidth
-  }
-})
-
 const newStationY = computed(() => {
   const stations = store.stations
   if (stations.length === 0) {
     return 20
   } else {
-    return layout.value.height - 20
+    return gui.layout.height - 20
   }
 })
 
@@ -135,18 +81,18 @@ const verticalGrids = computed(() => {
   const result = []
   const monthLength = store.monthLength
   for (let i = 0; i <= monthLength; i += TimeUtil.SECOND_DIVISOR * 60 * 3) {
-    const x_ = x(i)
+    const x_ = gui.x(i)
     let color
     let y
     if (i % (TimeUtil.SECOND_DIVISOR * 60 * 60) === 0) {
       color = "black"
-      y = layout.value.top
+      y = gui.layout.top
     } else if (i % (TimeUtil.SECOND_DIVISOR * 60 * 15) === 0) {
       color = "gray"
-      y = layout.value.top + layout.value.headerHeight
+      y = gui.layout.top + gui.layout.headerHeight
     } else {
       color = "lightgray"
-      y = layout.value.top + layout.value.headerHeight
+      y = gui.layout.top + gui.layout.headerHeight
     }
     result.push({ x: x_, y: y, color: color })
   }
@@ -158,34 +104,22 @@ const verticalTexts = computed(() => {
   const monthLength = store.monthLength
   for (let i = 0; i <= monthLength / (TimeUtil.SECOND_DIVISOR * 60 * 60); i++) {
     const tick = i * TimeUtil.SECOND_DIVISOR * 60 * 60
-    result.push({ x: x(tick) + 5, y: layout.value.top + layout.value.headerHeight - 5, text: `${i}:00:00` })
+    result.push({ x: gui.x(tick) + 5, y: gui.layout.top + gui.layout.headerHeight - 5, text: `${i}:00:00` })
   }
   return result
 })
-
-const stations = computed(() => { return store.stations })
-
-const accumulatedStationY = computed(() => { return store.accumulatedStationTimes.map(e => (MARGIN + 20 + e / (3600 * Math.pow(2, -zoom.value.vertical / 2)))) })
 
 const title = computed(() => {
   return (store.modified ? "*" : "") + store.baseName + " - SimuDia-Extended " + VERSION
 })
 
-const x = (tick) => {
-  return layout.value.left + layout.value.stationsWidth + tick / (7200 * Math.pow(2, -zoom.value.horizontal / 2))
-}
-
-const xi = (x) => {
-  return (x - layout.value.left - layout.value.stationsWidth) * (7200 * Math.pow(2, -zoom.value.horizontal / 2))
-}
-
-const zoomInHorizontal = () => { zoom.value.horizontal++ }
-const zoomOutHorizontal = () => { zoom.value.horizontal-- }
-const zoomInVertical = () => { zoom.value.vertical++ }
-const zoomOutVertical = () => { zoom.value.vertical-- }
+const zoomInHorizontal = () => { gui.zoom.horizontal++ }
+const zoomOutHorizontal = () => { gui.zoom.horizontal-- }
+const zoomInVertical = () => { gui.zoom.vertical++ }
+const zoomOutVertical = () => { gui.zoom.vertical-- }
 
 const newStationFocus = () => {
-  resetInput()
+  gui.resetInput(timeInput.value, lineInputDefs.value)
   const element = newStation.value
   element.innerText = ""
 }
@@ -220,7 +154,7 @@ const modifyStationKeyProceed = (i) => {
   const array = existingStation.value
   const element = array[i]
   const text = element.innerText.trim()
-  if (text !== stations.value[i].name) {
+  if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
   }
   if (array.length === i + 1) {
@@ -233,7 +167,7 @@ const modifyStationKeyProceed = (i) => {
 const modifyStationKeyCancel = (i) => {
   const array = existingStation.value
   const element = array[i]
-  element.innerText = stations.value[i].name
+  element.innerText = gui.stations[i].name
   element.blur()
 }
 
@@ -241,7 +175,7 @@ const modifyStationBlur = (i) => {
   const array = existingStation.value
   const element = array[i]
   const text = element.innerText.trim()
-  if (text !== stations.value[i].name) {
+  if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
   }
 }
@@ -253,15 +187,15 @@ const measureStationWidth = (name) => {
 }
 
 const updateLineSelection = (selection) => {
-  lineSelection.value = {...lineSelection.value, ...selection}
+  gui.lineSelection = {...gui.lineSelection, ...selection}
 }
 
 const updateStationSelection = (selection) => {
-  stationSelection.value = {...stationSelection.value, ...selection}
+  gui.stationSelection = {...gui.stationSelection, ...selection}
 }
 
 const updateHoveredTime = (time) => {
-  hoveredTime.value = time
+  gui.hoveredTime = time
 }
 
 const relativeX = (x) => {
@@ -272,129 +206,18 @@ const relativeY = (y) => {
   return y - svg.value.getBoundingClientRect().top
 }
 
-const resetInput = () => {
-  timeInput.value.reset()
-  lineInputDefs.value.reset()
-  lineInsertOrigin.value = {
-    line: -1,
-    halt: -1
-  }
-  inputtingTime.value = false
-  mode.value = "edit"
-}
-
 const toggleInputMode = () => {
-  if (mode.value === "input") {
-    resetInput()
-    mode.value = "edit"
+  if (gui.mode === "input") {
+    gui.resetInput(timeInput.value, lineInputDefs.value)
+    gui.mode = "edit"
   } else {
-    unselectAll()
-    mode.value = "input"
+    gui.unselectAll()
+    gui.mode = "input"
   }
 }
 
 const clickBackground = () => {
-  unselectAll()
-}
-
-const unselectLine = () => {
-  lineSelection.value = {
-    hoveredLine: -1,
-    hoveredSet: -1,
-    hoveredHalt: -1,
-    hoveredType: -1,
-    selectedLine: -1,
-    selectedSet: -1,
-    selectedHalt: -1,
-    selectedType: -1
-  }
-}
-
-const unselectStation = () => {
-  stationSelection.value = {
-    hovered: -1,
-    selected: -1
-  }
-}
-
-const unselectAll = () => {
-  unselectLine()
-  unselectStation()
-}
-
-const insertStationAboveSelected = (stationIndex) => {
-  store.addStation({
-    pos: stationIndex,
-    name: "New station",
-    width: 100
-  })
-  stationSelection.value.selected = stationIndex
-}
-
-const insertStationBelowSelected = (stationIndex) => {
-  store.addStation({
-    pos: stationIndex + 1,
-    name: "New station",
-    width: 100
-  })
-  stationSelection.value.selected = stationIndex + 1
-}
-
-const deleteSelectedStation = (stationIndex) => {
-  const prevSelectedLine = store.lines[lineSelection.value.selectedLine]
-  store.deleteStation({
-    pos: stationIndex,
-  })
-  if (stationSelection.value.selected == stationIndex) {
-    stationSelection.value.selected = -1
-  }
-  const selectedLine = store.lines[lineSelection.value.selectedLine]
-  if (prevSelectedLine !== selectedLine) {
-    lineSelection.value.selectedLine = -1
-    lineSelection.value.selectedSet = -1
-    lineSelection.value.selectedHalt = -1
-    lineSelection.value.selectedType = -1
-  }
-}
-
-const insertHaltToSelectedLine = (haltIndex) => {
-  const lineIndex = lineSelection.value.selectedLine
-  const setIndex = lineSelection.value.selectedSet
-  const line = store.lines[lineIndex]
-
-  const monthLength = store.monthLength
-  const halts = store.lines[lineIndex].halts
-  const halt = halts[haltIndex]
-  const nextHalt = halts[(haltIndex + 1)%halts.length]
-  const stationIndex = store.findStationIndex(halt.stationId)
-  const nextStationIndex = store.findStationIndex(nextHalt.stationId)
-  const time = (store.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
-
-  lineInsertOrigin.value = {
-    line: lineIndex,
-    halt: haltIndex,
-  }
-  mode.value = "input"
-  lineInputDefs.value.setTerminal(nextStationIndex)
-  lineInputDefs.value.addPoint({ station: stationIndex, time: time, skip: false })
-}
-
-const deleteHaltFromSelectedLine = (haltIndex) => {
-  const lineIndex = lineSelection.value.selectedLine
-
-  lineSelection.value.selectedHalt = -1
-  lineSelection.value.selectedType = -1
-  store.deleteHalt({ lineIndex, haltIndex })
-}
-
-const copySelectedLine = (index) => {
-  store.copyLine(index)
-  lineSelection.value.selectedLine = store.lines.length - 1
-}
-
-const deleteSelectedLine = (index) => {
-  lineSelection.value.selectedLine = -1
-  store.deleteLine(index)
+  gui.unselectAll()
 }
 
 const openFile = async () => {
@@ -409,7 +232,7 @@ const openFile = async () => {
   const api = availableFileApis[0]
   const fileHandle = await api.open()
   store.loadFromFileHandle(fileHandle)
-  unselectAll()
+  gui.unselectAll()
 }
 
 const saveFile = async () => {
@@ -446,7 +269,7 @@ const drop = async (e) => {
   }
 
   store.loadFromFileHandle(fileHandle)
-  unselectAll()
+  gui.unselectAll()
 }
 
 const beforeUnload = (e) => {
@@ -478,56 +301,34 @@ Menu.setApplicationMenu(menu)
 window.addEventListener("keydown", event => {
   if (event.key === "Enter") {
     const lineInputDefsElement = lineInputDefs.value
-    if (mode.value === "input" && !inputtingTime.value && lineInputDefsElement.rubberbands.length > 0) {
+    if (gui.mode === "input" && !gui.inputtingTime && lineInputDefsElement.rubberbands.length > 0) {
       event.preventDefault()
       event.stopPropagation()
       lineInputDefsElement.finishInput()
     }
   }
   if (event.key === "Escape") {
-    if (mode.value === "input") {
-      resetInput()
+    if (gui.mode === "input") {
+      gui.resetInput(timeInput.value, lineInputDefs.value)
     }
-    if (mode.value === "edit") {
-      unselectAll()
+    if (gui.mode === "edit") {
+      gui.unselectAll()
     }
   }
-  if (event.key === "Shift") modifierStates.value = { ...modifierStates.value, shift: true }
-  if (event.key === "Control") modifierStates.value = { ...modifierStates.value, control: true }
+  if (event.key === "Shift") gui.modifierStates.shift = true
+  if (event.key === "Control") gui.modifierStates.control = true
 })
 window.addEventListener("keyup", event => {
-  if (event.key === "Shift") modifierStates.value = { ...modifierStates.value, shift: false }
-  if (event.key === "Control") modifierStates.value = { ...modifierStates.value, control: false }
+  if (event.key === "Shift") gui.modifierStates.shift = false
+  if (event.key === "Control") gui.modifierStates.control = false
 })
 window.addEventListener("beforeunload", e => beforeUnload(e))
 
 const exposed = {
-  mode,
-  inputtingTime,
-  lineSelection,
-  stationSelection,
-  hoveredTime,
-  modifierStates,
-  lineInsertOrigin,
-  layout,
-  stations,
-  accumulatedStationY,
   timeInput,
   lineInputDefs,
-  x,
-  xi,
   relativeX,
   relativeY,
-  resetInput,
-  unselectLine,
-  unselectStation,
-  insertStationAboveSelected,
-  insertStationBelowSelected,
-  deleteSelectedStation,
-  insertHaltToSelectedLine,
-  deleteHaltFromSelectedLine,
-  copySelectedLine,
-  deleteSelectedLine,
 }
 defineExpose(exposed)
 export type ExposedType = typeof exposed;

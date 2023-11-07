@@ -5,23 +5,23 @@
     <symbol id="lines">
       <polyline v-for="path in linePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       <polyline v-for="path in hoveredLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
-      <g v-if="$parent.lineSelection.selectedSet == -1">
+      <g v-if="gui.lineSelection.selectedSet == -1">
         <polyline class="selectedLine" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <polyline v-for="path in hoveredSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
-      <g v-if="$parent.lineSelection.selectedHalt == -1">
+      <g v-if="gui.lineSelection.selectedHalt == -1">
         <polyline class="selectedLine" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <line v-for="seg in hoveredHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
       <line class="selectedLine" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
     </symbol>
     <symbol id="lines-hover">
-      <g v-if="$parent.mode == 'edit'">
+      <g v-if="gui.mode == 'edit'">
         <g v-for="path in linePaths">
-          <polyline v-if="path.lineIndex != $parent.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)" @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverLine(path.lineIndex, $event)" @mouseleave="unhoverLine(path.lineIndex, $event)" @click.prevent.stop="clickLine(path.lineIndex, $event)" @contextmenu.prevent.stop="contextLine(path.lineIndex, $event)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="path in selectedLinePaths">
-          <polyline v-if="path.setIndex != $parent.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)" @click.prevent.stop="clickSet(path.setIndex, $event)" style="pointer-events: visibleStroke"></polyline>
+          <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="hoverSet(path.setIndex, $event)" @mouseleave="unhoverSet(path.setIndex, $event)" @click.prevent.stop="clickSet(path.setIndex, $event)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="(t, type) in currentHaltSegments">
           <g v-for="seg in t">
@@ -36,12 +36,14 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance } from "vue"
 import { useMainStore } from "../stores/main"
+import { useGuiStore } from "../stores/gui";
 import { type ExposedType } from "./MainScreen.vue";
 
 // TODO: remove
 const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
 
 const store = useMainStore()
+const gui = useGuiStore()
 
 const segmentToPaths = (segments) => {
   const result = []
@@ -75,8 +77,8 @@ const lineSegments = computed(() => {
       pushSegment(array, { ...segment, t1: 0, t2: segment.t2 - monthLength, y1: intermediateY })
     } else {
       array.push({
-        x1: instance.parent.exposed.x(segment.t1),
-        x2: instance.parent.exposed.x(segment.t2),
+        x1: gui.x(segment.t1),
+        x2: gui.x(segment.t2),
         y1: segment.y1, y2: segment.y2,
         haltIndex: segment.haltIndex, type: segment.type, dashed: segment.dashed
       })
@@ -95,8 +97,8 @@ const lineSegments = computed(() => {
         const nextHalt = line.halts[(j+1) % length]
         const currStationIndex = store.findStationIndex(currHalt.stationId)
         const nextStationIndex = store.findStationIndex(nextHalt.stationId)
-        const currY = instance.parent.exposed.accumulatedStationY.value[currStationIndex]
-        const nextY = instance.parent.exposed.accumulatedStationY.value[nextStationIndex]
+        const currY = gui.accumulatedStationY[currStationIndex]
+        const nextY = gui.accumulatedStationY[nextStationIndex]
         const currTime = time[j]
         const nextTime = time[(j+1) % length]
         const currDepTime = currTime.departure + offsetTime
@@ -130,31 +132,31 @@ const linePaths = computed(() => {
 })
 
 const hoveredLinePaths = computed(() => {
-  if (instance.parent.exposed.lineSelection.value.hoveredLine === -1) return []
-  return linePaths.value.filter(path => path.lineIndex === instance.parent.exposed.lineSelection.value.hoveredLine)
+  if (gui.lineSelection.hoveredLine === -1) return []
+  return linePaths.value.filter(path => path.lineIndex === gui.lineSelection.hoveredLine)
 })
 
 const selectedLinePaths = computed(() => {
-  if (instance.parent.exposed.lineSelection.value.selectedLine === -1) return []
-  return linePaths.value.filter(path => path.lineIndex === instance.parent.exposed.lineSelection.value.selectedLine)
+  if (gui.lineSelection.selectedLine === -1) return []
+  return linePaths.value.filter(path => path.lineIndex === gui.lineSelection.selectedLine)
 })
 
 const hoveredSetPaths = computed(() => {
-  if (instance.parent.exposed.lineSelection.value.selectedLine === -1 || instance.parent.exposed.lineSelection.value.hoveredSet === -1) return []
+  if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.hoveredSet === -1) return []
   return linePaths.value.filter(path =>
-    path.lineIndex === instance.parent.exposed.lineSelection.value.selectedLine &&
-    path.setIndex === instance.parent.exposed.lineSelection.value.hoveredSet)
+    path.lineIndex === gui.lineSelection.selectedLine &&
+    path.setIndex === gui.lineSelection.hoveredSet)
 })
 
 const selectedSetPaths = computed(() => {
-  if (instance.parent.exposed.lineSelection.value.selectedLine === -1 || instance.parent.exposed.lineSelection.value.selectedSet === -1) return []
+  if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.selectedSet === -1) return []
   return linePaths.value.filter(path =>
-    path.lineIndex === instance.parent.exposed.lineSelection.value.selectedLine &&
-    path.setIndex === instance.parent.exposed.lineSelection.value.selectedSet)
+    path.lineIndex === gui.lineSelection.selectedLine &&
+    path.setIndex === gui.lineSelection.selectedSet)
 })
 
 const currentHaltSegments = computed(() => {
-  const { selectedLine, selectedSet } = instance.parent.exposed.lineSelection.value
+  const { selectedLine, selectedSet } = gui.lineSelection
   if (selectedLine === -1 || selectedSet === -1) return [[], []]
   const segments = lineSegments.value
   const line = segments[selectedLine]
@@ -168,51 +170,51 @@ const currentHaltSegments = computed(() => {
 
 const hoveredHaltSegments = computed(() => {
   const current = currentHaltSegments.value
-  if (current[0].length === 0 || instance.parent.exposed.lineSelection.value.hoveredType === -1) return []
-  return current[instance.parent.exposed.lineSelection.value.hoveredType].filter(e => e.haltIndex === instance.parent.exposed.lineSelection.value.hoveredHalt)
+  if (current[0].length === 0 || gui.lineSelection.hoveredType === -1) return []
+  return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
 })
 
 const selectedHaltSegments = computed(() => {
   const current = currentHaltSegments.value
-  if (current[0].length === 0 || instance.parent.exposed.lineSelection.value.selectedType === -1) return []
-  return current[instance.parent.exposed.lineSelection.value.selectedType].filter(e => e.haltIndex === instance.parent.exposed.lineSelection.value.selectedHalt)
+  if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
+  return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
 })
 
 const hoverLine = (index, event) => {
-  instance.parent.exposed.lineSelection.value.hoveredLine = index
-  instance.parent.exposed.lineSelection.value.hoveredSet = -1
-  instance.parent.exposed.lineSelection.value.hoveredHalt = -1
-  instance.parent.exposed.lineSelection.value.hoveredType = -1
+  gui.lineSelection.hoveredLine = index
+  gui.lineSelection.hoveredSet = -1
+  gui.lineSelection.hoveredHalt = -1
+  gui.lineSelection.hoveredType = -1
 }
 
 const unhoverLine = (index, event) => {
-  if (instance.parent.exposed.lineSelection.value.hoveredLine === index) {
-    instance.parent.exposed.lineSelection.value.hoveredLine = -1
+  if (gui.lineSelection.hoveredLine === index) {
+    gui.lineSelection.hoveredLine = -1
   }
 }
 
 const clickLine = (index, event) => {
-  instance.parent.exposed.resetInput() // needed by Sidebar
-  instance.parent.exposed.unselectStation()
-  instance.parent.exposed.lineSelection.value.selectedLine = index
-  instance.parent.exposed.lineSelection.value.selectedSet = -1
-  instance.parent.exposed.lineSelection.value.selectedHalt = -1
-  instance.parent.exposed.lineSelection.value.selectedType = -1
-  instance.parent.exposed.lineSelection.value.hoveredLine = index
-  instance.parent.exposed.lineSelection.value.hoveredSet = -1
-  instance.parent.exposed.lineSelection.value.hoveredHalt = -1
-  instance.parent.exposed.lineSelection.value.hoveredType = -1
+  gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value) // needed by Sidebar
+  gui.unselectStation()
+  gui.lineSelection.selectedLine = index
+  gui.lineSelection.selectedSet = -1
+  gui.lineSelection.selectedHalt = -1
+  gui.lineSelection.selectedType = -1
+  gui.lineSelection.hoveredLine = index
+  gui.lineSelection.hoveredSet = -1
+  gui.lineSelection.hoveredHalt = -1
+  gui.lineSelection.hoveredType = -1
 }
 
 const contextLine = (index, event) => {
-  instance.parent.exposed.resetInput() // needed by Sidebar
+  gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value) // needed by Sidebar
   console.warn("TODO: implement menu")
   /*
   const menu = new Menu()
   menu.append(new MenuItem({
     label: "Delete line",
     click: () => {
-      instance.parent.exposed.deleteSelectedLine(index)
+      gui.deleteSelectedLine(index)
     }
   }))
   menu.popup()
@@ -220,49 +222,49 @@ const contextLine = (index, event) => {
 }
 
 const hoverSet = (index, event) => {
-  instance.parent.exposed.lineSelection.value.hoveredLine = -1
-  instance.parent.exposed.lineSelection.value.hoveredSet = index
-  instance.parent.exposed.lineSelection.value.hoveredHalt = -1
-  instance.parent.exposed.lineSelection.value.hoveredType = -1
+  gui.lineSelection.hoveredLine = -1
+  gui.lineSelection.hoveredSet = index
+  gui.lineSelection.hoveredHalt = -1
+  gui.lineSelection.hoveredType = -1
 }
 
 const unhoverSet = (index, event) => {
-  if (instance.parent.exposed.lineSelection.value.hoveredSet === index) {
-    instance.parent.exposed.lineSelection.value.hoveredLine = -1
-    instance.parent.exposed.lineSelection.value.hoveredSet = -1
+  if (gui.lineSelection.hoveredSet === index) {
+    gui.lineSelection.hoveredLine = -1
+    gui.lineSelection.hoveredSet = -1
   }
 }
 
 const clickSet = (index, event) => {
-  instance.parent.exposed.unselectStation()
-  instance.parent.exposed.lineSelection.value.selectedSet = index
-  instance.parent.exposed.lineSelection.value.selectedHalt = -1
-  instance.parent.exposed.lineSelection.value.selectedType = -1
-  instance.parent.exposed.lineSelection.value.hoveredSet = index
-  instance.parent.exposed.lineSelection.value.hoveredHalt = -1
-  instance.parent.exposed.lineSelection.value.hoveredType = -1
+  gui.unselectStation()
+  gui.lineSelection.selectedSet = index
+  gui.lineSelection.selectedHalt = -1
+  gui.lineSelection.selectedType = -1
+  gui.lineSelection.hoveredSet = index
+  gui.lineSelection.hoveredHalt = -1
+  gui.lineSelection.hoveredType = -1
 }
 
 const hoverSegment = (haltIndex, type, event) => {
-  instance.parent.exposed.lineSelection.value.hoveredHalt = haltIndex
-  instance.parent.exposed.lineSelection.value.hoveredType = type
+  gui.lineSelection.hoveredHalt = haltIndex
+  gui.lineSelection.hoveredType = type
 }
 
 const unhoverSegment = (haltIndex, type, event) => {
-  if (instance.parent.exposed.lineSelection.value.hoveredHalt === haltIndex && instance.parent.exposed.lineSelection.value.hoveredType === type) {
-    instance.parent.exposed.lineSelection.value.hoveredLine = -1
-    instance.parent.exposed.lineSelection.value.hoveredSet = -1
-    instance.parent.exposed.lineSelection.value.hoveredHalt = -1
-    instance.parent.exposed.lineSelection.value.hoveredType = -1
+  if (gui.lineSelection.hoveredHalt === haltIndex && gui.lineSelection.hoveredType === type) {
+    gui.lineSelection.hoveredLine = -1
+    gui.lineSelection.hoveredSet = -1
+    gui.lineSelection.hoveredHalt = -1
+    gui.lineSelection.hoveredType = -1
   }
 }
 
 const clickSegment = (haltIndex, type, event) => {
-  instance.parent.exposed.unselectStation()
-  instance.parent.exposed.lineSelection.value.selectedHalt = haltIndex
-  instance.parent.exposed.lineSelection.value.selectedType = type
-  instance.parent.exposed.lineSelection.value.hoveredHalt = haltIndex
-  instance.parent.exposed.lineSelection.value.hoveredType = type
+  gui.unselectStation()
+  gui.lineSelection.selectedHalt = haltIndex
+  gui.lineSelection.selectedType = type
+  gui.lineSelection.hoveredHalt = haltIndex
+  gui.lineSelection.hoveredType = type
 }
 
 const contextSegment = (haltIndex, type, event) => {
@@ -273,14 +275,14 @@ const contextSegment = (haltIndex, type, event) => {
     menu.append(new MenuItem({
       label: "Insert halt",
       click: () => {
-        instance.parent.exposed.insertHaltToSelectedLine(haltIndex)
+        gui.insertHaltToSelectedLine(haltIndex)
       }
     }))
     menu.append(new MenuItem({
       label: "Delete halt",
-      enabled: store.lines[instance.parent.exposed.lineSelection.value.selectedLine].halts.length >= 3,
+      enabled: store.lines[gui.lineSelection.value.selectedLine].halts.length >= 3,
       click: () => {
-        instance.parent.exposed.deleteHaltFromSelectedLine(haltIndex)
+        gui.deleteHaltFromSelectedLine(haltIndex)
       }
     }))
     menu.popup()

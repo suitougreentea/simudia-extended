@@ -5,7 +5,7 @@
     <symbol id="line-input">
       <path :d="displayPath" fill="none" stroke="black"></path>
       <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
-      <g v-if="$parent.stationSelection.hovered >= 0 && $parent.hoveredTime >= 0">
+      <g v-if="gui.stationSelection.hovered >= 0 && gui.hoveredTime >= 0">
         <path :d="displayPathNew" fill="none" stroke="gray"></path>
         <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="gray"></circle>
       </g>
@@ -17,16 +17,19 @@
 import { computed, getCurrentInstance, ref } from "vue"
 import * as TimeUtil from "../time-util"
 import { type ExposedType } from "./MainScreen.vue";
+import { useGuiStore } from "../stores/gui";
 
 // TODO: remove
 const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
+
+const gui = useGuiStore()
 
 const rubberbands = ref([]) // {time, station, done}
 const terminal = ref(-1)
 
 const getNewRubberbands = (station, _time, skip) => {
   if (_time < 0) return []
-  if (instance.parent.exposed.inputtingTime.value) return []
+  if (gui.inputtingTime) return []
   if (rubberbands.value.length === 0) return [{ station, time: _time }]
   if (rubberbands.value[rubberbands.value.length - 1].station === station) {
     // if (rubberbands.value[rubberbands.value.length - 1].station != rubberbands.value[0].station) {
@@ -40,12 +43,12 @@ const getNewRubberbands = (station, _time, skip) => {
   if (skip) return [{ station, time }]
   const result = []
   const {time: lastTime, station: lastStation} = rubberbands.value[rubberbands.value.length - 1]
-  const lastY = instance.parent.exposed.accumulatedStationY.value[lastStation]
-  const thisY = instance.parent.exposed.accumulatedStationY.value[station]
+  const lastY = gui.accumulatedStationY[lastStation]
+  const thisY = gui.accumulatedStationY[station]
   let j = lastStation
   do {
     j += (lastStation < station) ? 1 : -1
-    const y = instance.parent.exposed.accumulatedStationY.value[j]
+    const y = gui.accumulatedStationY[j]
     const t = lastTime + (time - lastTime) / (thisY - lastY) * (y - lastY)
     result.push({time: t, station: j})
   } while (j !== station)
@@ -53,13 +56,13 @@ const getNewRubberbands = (station, _time, skip) => {
 }
 
 const newRubberbands = computed(() => {
-  return getNewRubberbands(instance.parent.exposed.stationSelection.value.hovered, instance.parent.exposed.hoveredTime.value, !instance.parent.exposed.modifierStates.value.shift)
+  return getNewRubberbands(gui.stationSelection.hovered, gui.hoveredTime, !gui.modifierStates.shift)
 })
 
 const displayPath = computed(() => {
   return rubberbands.value.map((e, i) => {
-    const x = instance.parent.exposed.x(e.time)
-    const y = instance.parent.exposed.accumulatedStationY.value[e.station]
+    const x = gui.x(e.time)
+    const y = gui.accumulatedStationY[e.station]
     if (i === 0) return `M ${x} ${y}`
     return `L ${x} ${y}`
   }).join(" ")
@@ -69,8 +72,8 @@ const displayPathNew = computed(() => {
   if (rubberbands.value.length === 0) return ""
   const appendedRubberbands = [rubberbands.value[rubberbands.value.length - 1], ...newRubberbands.value]
   return appendedRubberbands.map((e, i) => {
-    const x = instance.parent.exposed.x(e.time)
-    const y = instance.parent.exposed.accumulatedStationY.value[e.station]
+    const x = gui.x(e.time)
+    const y = gui.accumulatedStationY[e.station]
     if (i === 0) return `M ${x} ${y}`
     return `L ${x} ${y}`
   }).join(" ")
@@ -78,16 +81,16 @@ const displayPathNew = computed(() => {
 
 const displayCircles = computed(() => {
   return rubberbands.value.map((e, i) => {
-    const x = instance.parent.exposed.x(e.time)
-    const y = instance.parent.exposed.accumulatedStationY.value[e.station]
+    const x = gui.x(e.time)
+    const y = gui.accumulatedStationY[e.station]
     return { x, y }
   })
 })
 
 const displayCirclesNew = computed(() => {
   return newRubberbands.value.map((e, i) => {
-    const x = instance.parent.exposed.x(e.time)
-    const y = instance.parent.exposed.accumulatedStationY.value[e.station]
+    const x = gui.x(e.time)
+    const y = gui.accumulatedStationY[e.station]
     return { x, y }
   })
 })
@@ -112,7 +115,7 @@ const finishInput = () => {
     rubberbands.value.push({ station: terminal.value, time: rubberbands.value[rubberbands.value.length - 1].time + 30 * TimeUtil.SECOND_DIVISOR })
   }
   if (rubberbands.value.length >= 3) {
-    instance.parent.exposed.inputtingTime.value = true
+    gui.inputtingTime = true
     instance.parent.exposed.timeInput.value.start(rubberbands.value)
   }
 }

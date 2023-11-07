@@ -11,11 +11,13 @@ import { computed, getCurrentInstance, nextTick, ref } from "vue"
 import { useMainStore } from "../stores/main"
 import * as TimeUtil from "../time-util"
 import { type ExposedType } from "./MainScreen.vue"
+import { useGuiStore } from "../stores/gui";
 
 // TODO: remove
 const instance: { parent: { exposed: ExposedType } } = getCurrentInstance()
 
 const store = useMainStore()
+const gui = useGuiStore()
 
 const timeInput = ref(null)
 
@@ -28,8 +30,8 @@ const timeInputPosition = computed(() => {
   if (inputtingTimeIndex.value > rubberbands.value.length - 2) return { x: 0, y: 0 }
   const { time: firstTime, station: firstStation } = rubberbands.value[inputtingTimeIndex.value]
   const { time: secondTime, station: secondStation } = rubberbands.value[inputtingTimeIndex.value + 1]
-  const x = instance.parent.exposed.x((firstTime + secondTime) / 2) - 50
-  const y = (instance.parent.exposed.accumulatedStationY.value[firstStation] + instance.parent.exposed.accumulatedStationY.value[secondStation]) / 2 - 10
+  const x = gui.x((firstTime + secondTime) / 2) - 50
+  const y = (gui.accumulatedStationY[firstStation] + gui.accumulatedStationY[secondStation]) / 2 - 10
   return { x, y }
 })
 
@@ -61,15 +63,15 @@ const putTime = () => {
     element.value.focus()
     document.execCommand("selectAll", false)
   } else {
-    if (instance.parent.exposed.lineInsertOrigin.value.line !== -1) {
+    if (gui.lineInsertOrigin.line !== -1) {
       store.insertHalts({
-        lineIndex: instance.parent.exposed.lineInsertOrigin.value.line, haltIndex: instance.parent.exposed.lineInsertOrigin.value.halt,
+        lineIndex: gui.lineInsertOrigin.line, haltIndex: gui.lineInsertOrigin.halt,
         stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value
       })
     } else {
       store.addLine({ stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value, firstTime: rubberbands.value[0].time })
     }
-    instance.parent.exposed.resetInput()
+    gui.resetInput(instance.parent.exposed.timeInput.value, instance.parent.exposed.lineInputDefs.value)
   }
 }
 
