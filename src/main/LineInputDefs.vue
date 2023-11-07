@@ -1,5 +1,3 @@
-<!-- NOTE: This component must be a child of MainScreen -->
-
 <template>  
   <defs>
     <symbol id="line-input">

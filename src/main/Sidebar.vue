@@ -1,5 +1,3 @@
-<!-- NOTE: This component must be a child of MainScreen -->
-
 <template>  
   <div style="height: 100%">
     <div id="sidebar-above">

@@ -1,5 +1,3 @@
-<!-- NOTE: This component's data may be changed by the other components in the same folder for performances -->
-
 <template>  
   <div style="position: relative" @dragover="dragover" @drop="drop">
     <div class="diagram" @click="clickBackground">

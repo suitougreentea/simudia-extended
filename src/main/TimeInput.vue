@@ -1,5 +1,3 @@
-<!-- NOTE: This component must be a child of MainScreen -->
-
 <template>  
   <div class="time-input-container" v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
     <div contenteditable :class="{ error: errorTime }" ref="timeInput" @keydown.enter.prevent="putTime" @input="inputTime"></div>
