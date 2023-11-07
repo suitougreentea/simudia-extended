@@ -17,7 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance } from "vue"
 import { useGuiStore } from "../stores/gui";
 import { useGuiMessageStore } from "../stores/gui-message";
 
@@ -82,5 +81,5 @@ const contextStationLine = (i, e) => {
 }
 </script>
 
-<style>
+<style scoped>
 </style>

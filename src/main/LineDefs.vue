@@ -4,14 +4,14 @@
       <polyline v-for="path in linePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       <polyline v-for="path in hoveredLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
       <g v-if="gui.lineSelection.selectedSet == -1">
-        <polyline class="selectedLine" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+        <polyline class="selected-line" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <polyline v-for="path in hoveredSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
       <g v-if="gui.lineSelection.selectedHalt == -1">
-        <polyline class="selectedLine" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+        <polyline class="selected-line" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <line v-for="seg in hoveredHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
-      <line class="selectedLine" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
+      <line class="selected-line" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
     </symbol>
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
@@ -175,5 +175,8 @@ const selectedHaltSegments = computed(() => {
 })
 </script>
 
-<style>
+<style scoped>
+.selected-line {
+  filter: url(#selected-shadow);
+}
 </style>

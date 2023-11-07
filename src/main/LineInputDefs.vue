@@ -143,5 +143,5 @@ defineExpose({
 })
 </script>
 
-<style>
+<style scoped>
 </style>

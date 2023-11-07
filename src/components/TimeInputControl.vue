@@ -46,7 +46,7 @@ watch(propRefs.modelValue, (newValue) => {
 })
 </script>
 
-<style>
+<style scoped>
 input.error {
   box-shadow: 0px 0px 2px 1px red;
 }

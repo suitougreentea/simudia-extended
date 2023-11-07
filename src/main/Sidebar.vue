@@ -202,7 +202,7 @@ const shiftToTime = (shift) => {
 }
 </script>
 
-<style>
+<style scoped>
 #sidebar-above {
   height: 50%;
   overflow: scroll;

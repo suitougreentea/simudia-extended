@@ -92,5 +92,17 @@ defineExpose({
 })
 </script>
 
-<style>
+<style scoped>
+.time-input-container {
+  min-width: 100px;
+  line-height: 20px;
+  position: absolute;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0px 0px 2px 1px black;
+
+  .error {
+    box-shadow: 0px 0px 2px 1px red;
+  }
+}
 </style>
