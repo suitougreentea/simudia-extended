@@ -49,9 +49,6 @@ type State = {
   shiftDivisor: number,
   stations: Station[],
   lines: Line[],
-
-  currentFileHandle: OpenFileHandle | null,
-  modified: boolean,
 }
 
 const getEmptyState = (): State => {
@@ -60,9 +57,6 @@ const getEmptyState = (): State => {
     shiftDivisor: 1440,
     stations: [],
     lines: [],
-
-    currentFileHandle: null,
-    modified: false
   }
 }
 
@@ -168,9 +162,6 @@ export const useMainStore = defineStore("main", {
         return result
       })
     },
-    baseName(state) {
-      return state.currentFileHandle?.filename ?? "New File"
-    },
     jsonString(state) {
       return JSON.stringify({
         fileVersion,
@@ -187,11 +178,9 @@ export const useMainStore = defineStore("main", {
     },
     modifyMonthLength({ value }) {
       this.monthLength = value
-      this.setModified(true)
     },
     modifyShiftDivisor({ value }) {
       this.shiftDivisor = value
-      this.setModified(true)
     },
     addStation({ pos: _pos, name, width }: { pos?: number, name: string, width: number }) {
       const pos = (_pos == null) ? this.stations.length : _pos
@@ -199,12 +188,10 @@ export const useMainStore = defineStore("main", {
       let id
       do { id = Math.floor(Math.random() * 4294967296) } while (this.stations.some(e => e.id === id))
       this.stations.splice(pos, 0, { name, width, id })
-      this.setModified(true)
     },
     modifyStation({ pos, name, width }) {
       const old = this.stations[pos]
       this.stations[pos] = { name, width, id: old.id }
-      this.setModified(true)
     },
     deleteStation({ pos }) {
       const station = this.stations[pos]
@@ -221,7 +208,6 @@ export const useMainStore = defineStore("main", {
           this.deleteLine(lineIndex)
         }
       })
-      this.setModified(true)
     },
     addLine({ stationIndices, times, firstTime }) {
       const halts: LineHalt[] = []
@@ -237,7 +223,6 @@ export const useMainStore = defineStore("main", {
       halts[0].scheduled = true
       halts[0].departureTime = firstTime
       this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * TimeUtil.SECOND_DIVISOR, reversingTime: 60 * TimeUtil.SECOND_DIVISOR, visible: true })
-      this.setModified(true)
     },
     copyLine(index) {
       this.lines.push({
@@ -245,19 +230,15 @@ export const useMainStore = defineStore("main", {
         halts: this.lines[index].halts.map(e => ({ ...e })),
         name: `Copy of ${this.lines[index].name}`,
       })
-      this.setModified(true)
     },
     deleteLine(index) {
       this.lines.splice(index, 1)
-      this.setModified(true)
     },
     modifyLine({ index, key, value }) {
       this.lines[index][key] = value
-      this.setModified(true)
     },
     modifyLineHalt({ lineIndex, haltIndex, key, value }) {
       this.lines[lineIndex].halts[haltIndex][key] = value
-      this.setModified(true)
     },
     insertHalts({ lineIndex, haltIndex, stationIndices, times }) {
       const line = this.lines[lineIndex]
@@ -286,7 +267,6 @@ export const useMainStore = defineStore("main", {
         newHalts[i % size].reverse = reverse
       }
       this.lines[lineIndex].halts = newHalts
-      this.setModified(true)
     },
     deleteHalt({ lineIndex, haltIndex }) {
       const halts = this.lines[lineIndex].halts
@@ -303,25 +283,6 @@ export const useMainStore = defineStore("main", {
         const newTime = halts[(haltIndex+size-1)%size].time + halts[haltIndex%size].time
         halts[(haltIndex+size-1)%size].time = newTime
       }
-      this.setModified(true)
-    },
-    setFileHandle(fileHandle) {
-      this.currentFileHandle = fileHandle
-      this.setModified(false)
-    },
-    loadFromFileHandle(fileHandle) {
-      const json = JSON.parse(fileHandle.content)
-      this.$patch({
-        monthLength: json.monthLength,
-        shiftDivisor: json.shiftDivisor,
-        stations: json.stations,
-        lines: json.lines,
-        currentFileHandle: fileHandle
-      })
-      this.setModified(false)
-    },
-    setModified(modified) {
-      this.modified = modified
     },
   },
 })

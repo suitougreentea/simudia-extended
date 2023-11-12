@@ -16,14 +16,14 @@
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
         <g v-for="path in linePaths">
-          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverLine(path.lineIndex)" @mouseleave="gui.unhoverLine(path.lineIndex)" @click.prevent.stop="gui.clickLine(path.lineIndex)" @contextmenu.prevent.stop="gui.contextLine(path.lineIndex)" style="pointer-events: visibleStroke"></polyline>
+          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverLine(path.lineIndex)" @mouseleave="gui.unhoverLine(path.lineIndex)" @click.prevent.stop="gui.clickLine(path.lineIndex)" @contextmenu.prevent.stop="contextLine($event, path.lineIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="path in selectedLinePaths">
           <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="(t, type) in currentHaltSegments">
           <g v-for="seg in t">
-            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSegment(seg.haltIndex, type)" @mouseleave="gui.unhoverSegment(seg.haltIndex, type)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, type)" @contextmenu.prevent.stop="gui.contextSegment(seg.haltIndex, type)" style="pointer-events: visibleStroke"></line>
+            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSegment(seg.haltIndex, type)" @mouseleave="gui.unhoverSegment(seg.haltIndex, type)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, type)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, type)" style="pointer-events: visibleStroke"></line>
           </g>
         </g>
       </g>
@@ -32,12 +32,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, inject } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui";
+import { lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection";
 
 const store = useMainStore()
 const gui = useGuiStore()
+
+const lineContextMenu = inject(lineContextMenuInjection)
+const lineSegmentContextMenu = inject(lineSegmentContextMenuInjection)
 
 const segmentToPaths = (segments) => {
   const result = []
@@ -173,6 +177,17 @@ const selectedHaltSegments = computed(() => {
   if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
   return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
 })
+
+const contextLine = (ev: MouseEvent, lineIndex: number) => {
+  gui.resetInput() // needed by Sidebar
+  lineContextMenu.value.open(ev, lineIndex)
+}
+
+const contextSegment = (ev: MouseEvent, segmentIndex: number, type: number) => {
+  if (type === 1) {
+    lineSegmentContextMenu.value.open(ev, segmentIndex)
+  }
+}
 </script>
 
 <style scoped>

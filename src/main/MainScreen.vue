@@ -1,28 +1,59 @@
 <template>  
-  <div style="position: relative" @dragover="dragover" @drop="drop">
-    <div class="diagram" @click="clickBackground">
-      <div class="toolbar">
-        <div class="toolbar-button" @click.prevent.stop="openFile">Open</div>
-        <div class="toolbar-button" @click.prevent.stop="saveFile">Save</div>
-        <div class="toolbar-button" @click.prevent.stop="saveFileAs">Save As</div><br>
-        <div class="toolbar-button" :class="{ pressed: (gui.mode == 'input') }" @click.prevent="toggleInputMode">Input</div>
-        <div class="toolbar-button" @click.prevent.stop="zoomInHorizontal">↔+</div>
-        <div class="toolbar-button" @click.prevent.stop="zoomOutHorizontal">↔-</div>
-        <div class="toolbar-button" @click.prevent.stop="zoomInVertical">↕+</div>
-        <div class="toolbar-button" @click.prevent.stop="zoomOutVertical">↕-</div>
+  <v-app @dragover="dragover" @drop="drop">
+    <v-navigation-drawer permanent rail color="primary">
+      <v-list density="compact" nav>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
+          </template>
+          <v-list>
+            <v-list-item @click="openFile">Open</v-list-item>
+            <v-list-item @click="saveFile">Save</v-list-item>
+            <v-list-item @click="saveFileAs">Save As...</v-list-item>
+            <!--
+            <v-divider></v-divider>
+            <v-list-item @click="">About</v-list-item>
+            -->
+          </v-list>
+        </v-menu>
+      </v-list>
+      <v-divider></v-divider>
+      <v-list density="compact">
+        <v-list-item prepend-icon="mdi-cursor-default-outline" :active="gui.mode == 'edit'" @click.prevent.stop="toggleInputMode()"></v-list-item>
+        <v-list-item prepend-icon="mdi-pencil" :active="gui.mode == 'input'" @click.prevent.stop="toggleInputMode()"></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main><!-- TODO: @contextmenu.prevent after replacing contenteditable elements -->
+      <div style="position: absolute; left: var(--v-layout-left); right: var(--v-layout-right); top: var(--v-layout-top); bottom: var(--v-layout-bottom);">
+        <Workspace style="position: absolute; width: 100%; height: 100%;" ref="workspace"></Workspace>
+        <div :style="horizontalZoomStyle">
+          <v-btn-group density="comfortable" class="ma-2">
+            <v-btn color="grey-lighten-4" icon="mdi-plus" @click.prevent.stop="zoomInHorizontal"></v-btn>
+            <v-btn color="grey-lighten-4" icon="mdi-minus" @click.prevent.stop="zoomOutHorizontal"></v-btn>
+          </v-btn-group>
+        </div>
+        <div :style="verticalZoomStyle">
+          <v-btn-group density="comfortable" class="ma-2" style="writing-mode: vertical-lr; height: 80px;">
+            <v-btn color="grey-lighten-4" icon="mdi-plus" style="height: 50%;" @click.prevent.stop="zoomInVertical"></v-btn>
+            <v-btn color="grey-lighten-4" icon="mdi-minus" style="height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
+          </v-btn-group>
+        </div>
       </div>
-      <div class="workspace">
-        <Workspace></Workspace>
-      </div>
-    </div>
-    <div class="property-side">
+    </v-main>
+
+    <v-navigation-drawer permanent location="right" :width="sidebarWidth">
       <Sidebar ref="sideBar"></Sidebar>
-    </div>
-  </div>
+    </v-navigation-drawer>
+
+    <StationContextMenu ref="stationContextMenu"></StationContextMenu>
+    <LineContextMenu ref="lineContextMenu"></LineContextMenu>
+    <LineSegmentContextMenu ref="lineSegmentContextMenu"></LineSegmentContextMenu>
+  </v-app>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from "vue"
+import { StyleValue, computed, ref, watch, provide } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
 import { allAvailableApis as availableFileApis } from "../file"
@@ -30,13 +61,36 @@ import Workspace from "./Workspace.vue"
 import Sidebar from "./Sidebar.vue"
 import { useGuiStore } from "../stores/gui"
 import { useGuiMessageStore } from "../stores/gui-message"
+import StationContextMenu from "../context-menus/StationContextMenu.vue"
+import LineContextMenu from "../context-menus/LineContextMenu.vue"
+import LineSegmentContextMenu from "../context-menus/LineSegmentContextMenu.vue"
+import { stationContextMenuInjection, lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
 
 const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
+const workspace = ref<InstanceType<typeof Workspace>>(null)
+const horizontalZoomStyle = computed(() => ({
+  position: "absolute",
+  right: `${(workspace.value?.scrollBarSize?.width ?? 0) + 48}px`,
+  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0)}px`,
+}) satisfies StyleValue)
+const verticalZoomStyle = computed(() => ({
+  position: "absolute",
+  right: `${(workspace.value?.scrollBarSize?.width ?? 0)}px`,
+  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0) + 48}px`,
+}) satisfies StyleValue)
+
+const stationContextMenu = ref<InstanceType<typeof StationContextMenu>>(null)
+provide(stationContextMenuInjection, stationContextMenu)
+const lineContextMenu = ref<InstanceType<typeof LineContextMenu>>(null)
+provide(lineContextMenuInjection, lineContextMenu)
+const lineSegmentContextMenu = ref<InstanceType<typeof LineSegmentContextMenu>>(null)
+provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
+
 const title = computed(() => {
-  return (store.modified ? "*" : "") + store.baseName + " - SimuDia-Extended " + VERSION
+  return (gui.modified ? "*" : "") + gui.baseName + " - SimuDia-Extended " + VERSION
 })
 
 const zoomInHorizontal = () => { gui.zoom.horizontal++ }
@@ -54,12 +108,8 @@ const toggleInputMode = () => {
   }
 }
 
-const clickBackground = () => {
-  gui.unselectAll()
-}
-
 const openFile = async () => {
-  if (store.modified) {
+  if (gui.modified) {
     const result = window.confirm("Save modified data?")
     if (!result) return
     else {
@@ -69,23 +119,23 @@ const openFile = async () => {
 
   const api = availableFileApis[0]
   const fileHandle = await api.open()
-  store.loadFromFileHandle(fileHandle)
+  gui.loadFromFileHandle(fileHandle)
   gui.unselectAll()
 }
 
 const saveFile = async () => {
-  if (store.currentFileHandle == null || !store.currentFileHandle.saveAvailable) {
+  if (gui.currentFileHandle == null || !gui.currentFileHandle.saveAvailable) {
     await saveFileAs()
   } else {
-    await store.currentFileHandle.save(store.jsonString)
-    store.setModified(false)
+    await gui.currentFileHandle.save(store.jsonString)
+    gui.modified = false
   }
 }
 
 const saveFileAs = async () => {
   const api = availableFileApis[0]
-  const fileHandle = await api.saveAs(store.jsonString, store.currentFileHandle?.filename ?? "New File.simudiax")
-  store.setFileHandle(fileHandle)
+  const fileHandle = await api.saveAs(store.jsonString, gui.currentFileHandle?.filename ?? "New File.simudiax")
+  gui.setFileHandle(fileHandle)
 }
 
 const dragover = (e) => {
@@ -98,7 +148,7 @@ const drop = async (e) => {
   const api = availableFileApis[0]
   const fileHandle = await api.onFileDrop(e)
 
-  if (store.modified) {
+  if (gui.modified) {
     const result = window.confirm("Save modified data?")
     if (!result) return
     else {
@@ -106,12 +156,12 @@ const drop = async (e) => {
     }
   }
 
-  store.loadFromFileHandle(fileHandle)
+  gui.loadFromFileHandle(fileHandle)
   gui.unselectAll()
 }
 
 const beforeUnload = (e) => {
-  if (store.modified) {
+  if (gui.modified) {
     e.returnValue = ""
     e.preventDefault()
   }
@@ -122,19 +172,14 @@ watch(title, (value) => {
   document.title = value
 })
 
-console.warn("TODO: implement menu")
-/*
-const menu = new Menu()
-const fileMenu = new Menu()
-fileMenu.append(new MenuItem({ label: "&Open...", click: () => this.openFile() }))
-fileMenu.append(new MenuItem({ label: "&Save", click: () => this.saveFile() }))
-fileMenu.append(new MenuItem({ label: "Save &As...", click: () => this.saveAs() }))
-menu.append(new MenuItem({ label: "&File", submenu: fileMenu }))
-if (remote.getGlobal("process").env.NODE_ENV === "development") {
-  menu.append(new MenuItem({ label: "&Reload", role: "forcereload" }))
+const sidebarWidth = ref(300)
+const updateSidebarWidth = () => {
+  sidebarWidth.value = Math.max(window.innerWidth * 0.2, 300)
 }
-Menu.setApplicationMenu(menu)
-*/
+window.addEventListener("resize", event => {
+  updateSidebarWidth()
+})
+updateSidebarWidth()
 
 window.addEventListener("keydown", event => {
   if (event.key === "Enter") {
@@ -159,66 +204,4 @@ window.addEventListener("beforeunload", e => beforeUnload(e))
 </script>
 
 <style scoped>
-body {
-  font-family: sans-serif;
-}
-
-.diagram {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 70%;
-  height: 100%;
-  background-color: white;
-  overflow-x: auto;
-  overflow-y: auto;
-}
-
-.property-side {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 30%;
-  height: 100%;
-  background-color: white;
-  border-left: 2px solid black;
-}
-
-.toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background-color: #EEE;
-  z-index: 100;
-  font-size: 14px;
-}
-
-.workspace {
-  position: absolute;
-  top: 60px;
-}
-
-.toolbar-button {
-  display: inline-block;
-  border: 2px outset #EEE;
-  background-color: #DDD;
-  padding: 2px;
-  cursor: default;
-  user-select: none;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
-  text-align: center;
-
-  &.pressed {
-    border: 2px inset #BBB;
-    background-color: #AAA;
-  }
-  &:active {
-    border: 2px inset #BBB;
-    background-color: #AAA;
-  }
-}
 </style>

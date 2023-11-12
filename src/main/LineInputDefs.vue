@@ -4,8 +4,8 @@
       <path :d="displayPath" fill="none" stroke="black"></path>
       <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
       <g v-if="gui.stationSelection.hovered >= 0 && gui.hoveredTime >= 0">
-        <path :d="displayPathNew" fill="none" stroke="gray"></path>
-        <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="gray"></circle>
+        <path :d="displayPathNew" fill="none" stroke="grey"></path>
+        <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
       </g>
     </symbol>
   </defs>

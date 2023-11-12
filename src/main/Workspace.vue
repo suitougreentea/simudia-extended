@@ -1,25 +1,27 @@
 <template>
-  <svg style="position: absolute; top: 0; left: 0;" :width="gui.layout.width" :height="gui.layout.height">
-    <filter id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%">
-      <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
-      <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
-    </filter>
-    <LineDefs ref="lineDefs"></LineDefs>
-    <StationDefs ref="stationDefs"></StationDefs>
-    <LineInputDefs ref="lineInputDefs"></LineInputDefs>
-    <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
-    <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
-    <use xlink:href="#stations"></use>
-    <use v-if="gui.mode == 'input'" xlink:href="#line-input"></use>
-    <use xlink:href="#lines"></use>
-    <use xlink:href="#stations-hover"></use>
-    <use xlink:href="#lines-hover"></use>
-  </svg>
-  <div style="position: absolute; top: 0; left: 0;">
-    <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
-    <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
-    <div class="station-name" :style="{ top: '-100px', left: '-100px' }" ref="stationForMeasure"></div>
-    <TimeInput ref="timeInput"></TimeInput>
+  <div ref="container" style="overflow: scroll;" @click="clickBackground">
+    <svg style="position: absolute; top: 0; left: 0;" :width="gui.layout.width" :height="gui.layout.height">
+      <filter id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
+        <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
+      </filter>
+      <LineDefs ref="lineDefs"></LineDefs>
+      <StationDefs ref="stationDefs"></StationDefs>
+      <LineInputDefs ref="lineInputDefs"></LineInputDefs>
+      <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
+      <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
+      <use xlink:href="#stations"></use>
+      <use v-if="gui.mode == 'input'" xlink:href="#line-input"></use>
+      <use xlink:href="#lines"></use>
+      <use xlink:href="#stations-hover"></use>
+      <use xlink:href="#lines-hover"></use>
+    </svg>
+    <div style="position: absolute; top: 0; left: 0;">
+      <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
+      <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
+      <div class="station-name" :style="{ top: '-100px', left: '-100px' }" ref="stationForMeasure"></div>
+      <TimeInput ref="timeInput"></TimeInput>
+    </div>
   </div>
 </template>
 
@@ -38,6 +40,14 @@ const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
+const container = ref<HTMLDivElement>(null)
+const scrollBarSize = computed(() => {
+  if (container.value == null) return { width: 0, height: 0 }
+  return {
+    width: container.value.offsetWidth - container.value.clientWidth,
+    height: container.value.offsetHeight - container.value.clientHeight,
+  }
+})
 const lineInputDefs = ref(null)
 const newStation = ref(null)
 const existingStation = ref(null)
@@ -60,13 +70,13 @@ const verticalGrids = computed(() => {
     let color
     let y
     if (i % (TimeUtil.SECOND_DIVISOR * 60 * 60) === 0) {
-      color = "black"
+      color = "dimgrey"
       y = gui.layout.top
     } else if (i % (TimeUtil.SECOND_DIVISOR * 60 * 15) === 0) {
-      color = "gray"
+      color = "grey"
       y = gui.layout.top + gui.layout.headerHeight
     } else {
-      color = "lightgray"
+      color = "lightgrey"
       y = gui.layout.top + gui.layout.headerHeight
     }
     result.push({ x: x_, y: y, color: color })
@@ -83,6 +93,10 @@ const verticalTexts = computed(() => {
   }
   return result
 })
+
+const clickBackground = () => {
+  gui.unselectAll()
+}
 
 const newStationFocus = () => {
   gui.resetInput()
@@ -162,6 +176,10 @@ message.$onAction(({ name, args: _args }) => {
       lineInputDefsElement.finishInput()
     }
   }
+})
+
+defineExpose({
+  scrollBarSize,
 })
 </script>
 

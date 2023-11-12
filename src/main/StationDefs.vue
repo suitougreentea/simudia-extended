@@ -1,27 +1,31 @@
 <template>  
   <defs>
     <symbol id="stations">
-      <line v-for="(s, i) in gui.stations" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[i]" :y2="gui.accumulatedStationY[i]" stroke="black" :stroke-width="1"></line>
+      <line v-for="(s, i) in gui.stations" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[i]" :y2="gui.accumulatedStationY[i]" stroke="dimgrey" :stroke-width="1"></line>
       <g v-if="gui.stationSelection.hovered >= 0">
-        <line :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[gui.stationSelection.hovered]" :y2="gui.accumulatedStationY[gui.stationSelection.hovered]" stroke="black" :stroke-width="2.5"></line>
+        <line :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[gui.stationSelection.hovered]" :y2="gui.accumulatedStationY[gui.stationSelection.hovered]" stroke="dimgrey" :stroke-width="2.5"></line>
       </g>
       <g v-if="gui.stationSelection.selected >= 0">
-        <line class="selectedLine" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[gui.stationSelection.selected]" :y2="gui.accumulatedStationY[gui.stationSelection.selected]" stroke="black" :stroke-width="1"></line>
+        <line class="selected-line" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[gui.stationSelection.selected]" :y2="gui.accumulatedStationY[gui.stationSelection.selected]" stroke="dimgrey" :stroke-width="1"></line>
       </g>
-      <line v-if="gui.stations.length == 0" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.layout.top + gui.layout.headerHeight" :y2="gui.layout.top + gui.layout.headerHeight" stroke="black"></line>
+      <line v-if="gui.stations.length == 0" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.layout.top + gui.layout.headerHeight" :y2="gui.layout.top + gui.layout.headerHeight" stroke="dimgrey"></line>
     </symbol>
     <symbol id="stations-hover">
-      <line v-for="(s, i) in gui.stations" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[i]" :y2="gui.accumulatedStationY[i]" stroke="transparent" stroke-width="10" @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine(i, $event)"></line>
+      <line v-for="(s, i) in gui.stations" :x1="gui.layout.left" :x2="gui.layout.right" :y1="gui.accumulatedStationY[i]" :y2="gui.accumulatedStationY[i]" stroke="transparent" stroke-width="10" @mousemove="hoverStation(i, $event)" @mouseout="unhoverStation(i)" @click.prevent.stop="clickStationLine(i, $event)" @contextmenu.prevent.stop="contextStationLine($event, i)"></line>
     </symbol>
   </defs>
 </template>
 
 <script setup lang="ts">
+import { inject } from "vue";
 import { useGuiStore } from "../stores/gui";
 import { useGuiMessageStore } from "../stores/gui-message";
+import { stationContextMenuInjection } from "./injection";
 
 const gui = useGuiStore()
 const message = useGuiMessageStore()
+
+const contextMenu = inject(stationContextMenuInjection)
 
 const hoverStation = (i, e) => {
   gui.stationSelection.hovered = i
@@ -52,34 +56,15 @@ const clickStationLine = (i, e) => {
   }
 }
 
-const contextStationLine = (i, e) => {
+const contextStationLine = (ev: MouseEvent, index: number) => {
   if (gui.mode === "edit") {
-    console.warn("TODO: implement menu")
-    /*
-    const menu = new Menu()
-    menu.append(new MenuItem({
-      label: "Insert station above",
-      click: () => {
-        gui.insertStationAboveSelected(i)
-      }
-    }))
-    menu.append(new MenuItem({
-      label: "Insert station below",
-      click: () => {
-        gui.insertStationBelowSelected(i)
-      }
-    }))
-    menu.append(new MenuItem({
-      label: "Delete station",
-      click: () => {
-        gui.deleteSelectedStation(i)
-      }
-    }))
-    menu.popup()
-    */
+    contextMenu.value.open(ev, index)
   }
 }
 </script>
 
 <style scoped>
+.selected-line {
+  filter: url(#selected-shadow);
+}
 </style>

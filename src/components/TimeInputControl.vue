@@ -1,49 +1,46 @@
 <template>  
-  <div style="display: contents">
-    <input type="text" :disabled="disabled" :class="{error: error}" :value="rawText" @input.stop="onInput" @change.stop="onChange">
-  </div>
+  <v-text-field type="text" v-model="model" :rules="[rule]" @change="onChange"></v-text-field>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, toRefs, watch } from "vue";
+import { ref, toRefs, watch } from "vue";
 import * as TimeUtil from "../time-util"
 const props = withDefaults(defineProps<{
   modelValue: number,
-  disabled?: boolean,
+  omitHour?: boolean,
 }>(), {
-  disabled: false,
+  omitHour: false,
 })
 
 const emit = defineEmits<{
   "update:modelValue": [newValue: number],
 }>()
 
-const rawText = ref(TimeUtil.joinStringSimple(props.modelValue))
-const time = ref(props.modelValue)
+const model = ref("")
+const update = (modelValue: number) => {
+  model.value = TimeUtil.joinString(modelValue, props.omitHour)
+}
+update(props.modelValue)
 
-const stringified = computed(() => TimeUtil.joinStringSimple(props.modelValue))
-const error = computed(() => !TimeUtil.isValidTimeInput(rawText.value))
+const modelRefs = toRefs(props)
+watch(modelRefs.modelValue, (newValue) => {
+  update(newValue)
+})
 
-const onInput = (event) => {
-  const element = event.target
-  const text = element.value.trim()
-  rawText.value = text
+const rule = (value: string) => {
+  return TimeUtil.isValidTimeInput(value)
 }
 
-const onChange = (event) => {
-  const element = event.target
-  const text = element.value.trim()
-  rawText.value = text
-  if (TimeUtil.isValidTimeInput(text)) {
-    time.value = TimeUtil.parse(text)
-    emit("update:modelValue", time.value)
+const onChange = () => {
+  if (rule(model.value)) {
+    const parsed = TimeUtil.parse(model.value)
+    emit("update:modelValue", parsed)
+    update(parsed)
+  } else {
+    emit("update:modelValue", props.modelValue)
+    update(props.modelValue)
   }
 }
-
-const propRefs = toRefs(props)
-watch(propRefs.modelValue, (newValue) => {
-  rawText.value = TimeUtil.joinStringSimple(newValue)
-})
 </script>
 
 <style scoped>

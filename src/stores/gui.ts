@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
+import { OpenFileHandle } from "../file"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
@@ -9,6 +10,31 @@ const HEADER_HEIGHT = 20
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
   const message = useGuiMessageStore()
+
+  const currentFileHandle = ref<OpenFileHandle | null>(null)
+  const setFileHandle = (fileHandle: OpenFileHandle) => {
+    currentFileHandle.value = fileHandle
+    modified.value = false
+  }
+  const loadFromFileHandle = (fileHandle: OpenFileHandle) => {
+    const json = JSON.parse(fileHandle.content)
+    data.$patch({
+      monthLength: json.monthLength,
+      shiftDivisor: json.shiftDivisor,
+      stations: json.stations,
+      lines: json.lines,
+    })
+    currentFileHandle.value = fileHandle
+    modified.value = false
+  }
+  const baseName = computed(() => {
+    return currentFileHandle.value?.filename ?? "New File"
+  })
+
+  const modified = ref(false)
+  data.$subscribe(() => {
+    modified.value = true
+  })
 
   const mode = ref("edit")
   const inputtingTime = ref(false)
@@ -112,21 +138,6 @@ export const useGuiStore = defineStore("gui", () => {
     lineSelection.value.hoveredType = -1
   }
 
-  const contextLine = (index) => {
-    resetInput() // needed by Sidebar
-    console.warn("TODO: implement menu")
-    /*
-    const menu = new Menu()
-    menu.append(new MenuItem({
-      label: "Delete line",
-      click: () => {
-        gui.deleteSelectedLine(index)
-      }
-    }))
-    menu.popup()
-    */
-  }
-
   const hoverSet = (index) => {
     lineSelection.value.hoveredLine = -1
     lineSelection.value.hoveredSet = index
@@ -149,29 +160,6 @@ export const useGuiStore = defineStore("gui", () => {
     lineSelection.value.hoveredSet = index
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
-  }
-
-  const contextSegment = (haltIndex, type) => {
-    if (type === 1) {
-      console.warn("TODO: implement menu")
-      /*
-      const menu = new Menu()
-      menu.append(new MenuItem({
-        label: "Insert halt",
-        click: () => {
-          gui.insertHaltToSelectedLine(haltIndex)
-        }
-      }))
-      menu.append(new MenuItem({
-        label: "Delete halt",
-        enabled: store.lines[gui.lineSelection.value.selectedLine].halts.length >= 3,
-        click: () => {
-          gui.deleteHaltFromSelectedLine(haltIndex)
-        }
-      }))
-      menu.popup()
-      */
-    }
   }
 
   const hoverSegment = (haltIndex, type) => {
@@ -298,6 +286,11 @@ export const useGuiStore = defineStore("gui", () => {
   }
 
   return {
+    modified,
+    currentFileHandle,
+    setFileHandle,
+    loadFromFileHandle,
+    baseName,
     mode,
     inputtingTime,
     lineSelection,
@@ -315,11 +308,9 @@ export const useGuiStore = defineStore("gui", () => {
     hoverLine,
     unhoverLine,
     clickLine,
-    contextLine,
     hoverSet,
     unhoverSet,
     clickSet,
-    contextSegment,
     hoverSegment,
     unhoverSegment,
     clickSegment,

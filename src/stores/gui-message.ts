@@ -7,6 +7,7 @@ export const useGuiMessageStore = defineStore("gui-message", () => {
   const setLineInputTerminal = (args: { stationIndex: number }) => {}
   const startTimeInput = (args: { rubberbands: any }) => {} // TODO: typing
   const enterKeyPressed = (args: { event: KeyboardEvent }) => {}
+  const closeAllContextMenus = (args: {}) => {}
 
   return {
     resetInput,
@@ -14,5 +15,6 @@ export const useGuiMessageStore = defineStore("gui-message", () => {
     setLineInputTerminal,
     startTimeInput,
     enterKeyPressed,
+    closeAllContextMenus,
   }
 })
