@@ -1,4 +1,9 @@
+export interface NewFileHandle {
+  hasOpenedFile: false
+  filename: string
+}
 export interface OpenFileHandle {
+  hasOpenedFile: true
   filename: string
   content: string | null
   saveAvailable: boolean
@@ -13,6 +18,11 @@ export interface FileHandler {
   onFileDrop(ev: DragEvent): Promise<OpenFileHandle>
   saveAs(content: string, preferredFilename: string): Promise<OpenFileHandle>
 }
+
+export const createNewFileHandle = (name?: string): NewFileHandle => ({
+  hasOpenedFile: false,
+  filename: name ?? "New File.simudiax",
+})
 
 export class FileApiFileHandler implements FileHandler {
   name = "File API"
@@ -75,11 +85,13 @@ export class FileApiFileHandler implements FileHandler {
 }
 
 class NoSaveOpenFileHandle implements OpenFileHandle {
+  hasOpenedFile: true
   filename: string
   content: string | null
   saveAvailable = false
 
   constructor(filename: string, content: string) {
+    this.hasOpenedFile = true
     this.filename = filename
     this.content = content
   }
@@ -130,12 +142,14 @@ export class FileSystemApiFileHandler implements FileHandler {
 }
 
 class FileSystemApiOpenFileHandle implements OpenFileHandle {
+  hasOpenedFile: true
   handle: FileSystemFileHandle
   filename: string
   content: string | null
   saveAvailable = true
 
   constructor(handle: FileSystemFileHandle) {
+    this.hasOpenedFile = true
     this.handle = handle
   }
   async open() {

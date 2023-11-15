@@ -91,7 +91,7 @@ const lineSegmentContextMenu = ref<InstanceType<typeof LineSegmentContextMenu>>(
 provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
 
 const title = computed(() => {
-  return (gui.modified ? "*" : "") + gui.baseName + " - SimuDia-Extended " + VERSION
+  return (gui.modified ? "*" : "") + gui.currentFileHandle.filename + " - SimuDia-Extended " + VERSION
 })
 
 const zoomInHorizontal = () => { gui.zoom.horizontal++ }
@@ -141,7 +141,7 @@ const importLegacyFile = async () => {
 
 
 const saveFile = async () => {
-  if (gui.currentFileHandle == null || !gui.currentFileHandle.saveAvailable) {
+  if (!gui.currentFileHandle.hasOpenedFile || !gui.currentFileHandle.saveAvailable) {
     await saveFileAs()
   } else {
     await gui.currentFileHandle.save(store.jsonString)
@@ -151,7 +151,7 @@ const saveFile = async () => {
 
 const saveFileAs = async () => {
   const api = availableFileApis[0]
-  const fileHandle = await api.saveAs(store.jsonString, gui.currentFileHandle?.filename ?? "New File.simudiax")
+  const fileHandle = await api.saveAs(store.jsonString, gui.currentFileHandle.filename)
   gui.setFileHandle(fileHandle)
 }
 
