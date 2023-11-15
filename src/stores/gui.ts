@@ -3,6 +3,7 @@ import { computed, ref } from "vue"
 import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
 import { OpenFileHandle } from "../file"
+import { importLegacyData } from "../legacy-importer"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
@@ -26,6 +27,17 @@ export const useGuiStore = defineStore("gui", () => {
     })
     currentFileHandle.value = fileHandle
     modified.value = false
+  }
+  const importFromFileHandle = (fileHandle: OpenFileHandle) => {
+    const imported = importLegacyData(fileHandle.content)
+    data.$patch({
+      monthLength: imported.monthLength,
+      shiftDivisor: imported.shiftDivisor,
+      stations: imported.stations,
+      lines: imported.lines,
+    })
+    currentFileHandle.value = null
+    modified.value = true
   }
   const baseName = computed(() => {
     return currentFileHandle.value?.filename ?? "New File"
@@ -290,6 +302,7 @@ export const useGuiStore = defineStore("gui", () => {
     currentFileHandle,
     setFileHandle,
     loadFromFileHandle,
+    importFromFileHandle,
     baseName,
     mode,
     inputtingTime,

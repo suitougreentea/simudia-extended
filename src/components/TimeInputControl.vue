@@ -33,7 +33,8 @@ const rule = (value: string) => {
 
 const onChange = () => {
   if (rule(model.value)) {
-    const parsed = TimeUtil.parse(model.value)
+    let parsed = TimeUtil.parse(model.value)
+    if (isNaN(parsed)) parsed = 0
     emit("update:modelValue", parsed)
     update(parsed)
   } else {

@@ -1,30 +1,29 @@
 import { defineStore } from "pinia"
 
 import * as TimeUtil from "../time-util"
-import { OpenFileHandle } from "../file"
 
 const fileVersion = 0
 
 export type Time = number
 
-type Station = {
+export type Station = {
   name: string
   width: number
   id: number
 }
 
-type Line = {
+export type Line = {
   name: string
   divisor: number
   lineWidth: number
   color: string
   defaultLoadingTime: Time
   reversingTime: Time
-  halts: Array<LineHalt>
+  halts: LineHalt[]
   visible: boolean
 }
 
-type LineHalt = {
+export type LineHalt = {
   stationId: number
   time: Time
   overrideLoadingTime: boolean
@@ -44,7 +43,7 @@ type ComputedTimes = {
   scheduled: boolean,
 }
 
-type State = {
+export type State = {
   monthLength: Time,
   shiftDivisor: number,
   stations: Station[],

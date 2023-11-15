@@ -62,7 +62,7 @@ export function parse(text: string): number {
     minute = Number(prettyMatchWithoutHour[1])
     second = Number(prettyMatchWithoutHour[2])
   } else {
-    return 0
+    return NaN
   }
   return fromHMS(hour, minute, second)
 }

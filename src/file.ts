@@ -9,7 +9,7 @@ export interface FileHandler {
   name: string
   fileDropAvailable: boolean
   isAvailable(): boolean
-  open(): Promise<OpenFileHandle>
+  open(options: { legacy: boolean }): Promise<OpenFileHandle>
   onFileDrop(ev: DragEvent): Promise<OpenFileHandle>
   saveAs(content: string, preferredFilename: string): Promise<OpenFileHandle>
 }
@@ -24,7 +24,7 @@ export class FileApiFileHandler implements FileHandler {
     return true
   }
 
-  open(): Promise<OpenFileHandle> {
+  open(options: { legacy: boolean }): Promise<OpenFileHandle> {
     return new Promise((resolve, reject) => {
       const input = document.createElement("input")
       input.type = "file"
@@ -99,8 +99,9 @@ export class FileSystemApiFileHandler implements FileHandler {
     return true
   }
 
-  async open(): Promise<OpenFileHandle> {
-    const fileHandles = await window.showOpenFilePicker({ types: [{ accept: { "application/json": ".simudiax" } }] })
+  async open(options: { legacy: boolean }): Promise<OpenFileHandle> {
+    const accept = options.legacy ? { "text/plain": ".simudia" } : { "application/json": ".simudiax" }
+    const fileHandles = await window.showOpenFilePicker({ types: [{ accept }] })
     if (fileHandles.length == 0) throw new Error("No files provided")
     const fileHandle: FileSystemFileHandle = fileHandles[0]
     const handle = new FileSystemApiOpenFileHandle(fileHandle)

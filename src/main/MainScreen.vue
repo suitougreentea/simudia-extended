@@ -7,9 +7,10 @@
             <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
           </template>
           <v-list>
-            <v-list-item @click="openFile">Open</v-list-item>
+            <v-list-item @click="openFile">Open...</v-list-item>
             <v-list-item @click="saveFile">Save</v-list-item>
             <v-list-item @click="saveFileAs">Save As...</v-list-item>
+            <v-list-item @click="importLegacyFile">Import SimuDia data...</v-list-item>
             <!--
             <v-divider></v-divider>
             <v-list-item @click="">About</v-list-item>
@@ -118,10 +119,26 @@ const openFile = async () => {
   }
 
   const api = availableFileApis[0]
-  const fileHandle = await api.open()
+  const fileHandle = await api.open({ legacy: false })
   gui.loadFromFileHandle(fileHandle)
   gui.unselectAll()
 }
+
+const importLegacyFile = async () => {
+  if (gui.modified) {
+    const result = window.confirm("Save modified data?")
+    if (!result) return
+    else {
+      await saveFile()
+    }
+  }
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.open({ legacy: true })
+  gui.importFromFileHandle(fileHandle)
+  gui.unselectAll()
+}
+
 
 const saveFile = async () => {
   if (gui.currentFileHandle == null || !gui.currentFileHandle.saveAvailable) {
