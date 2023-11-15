@@ -8,7 +8,6 @@ export type Time = number
 
 export type Station = {
   name: string
-  width: number
   id: number
 }
 
@@ -181,16 +180,16 @@ export const useMainStore = defineStore("main", {
     modifyShiftDivisor({ value }) {
       this.shiftDivisor = value
     },
-    addStation({ pos: _pos, name, width }: { pos?: number, name: string, width: number }) {
+    addStation({ pos: _pos, name }: { pos?: number, name: string }) {
       const pos = (_pos == null) ? this.stations.length : _pos
       // get unused ID
       let id
       do { id = Math.floor(Math.random() * 4294967296) } while (this.stations.some(e => e.id === id))
-      this.stations.splice(pos, 0, { name, width, id })
+      this.stations.splice(pos, 0, { name, id })
     },
-    modifyStation({ pos, name, width }) {
+    modifyStation({ pos, name }) {
       const old = this.stations[pos]
-      this.stations[pos] = { name, width, id: old.id }
+      this.stations[pos] = { name, id: old.id }
     },
     deleteStation({ pos }) {
       const station = this.stations[pos]

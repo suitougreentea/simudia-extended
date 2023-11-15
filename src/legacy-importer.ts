@@ -302,8 +302,7 @@ export const importLegacyData = (data: string): State => {
     let id
     do { id = Math.floor(Math.random() * 4294967296) } while (result.stations.some(e => e.id === id))
     const name = e.name
-    const width = 1
-    result.stations.push({ id, name, width })
+    result.stations.push({ id, name })
   })
   result.lines = []
   lines.forEach(e => {

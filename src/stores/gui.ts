@@ -78,11 +78,11 @@ export const useGuiStore = defineStore("gui", () => {
     vertical: 0
   })
 
-  const layout = computed(() => {
-    const stationsWidth = Math.max(100, ...stations.value.map(e => e.width)) + 10
+  const stationsWidth = ref(110)
 
+  const layout = computed(() => {
     const monthLength = data.monthLength
-    const width = MARGIN + stationsWidth + monthLength / (7200 * Math.pow(2, -zoom.value.horizontal / 2)) + MARGIN
+    const width = MARGIN + stationsWidth.value + monthLength / (7200 * Math.pow(2, -zoom.value.horizontal / 2)) + MARGIN
 
     const ys = accumulatedStationY.value
     let height
@@ -97,7 +97,7 @@ export const useGuiStore = defineStore("gui", () => {
       width,
       height,
       headerHeight: HEADER_HEIGHT,
-      stationsWidth
+      stationsWidth: stationsWidth.value,
     }
   })
 
@@ -225,7 +225,6 @@ export const useGuiStore = defineStore("gui", () => {
     data.addStation({
       pos: stationIndex,
       name: "New station",
-      width: 100
     })
     stationSelection.value.selected = stationIndex
   }
@@ -234,7 +233,6 @@ export const useGuiStore = defineStore("gui", () => {
     data.addStation({
       pos: stationIndex + 1,
       name: "New station",
-      width: 100
     })
     stationSelection.value.selected = stationIndex + 1
   }
@@ -312,6 +310,7 @@ export const useGuiStore = defineStore("gui", () => {
     modifierStates,
     lineInsertOrigin,
     zoom,
+    stationsWidth,
     layout,
     stations,
     accumulatedStationY,

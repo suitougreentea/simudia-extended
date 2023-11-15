@@ -19,7 +19,7 @@
     <div style="position: absolute; top: 0; left: 0;">
       <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
       <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
-      <div class="station-name" :style="{ top: '-100px', left: '-100px' }" ref="stationForMeasure"></div>
+      <div class="station-name" style="opacity: 0" ref="stationForMeasure"></div>
       <TimeInput ref="timeInput"></TimeInput>
     </div>
   </div>
@@ -30,7 +30,7 @@ import LineDefs from "./LineDefs.vue"
 import StationDefs from "./StationDefs.vue"
 import LineInputDefs from "./LineInputDefs.vue"
 import TimeInput from "./TimeInput.vue"
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useMainStore } from "../stores/main";
 import { useGuiStore } from "../stores/gui";
 import { useGuiMessageStore } from "../stores/gui-message";
@@ -108,7 +108,7 @@ const newStationKeyProceed = () => {
   const element = newStation.value
   const text = element.innerText.trim()
   if (text !== "") {
-    store.addStation({ name: text, width: measureStationWidth(text) })
+    store.addStation({ name: text })
     element.innerText = ""
   } else {
     element.blur()
@@ -125,7 +125,7 @@ const newStationBlur = () => {
   const element = newStation.value
   const text = element.innerText.trim()
   if (text !== "") {
-    store.addStation({ name: text, width: measureStationWidth(text) })
+    store.addStation({ name: text })
     element.innerText = ""
   }
 }
@@ -135,7 +135,7 @@ const modifyStationKeyProceed = (i) => {
   const element = array[i]
   const text = element.innerText.trim()
   if (text !== gui.stations[i].name) {
-    store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
+    store.modifyStation({ pos: i, name: text })
   }
   if (array.length === i + 1) {
     newStation.value.focus()
@@ -156,10 +156,15 @@ const modifyStationBlur = (i) => {
   const element = array[i]
   const text = element.innerText.trim()
   if (text !== gui.stations[i].name) {
-    store.modifyStation({ pos: i, name: text, width: measureStationWidth(text) })
+    store.modifyStation({ pos: i, name: text })
   }
 }
 
+const stationNames = computed(() =>  store.stations.map(e => e.name))
+watch(stationNames, (value) => {
+  const widths = value.map(e => measureStationWidth(e))
+  gui.stationsWidth = Math.max(100, ...widths) + 10
+})
 const measureStationWidth = (name) => {
   const element = stationForMeasure.value
   element.innerText = name
