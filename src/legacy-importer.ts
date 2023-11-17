@@ -115,7 +115,7 @@ const parseRawTimes = (ctx: ImportContext, input: string, monthLength: number) =
   }).map(time => ({ fromStation, toStation, timeId, time }))
 }
 
-export const importLegacyData = (data: string): State => {
+export const importLegacyData = (data: string): { state: State, warnings: string[] } => {
   data = data.replace(/\r\n/g, "\n")
   const dataLines = data.split("\n")
 
@@ -362,5 +362,8 @@ export const importLegacyData = (data: string): State => {
     })
   })
 
-  return result as State
+  return {
+    state: result as State,
+    warnings: [],
+  }
 }

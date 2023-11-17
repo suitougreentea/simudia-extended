@@ -2,8 +2,6 @@ import { defineStore } from "pinia"
 
 import * as TimeUtil from "../time-util"
 
-const fileVersion = 0
-
 export type Time = number
 
 export type Station = {
@@ -159,15 +157,6 @@ export const useMainStore = defineStore("main", {
 
         return result
       })
-    },
-    jsonString(state) {
-      return JSON.stringify({
-        fileVersion,
-        monthLength: state.monthLength,
-        shiftDivisor: state.shiftDivisor,
-        stations: state.stations,
-        lines: state.lines,
-      }, null, 2)
     },
   },
   actions: {

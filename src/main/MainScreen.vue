@@ -7,6 +7,7 @@
             <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
           </template>
           <v-list>
+            <v-list-item @click="newFile">New</v-list-item>
             <v-list-item @click="openFile">Open...</v-list-item>
             <v-list-item @click="saveFile">Save</v-list-item>
             <v-list-item @click="saveFileAs">Save As...</v-list-item>
@@ -50,6 +51,9 @@
     <StationContextMenu ref="stationContextMenu"></StationContextMenu>
     <LineContextMenu ref="lineContextMenu"></LineContextMenu>
     <LineSegmentContextMenu ref="lineSegmentContextMenu"></LineSegmentContextMenu>
+
+    <SaveChangesDialog ref="saveChangesDialog"></SaveChangesDialog>
+    <FileOpenInfoDialog ref="fileOpenInfoDialog"></FileOpenInfoDialog>
   </v-app>
 </template>
 
@@ -57,7 +61,8 @@
 import { StyleValue, computed, ref, watch, provide } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
-import { allAvailableApis as availableFileApis } from "../file"
+import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle } from "../file-api"
+import { deserialize, serialize } from "../serialization"
 import Workspace from "./Workspace.vue"
 import Sidebar from "./Sidebar.vue"
 import { useGuiStore } from "../stores/gui"
@@ -65,6 +70,8 @@ import { useGuiMessageStore } from "../stores/gui-message"
 import StationContextMenu from "../context-menus/StationContextMenu.vue"
 import LineContextMenu from "../context-menus/LineContextMenu.vue"
 import LineSegmentContextMenu from "../context-menus/LineSegmentContextMenu.vue"
+import SaveChangesDialog from "../dialogs/SaveChangesDialog.vue"
+import FileOpenInfoDialog from "../dialogs/FileOpenInfoDialog.vue"
 import { stationContextMenuInjection, lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
 
 const store = useMainStore()
@@ -90,8 +97,11 @@ provide(lineContextMenuInjection, lineContextMenu)
 const lineSegmentContextMenu = ref<InstanceType<typeof LineSegmentContextMenu>>(null)
 provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
 
+const saveChangesDialog = ref<InstanceType<typeof SaveChangesDialog>>(null)
+const fileOpenInfoDialog = ref<InstanceType<typeof FileOpenInfoDialog>>(null)
+
 const title = computed(() => {
-  return (gui.modified ? "*" : "") + gui.currentFileHandle.filename + " - SimuDia-Extended " + VERSION
+  return (gui.modified ? "*" : "") + gui.currentFileHandle.getFilename() + " - SimuDia-Extended " + VERSION
 })
 
 const zoomInHorizontal = () => { gui.zoom.horizontal++ }
@@ -109,72 +119,149 @@ const toggleInputMode = () => {
   }
 }
 
-const openFile = async () => {
-  if (gui.modified) {
-    const result = window.confirm("Save modified data?")
-    if (!result) return
-    else {
-      await saveFile()
-    }
+// returns true if succeeds
+const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "legacy" | null): Promise<boolean> => {
+  let content: string
+  try {
+    content = await fileHandle.open()
+  } catch (e) {
+    await fileOpenInfoDialog.value.open("error", [`${e}`])
+    return false
   }
 
-  const api = availableFileApis[0]
-  const fileHandle = await api.open({ legacy: false })
-  gui.loadFromFileHandle(fileHandle)
-  gui.unselectAll()
-}
-
-const importLegacyFile = async () => {
-  if (gui.modified) {
-    const result = window.confirm("Save modified data?")
-    if (!result) return
-    else {
-      await saveFile()
-    }
+  const { result, type: resolvedType, errors, warnings } = deserialize(content, type)
+  if (errors.length > 0) {
+    await fileOpenInfoDialog.value.open("error", errors)
+    return false
   }
 
-  const api = availableFileApis[0]
-  const fileHandle = await api.open({ legacy: true })
-  gui.importFromFileHandle(fileHandle)
-  gui.unselectAll()
-}
+  store.$patch(result)
 
-
-const saveFile = async () => {
-  if (!gui.currentFileHandle.hasOpenedFile || !gui.currentFileHandle.saveAvailable) {
-    await saveFileAs()
+  if (resolvedType == "legacy") {
+    gui.currentFileHandle = createNewFileHandle(fileHandle.getFilename().replace(/\.simudia$/, ".simudiax"))
+    gui.modified = true
   } else {
-    await gui.currentFileHandle.save(store.jsonString)
+    gui.currentFileHandle = fileHandle
     gui.modified = false
   }
-}
 
-const saveFileAs = async () => {
-  const api = availableFileApis[0]
-  const fileHandle = await api.saveAs(store.jsonString, gui.currentFileHandle.filename)
-  gui.setFileHandle(fileHandle)
-}
+  gui.unselectAll()
 
-const dragover = (e) => {
-  e.preventDefault()
-}
-
-const drop = async (e) => {
-  e.preventDefault()
-
-  const api = availableFileApis[0]
-  const fileHandle = await api.onFileDrop(e)
-
-  if (gui.modified) {
-    const result = window.confirm("Save modified data?")
-    if (!result) return
-    else {
-      saveFile()
-    }
+  if (warnings.length > 0) {
+    await fileOpenInfoDialog.value.open("warning", warnings)
   }
 
-  gui.loadFromFileHandle(fileHandle)
+  return true
+}
+
+const saveFileInternal = async (fileHandle: OpenFileHandle): Promise<boolean> => {
+  const { result, errors, warnings } = serialize(store)
+  if (errors.length > 0) {
+    await fileOpenInfoDialog.value.open("error", errors)
+    return false
+  }
+
+  try {
+    await fileHandle.save(result)
+  } catch (e) {
+    await fileOpenInfoDialog.value.open("error", [`${e}`])
+    return false
+  }
+
+  gui.modified = false
+
+  if (warnings.length > 0) {
+    await fileOpenInfoDialog.value.open("warning", warnings)
+  }
+
+  return true
+}
+
+// returns true if proceedable
+const checkModifiedAndSaveFile = async (): Promise<boolean> => {
+  if (gui.modified) {
+    const result = await saveChangesDialog.value.open()
+    if (result == "cancel") return false
+    if (result == "yes") {
+      return await saveFile()
+    }
+  }
+  return true
+}
+
+// returns true if succeeds
+const newFile = async (): Promise<boolean> => {
+  if (!await checkModifiedAndSaveFile()) return false
+  gui.newFile()
   gui.unselectAll()
+  return true
+}
+
+// returns true if succeeds
+const openFile = async (): Promise<boolean> => {
+  if (!await checkModifiedAndSaveFile()) return false
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.open({ type: "standard" })
+  if (fileHandle == null) return false
+
+  return await openFileInternal(fileHandle, "standard")
+}
+
+// returns true if succeeds
+const importLegacyFile = async (): Promise<boolean> => {
+  if (!await checkModifiedAndSaveFile()) return false
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.open({ type: "legacy" })
+  if (fileHandle == null) return false
+
+  return await openFileInternal(fileHandle, "legacy")
+}
+
+// returns true if succeeds
+const saveFile = async (): Promise<boolean> => {
+  if (!gui.currentFileHandle.hasOpenedFile) {
+    return await saveFileAs()
+  }
+
+  return await saveFileInternal(gui.currentFileHandle)
+}
+
+// returns true if succeeds
+const saveFileAs = async (): Promise<boolean> => {
+  const api = availableFileApis[0]
+  const fileHandle = await api.create({ preferredFilename: gui.currentFileHandle.getFilename() })
+  if (fileHandle == null) return false
+
+  if (await saveFileInternal(fileHandle)) {
+    gui.currentFileHandle = fileHandle
+  } else {
+    return false
+  }
+}
+
+const dragover = (e: DragEvent) => {
+  e.preventDefault()
+  if (e.dataTransfer.items.length != 1 || e.dataTransfer.items[0].kind != "file") {
+    e.dataTransfer.dropEffect = "none"
+    return
+  }
+  e.dataTransfer.dropEffect = "copy"
+}
+
+// returns true if succeeds
+const drop = async (e: DragEvent): Promise<boolean> => {
+  e.preventDefault()
+  if (e.dataTransfer.items.length != 1 || e.dataTransfer.items[0].kind != "file") return false
+
+  const api = availableFileApis[0]
+  const fileHandle = await api.onFileDrop(e.dataTransfer.items[0])
+  if (fileHandle == null) return false
+
+  if (!await checkModifiedAndSaveFile()) return false
+
+  return await openFileInternal(fileHandle, null)
 }
 
 const beforeUnload = (e) => {

@@ -2,8 +2,7 @@ import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
-import { NewFileHandle, OpenFileHandle, createNewFileHandle } from "../file"
-import { importLegacyData } from "../legacy-importer"
+import { NewFileHandle, OpenFileHandle, createNewFileHandle } from "../file-api"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
@@ -13,31 +12,10 @@ export const useGuiStore = defineStore("gui", () => {
   const message = useGuiMessageStore()
 
   const currentFileHandle = ref<OpenFileHandle | NewFileHandle>(createNewFileHandle())
-  const setFileHandle = (fileHandle: OpenFileHandle) => {
-    currentFileHandle.value = fileHandle
+  const newFile = () => {
+    data.emptyState()
+    currentFileHandle.value = createNewFileHandle()
     modified.value = false
-  }
-  const loadFromFileHandle = (fileHandle: OpenFileHandle) => {
-    const json = JSON.parse(fileHandle.content)
-    data.$patch({
-      monthLength: json.monthLength,
-      shiftDivisor: json.shiftDivisor,
-      stations: json.stations,
-      lines: json.lines,
-    })
-    currentFileHandle.value = fileHandle
-    modified.value = false
-  }
-  const importFromFileHandle = (fileHandle: OpenFileHandle) => {
-    const imported = importLegacyData(fileHandle.content)
-    data.$patch({
-      monthLength: imported.monthLength,
-      shiftDivisor: imported.shiftDivisor,
-      stations: imported.stations,
-      lines: imported.lines,
-    })
-    currentFileHandle.value = createNewFileHandle(fileHandle.filename.replace(/\.simudia$/, ".simudiax"))
-    modified.value = true
   }
 
   const modified = ref(false)
@@ -295,9 +273,7 @@ export const useGuiStore = defineStore("gui", () => {
   return {
     modified,
     currentFileHandle,
-    setFileHandle,
-    loadFromFileHandle,
-    importFromFileHandle,
+    newFile,
     mode,
     inputtingTime,
     lineSelection,
