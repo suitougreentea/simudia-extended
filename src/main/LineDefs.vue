@@ -135,6 +135,10 @@ const lineSegments = computed(() => {
       const intermediateY = segment.y1 + (segment.y2 - segment.y1) * (monthLength - segment.t1) / (segment.t2 - segment.t1)
       pushSegment(array, { ...segment, t1: segment.t1, t2: monthLength, y2: intermediateY })
       pushSegment(array, { ...segment, t1: 0, t2: segment.t2 - monthLength, y1: intermediateY })
+    } else if (segment.t1 < 0) {
+      const intermediateY = segment.y1 + (segment.y2 - segment.y1) * (-segment.t1) / (segment.t2 - segment.t1)
+      pushSegment(array, { ...segment, t1: segment.t1 + monthLength, t2: monthLength, y2: intermediateY })
+      pushSegment(array, { ...segment, t1: 0, t2: segment.t2, y1: intermediateY })
     } else {
       array.push({
         x1: gui.x(segment.t1),
@@ -161,16 +165,16 @@ const lineSegments = computed(() => {
         const nextY = gui.accumulatedStationY[nextStationIndex]
         const currTime = time[j]
         const nextTime = time[(j+1) % length]
+        const currArrTime = currTime.departure - currTime.wait + offsetTime
         const currDepTime = currTime.departure + offsetTime
         const nextArrTime = nextTime.arrival + offsetTime
-        const nextDepTime = nextTime.arrival + nextTime.wait + offsetTime
+        pushSegment(sets[set], {
+          t1: currArrTime, y1: currY, t2: currDepTime, y2: currY,
+          haltIndex: j, type: 1, dashed: nextHalt.skip
+        })
         pushSegment(sets[set], {
           t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
           haltIndex: j, type: 0, dashed: currHalt.skip
-        })
-        pushSegment(sets[set], {
-          t1: nextArrTime, y1: nextY, t2: nextDepTime, y2: nextY,
-          haltIndex: (j+1)%length, type: 1, dashed: nextHalt.skip
         })
       }
     }
