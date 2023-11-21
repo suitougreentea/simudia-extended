@@ -1,4 +1,4 @@
-<template>  
+<template>
   <defs>
     <symbol id="lines">
       <polyline v-for="path in linePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
@@ -43,20 +43,72 @@ const gui = useGuiStore()
 const lineContextMenu = inject(lineContextMenuInjection)
 const lineSegmentContextMenu = inject(lineSegmentContextMenuInjection)
 
-const segmentToPaths = (segments) => {
-  const result = []
-  let current = []
+type Path = {
+  d: string
+  dashed: boolean
+}
+
+type LineSegmentInfo = {
+  visible: boolean
+  width: number
+  color: string
+  sets: LineSegment[][]
+}
+
+type RawLineSegment = {
+  t1: number
+  y1: number
+  t2: number
+  y2: number
+  haltIndex: number
+  type: number
+  dashed: boolean
+}
+
+type LineSegment = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  haltIndex: number
+  type: number
+  dashed: boolean
+}
+
+type DrawLineSegment = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  haltIndex: number
+  width: number
+  color: string
+  dashArray: string
+}
+
+type LinePath = {
+  lineIndex: number
+  setIndex: number
+  d: string
+  width: number
+  color: string
+  dashArray: string
+}
+
+const segmentToPaths = (segments: LineSegment[]): Path[] => {
+  const result: Path[] = []
+  let current: string[] = []
   let i = 0
   for (; i < segments.length; i++) {
     if (i >= 1 && (segments[i-1].x2 !== segments[i].x1 || segments[i-1].dashed !== segments[i].dashed)) {
       current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
-      result.push({ d: current, dashed: segments[i-1].dashed })
+      result.push({ d: current.join(","), dashed: segments[i-1].dashed })
       current = []
     }
     current.push(`${segments[i].x1},${segments[i].y1}`)
   }
   current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
-  result.push({ d: current, dashed: segments[i-1].dashed })
+  result.push({ d: current.join(","), dashed: segments[i-1].dashed })
   return result
 }
 
@@ -65,7 +117,7 @@ const lineSegments = computed(() => {
   const lines = store.lines
   const computedTimes = store.computedTimes
 
-  const pushSegment = (array, segment) => {
+  const pushSegment = (array: LineSegment[], segment: RawLineSegment) => {
     const monthLength = store.monthLength
     if (segment.t1 >= monthLength) {
       pushSegment(array, { ...segment, t1: segment.t1 - monthLength, t2: segment.t2 - monthLength })
@@ -85,7 +137,7 @@ const lineSegments = computed(() => {
 
   return lines.map((line, i) => {
     const time = computedTimes[i]
-    const sets = []
+    const sets: LineSegment[][] = []
     const length = line.halts.length
     for (let set = 0; set < line.divisor; set++) {
       sets[set] = []
@@ -112,13 +164,13 @@ const lineSegments = computed(() => {
         })
       }
     }
-    return { visible: line.visible, width: line.lineWidth, color: line.color, sets }
+    return { visible: line.visible, width: line.lineWidth, color: line.color, sets } as LineSegmentInfo
   })
 })
 
 const linePaths = computed(() => {
   const segments = lineSegments.value
-  const result = []
+  const result: LinePath[] = []
   segments.forEach((line, lineIndex) => {
     if (line.visible) {
       line.sets.forEach((set, setIndex) => {
@@ -155,10 +207,10 @@ const selectedSetPaths = computed(() => {
 
 const currentHaltSegments = computed(() => {
   const { selectedLine, selectedSet } = gui.lineSelection
-  if (selectedLine === -1 || selectedSet === -1) return [[], []]
+  if (selectedLine === -1 || selectedSet === -1) return [[], []] as [DrawLineSegment[], DrawLineSegment[]]
   const segments = lineSegments.value
   const line = segments[selectedLine]
-  const result = [[], []] // type
+  const result: [DrawLineSegment[], DrawLineSegment[]] = [[], []] // type
 
   line.sets[selectedSet].forEach(segment => {
     result[segment.type].push({ x1: segment.x1, x2: segment.x2, y1: segment.y1, y2: segment.y2, haltIndex: segment.haltIndex, width: line.width, color: line.color, dashArray: segment.dashed ? "5, 5" : "" })
