@@ -11,7 +11,9 @@
         <polyline class="selected-line" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <line v-for="seg in hoveredHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
+      <circle v-for="e in hoveredHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
       <line class="selected-line" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
+      <circle class="selected-line" v-for="e in selectedHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
     </symbol>
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
@@ -21,10 +23,11 @@
         <g v-for="path in selectedLinePaths">
           <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
-        <g v-for="(t, type) in currentHaltSegments">
-          <g v-for="seg in t">
-            <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSegment(seg.haltIndex, type)" @mouseleave="gui.unhoverSegment(seg.haltIndex, type)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, type)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, type)" style="pointer-events: visibleStroke"></line>
-          </g>
+        <g v-for="seg in currentHaltSegments[0]">
+          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="10" stroke-linecap="round" @mouseenter="gui.hoverSegment(seg.haltIndex, 0)" @mouseleave="gui.unhoverSegment(seg.haltIndex, 0)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, 0)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)" style="pointer-events: visibleStroke"></line>
+        </g>
+        <g v-for="seg in currentHaltSegments[1]">
+          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="15" stroke-linecap="round" @mouseenter="gui.hoverSegment(seg.haltIndex, 1)" @mouseleave="gui.unhoverSegment(seg.haltIndex, 1)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, 1)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)" style="pointer-events: visibleStroke"></line>
         </g>
       </g>
     </symbol>
@@ -84,6 +87,13 @@ type DrawLineSegment = {
   width: number
   color: string
   dashArray: string
+}
+
+type DrawPoint = {
+  x: number
+  y: number
+  r: number
+  color: string
 }
 
 type LinePath = {
@@ -228,6 +238,20 @@ const selectedHaltSegments = computed(() => {
   const current = currentHaltSegments.value
   if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
   return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
+})
+
+const hoveredHaltPoints = computed(() => {
+  const current = currentHaltSegments.value
+  if (current[0].length === 0 || gui.lineSelection.hoveredType !== 1) return []
+  return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
+    .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
+})
+
+const selectedHaltPoints = computed(() => {
+  const current = currentHaltSegments.value
+  if (current[0].length === 0 || gui.lineSelection.selectedType !== 1) return []
+  return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
+    .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
 })
 
 const contextLine = (ev: MouseEvent, lineIndex: number) => {
