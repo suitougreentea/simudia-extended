@@ -1,6 +1,4 @@
 <template>
-  <p>Stops at: {{ stationName }}</p>
-  <v-divider class="ma-3"></v-divider>
   <v-checkbox-btn label="Skip" v-model="currentHalt.skip"></v-checkbox-btn>
   <template v-if="!currentHalt.skip">
     <v-checkbox-btn label="Wait" v-model="currentHalt.wait"></v-checkbox-btn>

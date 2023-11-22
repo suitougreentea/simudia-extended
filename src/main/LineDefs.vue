@@ -150,7 +150,7 @@ const lineSegments = computed(() => {
   }
 
   return lines.map((line, i) => {
-    const time = computedTimes[i]
+    const { haltTimes } = computedTimes[i]
     const sets: LineSegment[][] = []
     const length = line.halts.length
     for (let set = 0; set < line.divisor; set++) {
@@ -163,8 +163,8 @@ const lineSegments = computed(() => {
         const nextStationIndex = store.findStationIndex(nextHalt.stationId)
         const currY = gui.accumulatedStationY[currStationIndex]
         const nextY = gui.accumulatedStationY[nextStationIndex]
-        const currTime = time[j]
-        const nextTime = time[(j+1) % length]
+        const currTime = haltTimes[j]
+        const nextTime = haltTimes[(j+1) % length]
         const currArrTime = currTime.departure - currTime.wait + offsetTime
         const currDepTime = currTime.departure + offsetTime
         const nextArrTime = nextTime.arrival + offsetTime

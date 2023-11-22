@@ -240,7 +240,7 @@ export const useGuiStore = defineStore("gui", () => {
     const nextHalt = halts[(haltIndex + 1)%halts.length]
     const stationIndex = data.findStationIndex(halt.stationId)
     const nextStationIndex = data.findStationIndex(nextHalt.stationId)
-    const time = (data.computedTimes[lineIndex][haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
+    const time = (data.computedTimes[lineIndex].haltTimes[haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
 
     lineInsertOrigin.value = {
       line: lineIndex,

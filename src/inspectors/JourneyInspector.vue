@@ -1,9 +1,4 @@
 <template>
-  <p>
-    <div>From: {{ stationName }}</div>
-    <div>To: {{ nextStationName }}</div>
-  </p>
-  <v-divider class="ma-3"></v-divider>
   <v-checkbox-btn label="Skip" v-model="currentHalt.skip"></v-checkbox-btn>
   <template v-if="!currentHalt.skip">
     <TimeInputControl label="Journey time" omit-hour v-model="currentHalt.time"></TimeInputControl>

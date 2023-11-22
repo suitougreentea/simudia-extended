@@ -33,10 +33,16 @@ export type LineHalt = {
   skip: boolean
 }
 
-type ComputedTimes = {
+type ComputedLineTime = {
+  haltTimes: ComputedHaltTime[]
+  setOffset: number
+}
+
+type ComputedHaltTime = {
   arrival: number,
   wait: number,
   departure: number,
+  journey: number,
   scheduled: boolean,
 }
 
@@ -116,7 +122,7 @@ export const useMainStore = defineStore("main", {
       const lines = state.lines
       return lines.map(line => {
         const halts = line.halts
-        const result: ComputedTimes[] = Array.from({ length: halts.length }, _ => { return { arrival: 0, wait: 0, departure: 0, scheduled: false } })
+        const haltTimes: ComputedHaltTime[] = Array.from({ length: halts.length }, _ => { return { arrival: 0, wait: 0, departure: 0, journey: 0, scheduled: false } })
         const length = halts.length
         let accum = 0
         let firstScheduledIndex = halts.findIndex(e => e.scheduled && !e.skip)
@@ -129,12 +135,13 @@ export const useMainStore = defineStore("main", {
           const i = (j + firstScheduledIndex) % length
           const halt = halts[i]
           const nextHalt = halts[(i+1) % length]
-          result[i].departure = accum
+          haltTimes[i].departure = accum
+          haltTimes[i].journey = halt.skip ? 0 : halt.time
           accum += halt.skip ? 0 : halt.time
-          result[(i+1) % length].arrival = accum
+          haltTimes[(i+1) % length].arrival = accum
           if (nextHalt.skip) {
-            result[(i + 1) % length].scheduled = false
-            result[(i + 1) % length].wait = 0
+            haltTimes[(i + 1) % length].scheduled = false
+            haltTimes[(i + 1) % length].wait = 0
           } else {
             const waitTime = nextHalt.wait ? nextHalt.waitTime : 0
             const loadingTime = nextHalt.overrideLoadingTime ? nextHalt.loadingTime : line.defaultLoadingTime
@@ -149,13 +156,19 @@ export const useMainStore = defineStore("main", {
             } else {
               resultingWait = wait
             }
-            result[(i + 1) % length].scheduled = nextHalt.scheduled || nextHalt.wait
-            result[(i + 1) % length].wait = resultingWait
+            haltTimes[(i + 1) % length].scheduled = nextHalt.scheduled || nextHalt.wait
+            haltTimes[(i + 1) % length].wait = resultingWait
             accum += resultingWait
           }
         }
 
-        return result
+        const firstHaltTime = haltTimes[0]
+        const setOffset = Math.round((firstHaltTime.arrival - (firstHaltTime.departure - firstHaltTime.wait)) / (state.monthLength / line.divisor))
+
+        return {
+          haltTimes,
+          setOffset,
+        } as ComputedLineTime
       })
     },
   },
