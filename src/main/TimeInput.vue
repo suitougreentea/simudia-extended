@@ -27,7 +27,7 @@ const timeInputPosition = computed(() => {
   const { time: firstTime, station: firstStation } = rubberbands.value[inputtingTimeIndex.value]
   const { time: secondTime, station: secondStation } = rubberbands.value[inputtingTimeIndex.value + 1]
   const x = gui.x((firstTime + secondTime) / 2) - 50
-  const y = (gui.accumulatedStationY[firstStation] + gui.accumulatedStationY[secondStation]) / 2 - 10
+  const y = (gui.y(gui.stations[firstStation].accumulatedTime) + gui.y(gui.stations[secondStation].accumulatedTime)) / 2 - 10
   return { x, y }
 })
 

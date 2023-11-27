@@ -39,12 +39,12 @@ const getNewRubberbands = (station, _time, skip) => {
   if (skip) return [{ station, time }]
   const result = []
   const {time: lastTime, station: lastStation} = rubberbands.value[rubberbands.value.length - 1]
-  const lastY = gui.accumulatedStationY[lastStation]
-  const thisY = gui.accumulatedStationY[station]
+  const lastY = gui.y(gui.stations[lastStation].accumulatedTime)
+  const thisY = gui.y(gui.stations[station].accumulatedTime)
   let j = lastStation
   do {
     j += (lastStation < station) ? 1 : -1
-    const y = gui.accumulatedStationY[j]
+    const y = gui.y(gui.stations[j].accumulatedTime)
     const t = lastTime + (time - lastTime) / (thisY - lastY) * (y - lastY)
     result.push({time: t, station: j})
   } while (j !== station)
@@ -58,7 +58,7 @@ const newRubberbands = computed(() => {
 const displayPath = computed(() => {
   return rubberbands.value.map((e, i) => {
     const x = gui.x(e.time)
-    const y = gui.accumulatedStationY[e.station]
+    const y = gui.y(gui.stations[e.station].accumulatedTime)
     if (i === 0) return `M ${x} ${y}`
     return `L ${x} ${y}`
   }).join(" ")
@@ -69,7 +69,7 @@ const displayPathNew = computed(() => {
   const appendedRubberbands = [rubberbands.value[rubberbands.value.length - 1], ...newRubberbands.value]
   return appendedRubberbands.map((e, i) => {
     const x = gui.x(e.time)
-    const y = gui.accumulatedStationY[e.station]
+    const y = gui.y(gui.stations[e.station].accumulatedTime)
     if (i === 0) return `M ${x} ${y}`
     return `L ${x} ${y}`
   }).join(" ")
@@ -78,7 +78,7 @@ const displayPathNew = computed(() => {
 const displayCircles = computed(() => {
   return rubberbands.value.map((e, i) => {
     const x = gui.x(e.time)
-    const y = gui.accumulatedStationY[e.station]
+    const y = gui.y(gui.stations[e.station].accumulatedTime)
     return { x, y }
   })
 })
@@ -86,7 +86,7 @@ const displayCircles = computed(() => {
 const displayCirclesNew = computed(() => {
   return newRubberbands.value.map((e, i) => {
     const x = gui.x(e.time)
-    const y = gui.accumulatedStationY[e.station]
+    const y = gui.y(gui.stations[e.station].accumulatedTime)
     return { x, y }
   })
 })

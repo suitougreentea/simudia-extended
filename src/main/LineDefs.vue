@@ -161,8 +161,8 @@ const lineSegments = computed(() => {
         const nextHalt = line.halts[(j+1) % length]
         const currStationIndex = store.findStationIndex(currHalt.stationId)
         const nextStationIndex = store.findStationIndex(nextHalt.stationId)
-        const currY = gui.accumulatedStationY[currStationIndex]
-        const nextY = gui.accumulatedStationY[nextStationIndex]
+        const currY = gui.y(gui.stations[currStationIndex].accumulatedTime)
+        const nextY = gui.y(gui.stations[nextStationIndex].accumulatedTime)
         const currTime = haltTimes[j]
         const nextTime = haltTimes[(j+1) % length]
         const currArrTime = currTime.departure - currTime.wait + offsetTime

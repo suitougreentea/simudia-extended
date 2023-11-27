@@ -7,6 +7,11 @@ import { NewFileHandle, OpenFileHandle, createNewFileHandle } from "../file-api"
 const MARGIN = 20
 const HEADER_HEIGHT = 20
 
+const applyZoomX = (input: number, zoom: number) => input / (7200 * Math.pow(2, -zoom / 2))
+const applyZoomXInverse = (input: number, zoom: number) => input * (7200 * Math.pow(2, -zoom / 2))
+const applyZoomY = (input: number, zoom: number) => input / (3600 * Math.pow(2, -zoom / 2))
+const applyZoomYInverse = (input: number, zoom: number) => input * (3600 * Math.pow(2, -zoom / 2))
+
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
   const message = useGuiMessageStore()
@@ -57,12 +62,11 @@ export const useGuiStore = defineStore("gui", () => {
 
   const layout = computed(() => {
     const monthLength = data.monthLength
-    const width = MARGIN + stationsWidth.value + monthLength / (7200 * Math.pow(2, -zoom.value.horizontal / 2)) + MARGIN
+    const width = MARGIN + stationsWidth.value + applyZoomX(monthLength, zoom.value.horizontal) + MARGIN
 
-    const ys = accumulatedStationY.value
     let height
-    if (ys.length === 0) height = 60
-    else height = ys[ys.length - 1] + MARGIN
+    if (stations.value.length === 0) height = MARGIN + HEADER_HEIGHT + MARGIN
+    else height = MARGIN + HEADER_HEIGHT + applyZoomY(stations.value[stations.value.length - 1].accumulatedTime, zoom.value.vertical) + MARGIN
 
     return {
       top: MARGIN,
@@ -76,16 +80,38 @@ export const useGuiStore = defineStore("gui", () => {
     }
   })
 
-  const stations = computed(() => { return data.stations })
+  const hiddenStationIds = ref<number[]>([])
+  const stations = computed(() => {
+    const visibleStations = data.stations.filter(e => hiddenStationIds.value.indexOf(e.id) == -1)
 
-  const accumulatedStationY = computed(() => { return data.accumulatedStationTimes.map(e => (MARGIN + 20 + e / (3600 * Math.pow(2, -zoom.value.vertical / 2)))) })
+    const result: { id: number, name: string, accumulatedTime: number }[] = []
+    let accum = MARGIN + 20
+    for (let i = 0; i < data.stations.length; i++) {
+      const from = data.stations[i]
+      const to = data.stations[(i + 1) % data.stations.length]
+
+      result.push({ id: from.id, name: from.name, accumulatedTime: accum })
+
+      const times = data.timeList
+        .filter(e => (e.fromStationId == from.id && e.toStationId == to.id) || (e.toStationId == from.id && e.fromStationId == to.id))
+        .map(e => e.time)
+
+      const slowestTime = (times.length > 0) ? Math.max(...times) : 20 * 3600
+      accum += slowestTime
+    }
+    return result
+  })
 
   const x = (tick) => {
-    return layout.value.left + layout.value.stationsWidth + tick / (7200 * Math.pow(2, -zoom.value.horizontal / 2))
+    return layout.value.left + layout.value.stationsWidth + applyZoomX(tick, zoom.value.horizontal)
   }
 
   const xi = (x) => {
-    return (x - layout.value.left - layout.value.stationsWidth) * (7200 * Math.pow(2, -zoom.value.horizontal / 2))
+    return applyZoomXInverse(x - layout.value.left - layout.value.stationsWidth, zoom.value.horizontal)
+  }
+
+  const y = (tick) => {
+    return layout.value.top + layout.value.headerHeight + applyZoomY(tick, zoom.value.vertical)
   }
 
   const resetInput = () => {
@@ -284,10 +310,11 @@ export const useGuiStore = defineStore("gui", () => {
     zoom,
     stationsWidth,
     layout,
+    hiddenStationIds,
     stations,
-    accumulatedStationY,
     x,
     xi,
+    y,
     resetInput,
     hoverLine,
     unhoverLine,

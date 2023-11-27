@@ -17,7 +17,7 @@
       <use xlink:href="#lines-hover"></use>
     </svg>
     <div style="position: absolute; top: 0; left: 0;">
-      <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.accumulatedStationY[i] - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
+      <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
       <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
       <div class="station-name" style="opacity: 0" ref="stationForMeasure"></div>
       <TimeInput ref="timeInput"></TimeInput>

@@ -80,36 +80,25 @@ const getEmptyLineHalt = (defaultLoadingTime: number): LineHalt => {
 export const useMainStore = defineStore("main", {
   state: () => getEmptyState(),
   getters: {
-    accumulatedStationTimes(state) {
-      const stations = state.stations
+    timeList(state) {
+      const result: { fromStationId: number, toStationId: number, lineIndex: number, haltIndex: number, time: number }[] = []
+
       const lines = state.lines
-      const length = stations.length
-      const result: number[] = []
-      let time = 0
-      for (let i = 0; i < length; i++) {
-        const curr = stations[i]
-        result.push(time)
-        if (i === length - 1) continue
-        const next = stations[(i+1) % length]
-        const id1 = curr.id
-        const id2 = next.id
-        const found: number[] = []
-        lines.forEach(line => {
-          const halts = line.halts
-          const haltsLength = halts.length
-          for (let j = 0; j < haltsLength; j++) {
-            const currHalt = halts[j]
-            const nextHalt = halts[(j+1) % haltsLength]
-            if ((id1 === currHalt.stationId && id2 === nextHalt.stationId) ||
-                (id1 === nextHalt.stationId && id2 === currHalt.stationId)) {
-              found.push(currHalt.time)
-            }
-          }
-        })
-        // const averageTime = (found.length > 0) ? found.reduce((a, b) => a + b) / found.length : 20 * 3600
-        const slowestTime = (found.length > 0) ? Math.max(...found) : 20 * 3600
-        time += slowestTime
-      }
+      lines.forEach((line, lineIndex) => {
+        for (let i = 0; i < line.halts.length; i++) {
+          if (line.halts[i].skip) continue
+          const from = line.halts[i]
+          const to = line.halts[(i + 1) % line.halts.length]
+
+          result.push({
+            fromStationId: from.stationId,
+            toStationId: to.stationId,
+            lineIndex,
+            haltIndex: i,
+            time: from.time,
+          })
+        }
+      })
       return result
     },
     findStationIndex(state) {
