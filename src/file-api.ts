@@ -107,11 +107,10 @@ export class FileSystemApiFileHandler implements FileHandler {
 
   async open(options: { type: FileType | null }): Promise<OpenFileHandle | null> {
     try {
-      const accept: { [key: string]: string } = {}
+      const accept: { [key: `${string}/${string}`]: `.${string}` } = {}
       if (options.type == null || options.type == "standard") accept["application/json"] = ".simudiax"
       if (options.type == null || options.type == "legacy") accept["text/plain"] = ".simudia"
       const fileHandles = await window.showOpenFilePicker({ types: [{ accept }] })
-      if (fileHandles.length == 0) return null
       const fileHandle: FileSystemFileHandle = fileHandles[0]
       const handle = new FileSystemApiOpenFileHandle(fileHandle)
       return handle
@@ -138,7 +137,7 @@ export class FileSystemApiFileHandler implements FileHandler {
   }
 
   async onFileDrop(item: DataTransferItem): Promise<OpenFileHandle> {
-    const fileHandle: FileSystemFileHandle = await item.getAsFileSystemHandle()
+    const fileHandle: FileSystemFileHandle = await (item as any).getAsFileSystemHandle() // TODO: type definition
     const handle = new FileSystemApiOpenFileHandle(fileHandle)
     return handle
   }
