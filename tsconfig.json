@@ -4,7 +4,8 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     "types": [
-        "@types/wicg-file-system-access"
+        "@types/wicg-file-system-access",
+        "./src/vite-define"
     ]
   }
 }

@@ -12,10 +12,8 @@
             <v-list-item @click="saveFile">Save</v-list-item>
             <v-list-item @click="saveFileAs">Save As...</v-list-item>
             <v-list-item @click="importLegacyFile">Import SimuDia data...</v-list-item>
-            <!--
             <v-divider></v-divider>
-            <v-list-item @click="">About</v-list-item>
-            -->
+            <v-list-item @click="showAboutDialog">About</v-list-item>
           </v-list>
         </v-menu>
       </v-list>
@@ -54,13 +52,13 @@
 
     <SaveChangesDialog ref="saveChangesDialog"></SaveChangesDialog>
     <FileOpenInfoDialog ref="fileOpenInfoDialog"></FileOpenInfoDialog>
+    <AboutDialog ref="aboutDialog"></AboutDialog>
   </v-app>
 </template>
 
 <script setup lang="ts">
 import { type StyleValue, computed, ref, watch, provide } from "vue"
 import { useMainStore } from "../stores/main"
-import { VERSION } from "../version"
 import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle } from "../file-api"
 import { deserialize, serialize } from "../serialization"
 import Workspace from "./Workspace.vue"
@@ -72,6 +70,7 @@ import LineContextMenu from "../context-menus/LineContextMenu.vue"
 import LineSegmentContextMenu from "../context-menus/LineSegmentContextMenu.vue"
 import SaveChangesDialog from "../dialogs/SaveChangesDialog.vue"
 import FileOpenInfoDialog from "../dialogs/FileOpenInfoDialog.vue"
+import AboutDialog from "../dialogs/AboutDialog.vue"
 import { stationContextMenuInjection, lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
 
 const store = useMainStore()
@@ -99,9 +98,10 @@ provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
 
 const saveChangesDialog = ref<InstanceType<typeof SaveChangesDialog>>(null)
 const fileOpenInfoDialog = ref<InstanceType<typeof FileOpenInfoDialog>>(null)
+const aboutDialog = ref<InstanceType<typeof AboutDialog>>(null)
 
 const title = computed(() => {
-  return (gui.modified ? "*" : "") + gui.currentFileHandle.getFilename() + " - SimuDia-Extended " + VERSION
+  return (gui.modified ? "*" : "") + gui.currentFileHandle.getFilename() + " - SimuDia-Extended " + (__VERSION__ ?? "")
 })
 
 const zoomInHorizontal = () => { gui.zoom.horizontal++ }
@@ -262,6 +262,10 @@ const drop = async (e: DragEvent): Promise<boolean> => {
   if (!await checkModifiedAndSaveFile()) return false
 
   return await openFileInternal(fileHandle, null)
+}
+
+const showAboutDialog = () => {
+  aboutDialog.value.open()
 }
 
 const beforeUnload = (e) => {

@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import checker from 'vite-plugin-checker'
 import { VitePWA } from 'vite-plugin-pwa'
+import packageJson from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,7 +14,7 @@ export default defineConfig({
     checker({ vueTsc: true }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon-512.png'],
       manifest: {
         name: "SimuDia-Extended",
         short_name: "SimuDiaEx",
@@ -45,5 +46,9 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  define: {
+    "__VERSION__": `"${packageJson.version}"`,
+    "__BUILD_DATE__": JSON.stringify(new Date())
   }
 })
