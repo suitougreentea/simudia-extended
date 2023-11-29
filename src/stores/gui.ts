@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
-import { NewFileHandle, OpenFileHandle, createNewFileHandle } from "../file-api"
+import { type NewFileHandle, type OpenFileHandle, createNewFileHandle } from "../file-api"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20

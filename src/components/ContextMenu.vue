@@ -9,8 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import { StyleValue, computed, nextTick, ref } from 'vue';
-import { useGuiMessageStore } from '../stores/gui-message';
+import { type StyleValue, computed, nextTick, ref } from "vue"
+import { useGuiMessageStore } from "../stores/gui-message"
 
 const message = useGuiMessageStore()
 

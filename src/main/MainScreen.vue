@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { StyleValue, computed, ref, watch, provide } from "vue"
+import { type StyleValue, computed, ref, watch, provide } from "vue"
 import { useMainStore } from "../stores/main"
 import { VERSION } from "../version"
 import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle } from "../file-api"

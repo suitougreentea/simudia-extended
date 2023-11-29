@@ -1,5 +1,5 @@
 import { importLegacyData } from "./legacy-importer"
-import { State } from "./stores/main"
+import { type State } from "./stores/main"
 
 export type Time = number
 
