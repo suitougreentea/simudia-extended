@@ -40,10 +40,6 @@ export const useGuiStore = defineStore("gui", () => {
     selectedHalt: -1,
     selectedType: -1
   })
-  const stationSelection = ref({
-    hovered: -1,
-    selected: -1
-  })
   const hoveredTime = ref(-1)
   const modifierStates = ref({
     control: false,
@@ -140,7 +136,7 @@ export const useGuiStore = defineStore("gui", () => {
 
   const clickLine = (index) => {
     resetInput() // needed by Sidebar
-    unselectStation()
+    unselectStations()
     lineSelection.value.selectedLine = index
     lineSelection.value.selectedSet = -1
     lineSelection.value.selectedHalt = -1
@@ -166,7 +162,7 @@ export const useGuiStore = defineStore("gui", () => {
   }
 
   const clickSet = (index) => {
-    unselectStation()
+    unselectStations()
     lineSelection.value.selectedSet = index
     lineSelection.value.selectedHalt = -1
     lineSelection.value.selectedType = -1
@@ -190,7 +186,7 @@ export const useGuiStore = defineStore("gui", () => {
   }
 
   const clickSegment = (haltIndex, type) => {
-    unselectStation()
+    unselectStations()
     lineSelection.value.selectedHalt = haltIndex
     lineSelection.value.selectedType = type
     lineSelection.value.hoveredHalt = haltIndex
@@ -210,49 +206,9 @@ export const useGuiStore = defineStore("gui", () => {
     }
   }
 
-  const unselectStation = () => {
-    stationSelection.value = {
-      hovered: -1,
-      selected: -1
-    }
-  }
-
   const unselectAll = () => {
     unselectLine()
-    unselectStation()
-  }
-
-  const insertStationAboveSelected = (stationIndex) => {
-    data.addStation({
-      pos: stationIndex,
-      name: "New station",
-    })
-    stationSelection.value.selected = stationIndex
-  }
-
-  const insertStationBelowSelected = (stationIndex) => {
-    data.addStation({
-      pos: stationIndex + 1,
-      name: "New station",
-    })
-    stationSelection.value.selected = stationIndex + 1
-  }
-
-  const deleteSelectedStation = (stationIndex) => {
-    const prevSelectedLine = data.lines[lineSelection.value.selectedLine]
-    data.deleteStation({
-      pos: stationIndex,
-    })
-    if (stationSelection.value.selected == stationIndex) {
-      stationSelection.value.selected = -1
-    }
-    const selectedLine = data.lines[lineSelection.value.selectedLine]
-    if (prevSelectedLine !== selectedLine) {
-      lineSelection.value.selectedLine = -1
-      lineSelection.value.selectedSet = -1
-      lineSelection.value.selectedHalt = -1
-      lineSelection.value.selectedType = -1
-    }
+    unselectStations()
   }
 
   const insertHaltToSelectedLine = (haltIndex) => {
@@ -296,6 +252,110 @@ export const useGuiStore = defineStore("gui", () => {
     data.deleteLine(index)
   }
 
+  // station selections
+
+  const hoveredStationIds = ref<number[]>([])
+  const selectedStationIds = ref<number[]>([])
+
+  const resolvedHoveredStations = computed(() => hoveredStationIds.value
+    .map(id => stations.value.find(station => station.id == id))
+    .filter(station => station != null))
+  const resolvedSelectedStations = computed(() => selectedStationIds.value
+    .map(id => stations.value.find(station => station.id == id))
+    .filter(station => station != null))
+  const isSingleStationHovered = computed(() => hoveredStationIds.value.length == 1)
+  const isSingleStationSelected = computed(() => selectedStationIds.value.length == 1)
+
+  const hoverStation = (id: number) => {
+    hoveredStationIds.value = [id]
+  }
+
+  const unhoverStation = (id: number) => {
+    if (hoveredStationIds.value.length == 1 && hoveredStationIds.value[0] == id) {
+      hoveredStationIds.value = []
+    }
+  }
+
+  const selectStation = (id: number) => {
+    selectedStationIds.value = [id]
+  }
+
+  const unselectStations = () => {
+    selectedStationIds.value = []
+  }
+
+  const toggleAppendStationSelection = (id: number) => {
+    if (selectedStationIds.value.findIndex(e => e == id) >= 0) {
+      selectedStationIds.value = selectedStationIds.value.filter(e => e != id)
+    } else {
+      selectedStationIds.value.push(id)
+    }
+  }
+
+  const selectStationRelativeTo = (id: number, relativeTo: number) => {
+    const stationIndex = stations.value.findIndex(e => e.id == id)
+    if (stationIndex == -1) return
+    selectedStationIds.value = [stations.value[(stationIndex + relativeTo + stations.value.length) % stations.value.length].id]
+  }
+
+  const insertStationRelativeTo = (id: number, relativeTo: number) => {
+    const stationIndex = stations.value.findIndex(e => e.id == id)
+    if (stationIndex == -1) return
+    data.addStation({
+      pos: stationIndex + relativeTo,
+      name: "New station",
+    })
+    selectedStationIds.value = [stations.value[stationIndex + relativeTo].id]
+  }
+
+  const deleteStations = (ids: number[]) => {
+    unselectLine()
+    ids.forEach(id => {
+      const stationIndex = stations.value.findIndex(e => e.id == id)
+      if (stationIndex == -1) return
+      data.deleteStation({
+        pos: stationIndex,
+      })
+    })
+  }
+
+  // journey times
+
+  const getJourneyTimesAmong = (stationIds: number[]) => {
+    if (stationIds.length < 2) return []
+    stationIds = [...stationIds]
+    stationIds.sort((a, b) => data.findStationIndex(a) - data.findStationIndex(b))
+    const result: { lineIndex: number, haltIndex: number, fromId: number, toId: number, time: number }[] = []
+
+    for (let i = 0; i < stationIds.length; i++) {
+      for (let j = i + 1; j < stationIds.length; j++) {
+        const a = stationIds[i]
+        const b = stationIds[j]
+
+        ;[[a, b], [b, a]].map(([from, to]) => {
+          data.lines.forEach((line, lineIndex) => {
+            for (let k = 0; k < line.halts.length; k++) {
+              const fromHalt = line.halts[k]
+              const toHalt = line.halts[(k + 1) % line.halts.length]
+              if (fromHalt.skip) continue
+              if (fromHalt.stationId == from && toHalt.stationId == to) {
+                result.push({
+                  lineIndex,
+                  haltIndex: k,
+                  fromId: from,
+                  toId: to,
+                  time: fromHalt.time,
+                })
+              }
+            }
+          })
+        })
+      }
+    }
+
+    return result
+  }
+
   return {
     modified,
     currentFileHandle,
@@ -303,7 +363,6 @@ export const useGuiStore = defineStore("gui", () => {
     mode,
     inputtingTime,
     lineSelection,
-    stationSelection,
     hoveredTime,
     modifierStates,
     lineInsertOrigin,
@@ -326,14 +385,29 @@ export const useGuiStore = defineStore("gui", () => {
     unhoverSegment,
     clickSegment,
     unselectLine,
-    unselectStation,
     unselectAll,
-    insertStationAboveSelected,
-    insertStationBelowSelected,
-    deleteSelectedStation,
     insertHaltToSelectedLine,
     deleteHaltFromSelectedLine,
     copySelectedLine,
     deleteSelectedLine,
+
+    // station selections
+    hoveredStationIds,
+    selectedStationIds,
+    resolvedHoveredStations,
+    resolvedSelectedStations,
+    isSingleStationHovered,
+    isSingleStationSelected,
+    hoverStation,
+    unhoverStation,
+    selectStation,
+    unselectStations,
+    toggleAppendStationSelection,
+    selectStationRelativeTo,
+    insertStationRelativeTo,
+    deleteStations,
+
+    // journey times
+    getJourneyTimesAmong,
   }
 })

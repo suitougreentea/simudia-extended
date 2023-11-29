@@ -1,4 +1,16 @@
 <template>
+  <div v-if="selectedStations.length > 1" v-for="selectedStation in selectedStations" class="text-body-2 row">
+    <v-spacer></v-spacer>
+    <div>{{ selectedStation }}</div>
+    <v-spacer></v-spacer>
+  </div>
+  <div v-if="selectedStations.length == 1" class="text-body-2 row">
+    <v-icon icon="mdi-chevron-left" @click="selectStation(-1)"></v-icon>
+    <v-spacer></v-spacer>
+    <div>{{ selectedStations[0] }}</div>
+    <v-spacer></v-spacer>
+    <v-icon icon="mdi-chevron-right" @click="selectStation(1)"></v-icon>
+  </div>
   <div v-if="selectedLine != null" class="text-body-2 row">
     <v-spacer></v-spacer>
     <div>{{ selectedLine }}</div>
@@ -18,7 +30,7 @@
     <v-spacer></v-spacer>
     <v-icon icon="mdi-chevron-right" @click="selectHalt(1)"></v-icon>
   </div>
-  <v-divider v-if="selectedLine != null" class="ma-3"></v-divider>
+  <v-divider v-if="selectedStations.length > 0 || selectedLine != null" class="ma-3"></v-divider>
 </template>
 
 <script setup lang="ts">
@@ -28,6 +40,8 @@ import { useGuiStore } from "../stores/gui"
 
 const data = useMainStore()
 const gui = useGuiStore()
+
+const selectedStations = computed(() => gui.resolvedSelectedStations.map(e => e.name))
 
 const selectedLine = computed(() => {
   if (gui.lineSelection.selectedLine == -1) return null
@@ -60,6 +74,12 @@ const selectedHalt = computed(() => {
   }
   return null
 })
+
+const selectStation = (delta: number) => {
+  if (gui.isSingleStationSelected) {
+    gui.selectStationRelativeTo(gui.resolvedSelectedStations[0].id, delta)
+  }
+}
 
 const selectSet = (delta: number) => {
   const line = data.lines[gui.lineSelection.selectedLine]

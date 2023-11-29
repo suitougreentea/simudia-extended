@@ -2,8 +2,8 @@
   <div style="height: 100%">
     <v-container id="sidebar-above">
       <Navigator></Navigator>
-      <GlobalInspector v-if="gui.stationSelection.selected == -1 && gui.lineSelection.selectedLine == -1"></GlobalInspector>
-      <StationInspector v-if="gui.stationSelection.selected >= 0"></StationInspector>
+      <GlobalInspector v-if="gui.resolvedSelectedStations.length == 0 && gui.lineSelection.selectedLine == -1"></GlobalInspector>
+      <StationInspector v-if="gui.resolvedSelectedStations.length > 0"></StationInspector>
       <LineInspector v-if="gui.lineSelection.selectedLine >= 0 && gui.lineSelection.selectedSet == -1"></LineInspector>
       <JourneyInspector v-if="gui.lineSelection.selectedHalt >= 0 && gui.lineSelection.selectedType == 0"></JourneyInspector>
       <HaltInspector v-if="gui.lineSelection.selectedHalt >= 0 && gui.lineSelection.selectedType == 1"></HaltInspector>

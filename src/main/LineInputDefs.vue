@@ -3,7 +3,7 @@
     <symbol id="line-input">
       <path :d="displayPath" fill="none" stroke="black"></path>
       <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
-      <g v-if="gui.stationSelection.hovered >= 0 && gui.hoveredTime >= 0">
+      <g v-if="gui.isSingleStationHovered && gui.hoveredTime >= 0">
         <path :d="displayPathNew" fill="none" stroke="grey"></path>
         <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
       </g>
@@ -52,7 +52,9 @@ const getNewRubberbands = (station, _time, skip) => {
 }
 
 const newRubberbands = computed(() => {
-  return getNewRubberbands(gui.stationSelection.hovered, gui.hoveredTime, !gui.modifierStates.shift)
+  if (gui.resolvedHoveredStations.length != 1) return
+  const stationIndex = gui.stations.findIndex(e => e.id == gui.resolvedHoveredStations[0].id)
+  return getNewRubberbands(stationIndex, gui.hoveredTime, !gui.modifierStates.shift)
 })
 
 const displayPath = computed(() => {
