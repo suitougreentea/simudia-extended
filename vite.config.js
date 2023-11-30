@@ -15,6 +15,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon-512.png'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html}', '**/materialdesignicons-webfont-*'],
+        ignoreURLParametersMatching: [/^v$/],
+      },
       manifest: {
         name: "SimuDia-Extended",
         short_name: "SimuDiaEx",
