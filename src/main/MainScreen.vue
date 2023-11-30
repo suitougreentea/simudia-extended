@@ -46,6 +46,14 @@
       <Sidebar ref="sideBar"></Sidebar>
     </v-navigation-drawer>
 
+    <v-snackbar v-model="updateNotification" timeout="-1">
+      A new version of SimuDia-Extended is available!
+      <template v-slot:actions>
+        <v-btn @click="updateVersion">Update</v-btn>
+        <v-btn @click="updateNotification = false">Close</v-btn>
+      </template>
+    </v-snackbar>
+
     <StationContextMenu ref="stationContextMenu"></StationContextMenu>
     <LineContextMenu ref="lineContextMenu"></LineContextMenu>
     <LineSegmentContextMenu ref="lineSegmentContextMenu"></LineSegmentContextMenu>
@@ -72,6 +80,7 @@ import SaveChangesDialog from "../dialogs/SaveChangesDialog.vue"
 import FileOpenInfoDialog from "../dialogs/FileOpenInfoDialog.vue"
 import AboutDialog from "../dialogs/AboutDialog.vue"
 import { stationContextMenuInjection, lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
+import { registerSW } from "virtual:pwa-register"
 
 const store = useMainStore()
 const gui = useGuiStore()
@@ -309,6 +318,28 @@ window.addEventListener("keyup", event => {
   if (event.key === "Control") gui.modifierStates.control = false
 })
 window.addEventListener("beforeunload", e => beforeUnload(e))
+
+const updateAvailable = ref(false)
+const updateNotification = ref(false)
+watch(updateAvailable, () => {
+  if (updateAvailable) updateNotification.value = true
+})
+const updateVersion = () => {
+  console.log("Updating version")
+  updateSW()
+}
+const updateSW = registerSW({
+  onNeedRefresh: async () => {
+    console.log("Service Worker needs to refresh")
+    updateAvailable.value = true
+  },
+  onRegisteredSW: () => {
+    console.log("Service Worker registered")
+  },
+  onOfflineReady: () => {
+    console.log("Service Worker is now offline ready")
+  },
+})
 </script>
 
 <style scoped>

@@ -5,6 +5,7 @@
     "strictNullChecks": false,
     "types": [
         "@types/wicg-file-system-access",
+        "vite-plugin-pwa/client",
         "./src/vite-define"
     ]
   }
