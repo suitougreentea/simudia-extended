@@ -17,8 +17,9 @@
       <use xlink:href="#lines-hover"></use>
     </svg>
     <div style="position: absolute; top: 0; left: 0;">
+      <div class="station-name station-name-placeholder" v-if="stationPlaceholderVisible" :style="{ top: newStationY + 'px', left: gui.layout.left + 'px'}">{{ stationPlaceholderText }}</div>
       <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
-      <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: '20px' }" @focus="newStationFocus" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" @blur="newStationBlur" ref="newStation"></div>
+      <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }" @focus="newStationFocus" @blur="newStationBlur" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" ref="newStation"></div>
       <div class="station-name" style="opacity: 0" ref="stationForMeasure"></div>
       <TimeInput ref="timeInput"></TimeInput>
     </div>
@@ -62,6 +63,11 @@ const newStationY = computed(() => {
   }
 })
 
+const stationPlaceholderVisible = ref(true)
+const stationPlaceholderText = computed(() => {
+  return store.stations.length > 0 ? "Add station" : "Begin here"
+})
+
 const verticalGrids = computed(() => {
   const result = []
   const monthLength = store.monthLength
@@ -102,7 +108,19 @@ const newStationFocus = () => {
   gui.resetInput()
   const element = newStation.value
   element.innerText = ""
+  stationPlaceholderVisible.value = false
 }
+
+const newStationBlur = () => {
+  const element = newStation.value
+  const text = element.innerText.trim()
+  if (text !== "") {
+    store.addStation({ name: text })
+    element.innerText = ""
+  }
+  stationPlaceholderVisible.value = true
+}
+
 
 const newStationKeyProceed = () => {
   const element = newStation.value
@@ -119,15 +137,6 @@ const newStationKeyCancel = () => {
   const element = newStation.value
   element.innerText = ""
   element.blur()
-}
-
-const newStationBlur = () => {
-  const element = newStation.value
-  const text = element.innerText.trim()
-  if (text !== "") {
-    store.addStation({ name: text })
-    element.innerText = ""
-  }
 }
 
 const modifyStationKeyProceed = (i) => {
@@ -195,5 +204,8 @@ defineExpose({
   position: absolute;
   white-space: nowrap;
   font-size: 14px;
+}
+.station-name-placeholder {
+  color: gray;
 }
 </style>
