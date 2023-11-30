@@ -27,7 +27,26 @@ app.use(createVuetify({
             hideDetails: "auto",
             density: "compact",
         },
-    }
+    },
+    theme: {
+        defaultTheme: "customTheme",
+        themes: {
+            customTheme: {
+                dark: false,
+                colors: {
+                    background: "#ffffff",
+                    surface: "#ffffff",
+                    primary: "#4c8030",
+                    secondary: "#8bc34a",
+                    accent: "#cddc39",
+                    error: "#ff5722",
+                    warning: "#ffc107",
+                    info: "#03a9f4",
+                    success: "#009688",
+                },
+            }
+        },
+    },
 }))
 
 app.mount('#app')

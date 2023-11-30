@@ -19,7 +19,7 @@ export default defineConfig({
         name: "SimuDia-Extended",
         short_name: "SimuDiaEx",
         description: "An interactive editor for planning timetables used in Simutrans-Extended",
-        theme_color: "#6200ee",
+        theme_color: "#4c8030",
         icons: [
           {
             src: "pwa-icon-192.png",
