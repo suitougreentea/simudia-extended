@@ -1,6 +1,6 @@
 <template>  
   <v-app @dragover="dragover" @drop="drop">
-    <v-navigation-drawer permanent rail color="primary">
+    <v-navigation-drawer permanent touchless rail color="primary">
       <v-list density="compact" nav>
         <v-menu>
           <template v-slot:activator="{ props }">
@@ -39,10 +39,15 @@
             <v-btn color="grey-lighten-4" icon="mdi-minus" style="height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
           </v-btn-group>
         </div>
+        <div :style="toggleSidebarStyle">
+          <v-btn-group density="comfortable" class="ma-2">
+            <v-btn color="grey-lighten-4" :icon="showSidebar ? 'mdi-arrow-collapse-right' : 'mdi-arrow-expand-left'" @click.prevent.stop="toggleSidebar"></v-btn>
+          </v-btn-group>
+        </div>
       </div>
     </v-main>
 
-    <v-navigation-drawer permanent location="right" :width="sidebarWidth">
+    <v-navigation-drawer permanent v-model="showSidebar" location="right" :width="sidebarWidth">
       <Sidebar ref="sideBar"></Sidebar>
     </v-navigation-drawer>
 
@@ -89,13 +94,18 @@ const message = useGuiMessageStore()
 const workspace = ref<InstanceType<typeof Workspace>>(null)
 const horizontalZoomStyle = computed(() => ({
   position: "absolute",
-  right: `${(workspace.value?.scrollBarSize?.width ?? 0) + 48}px`,
+  right: `${(workspace.value?.scrollBarSize?.width ?? 0) + 44}px`,
   bottom: `${(workspace.value?.scrollBarSize?.height ?? 0)}px`,
 }) satisfies StyleValue)
 const verticalZoomStyle = computed(() => ({
   position: "absolute",
   right: `${(workspace.value?.scrollBarSize?.width ?? 0)}px`,
   bottom: `${(workspace.value?.scrollBarSize?.height ?? 0) + 48}px`,
+}) satisfies StyleValue)
+const toggleSidebarStyle = computed(() => ({
+  position: "absolute",
+  right: `${(workspace.value?.scrollBarSize?.width ?? 0)}px`,
+  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0)}px`,
 }) satisfies StyleValue)
 
 const stationContextMenu = ref<InstanceType<typeof StationContextMenu>>(null)
@@ -117,6 +127,11 @@ const zoomInHorizontal = () => { gui.zoom.horizontal++ }
 const zoomOutHorizontal = () => { gui.zoom.horizontal-- }
 const zoomInVertical = () => { gui.zoom.vertical++ }
 const zoomOutVertical = () => { gui.zoom.vertical-- }
+
+const showSidebar = ref(true)
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value
+}
 
 const toggleInputMode = () => {
   if (gui.mode === "input") {
