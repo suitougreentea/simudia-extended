@@ -34,9 +34,9 @@
           </v-btn-group>
         </div>
         <div :style="verticalZoomStyle">
-          <v-btn-group density="comfortable" class="ma-2" style="writing-mode: vertical-lr; height: 80px;">
-            <v-btn color="grey-lighten-4" icon="mdi-plus" style="height: 50%;" @click.prevent.stop="zoomInVertical"></v-btn>
-            <v-btn color="grey-lighten-4" icon="mdi-minus" style="height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
+          <v-btn-group density="comfortable" class="ma-2" style="flex-direction: column; height: 80px;">
+            <v-btn color="grey-lighten-4" icon="mdi-plus" style="border-end-start-radius: revert; height: 50%;" @click.prevent.stop="zoomInVertical"></v-btn>
+            <v-btn color="grey-lighten-4" icon="mdi-minus" style="border-start-end-radius: revert; height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
           </v-btn-group>
         </div>
         <div :style="toggleSidebarStyle">
