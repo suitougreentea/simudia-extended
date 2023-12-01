@@ -13,20 +13,20 @@
   </div>
   <div v-if="selectedLine != null" class="text-body-2 row">
     <v-spacer></v-spacer>
-    <div>{{ selectedLine }}</div>
+    <div class="clickable" @click="selectLineAbsolute(selectedLine.index)">{{ selectedLine.name }}</div>
     <v-spacer></v-spacer>
   </div>
   <div v-if="selectedSet != null" class="text-body-2 row">
     <v-icon icon="mdi-chevron-left" @click="selectSet(-1)"></v-icon>
     <v-spacer></v-spacer>
-    <div>{{ selectedSet }}</div>
+    <div class="clickable" @click="selectSetAbsolute(selectedSet.index)">{{ selectedSet.name }}</div>
     <v-spacer></v-spacer>
     <v-icon icon="mdi-chevron-right" @click="selectSet(1)"></v-icon>
   </div>
   <div v-if="selectedHalt != null" class="text-body-2 row">
     <v-icon icon="mdi-chevron-left" @click="selectHalt(-1)"></v-icon>
     <v-spacer></v-spacer>
-    <div>{{ selectedHalt }}</div>
+    <div>{{ selectedHalt.name }}</div>
     <v-spacer></v-spacer>
     <v-icon icon="mdi-chevron-right" @click="selectHalt(1)"></v-icon>
   </div>
@@ -46,13 +46,19 @@ const selectedStations = computed(() => gui.resolvedSelectedStations.map(e => e.
 const selectedLine = computed(() => {
   if (gui.lineSelection.selectedLine == -1) return null
   const line = data.lines[gui.lineSelection.selectedLine]
-  return line.name
+  return {
+    index: gui.lineSelection.selectedLine,
+    name: line.name,
+  }
 })
 
 const selectedSet = computed(() => {
   if (gui.lineSelection.selectedLine == -1) return null
   if (gui.lineSelection.selectedSet == -1) return null
-  return `Set ${gui.lineSelection.selectedSet + 1}`
+  return {
+    index: gui.lineSelection.selectedSet,
+    name: `Set ${gui.lineSelection.selectedSet + 1}`,
+  }
 })
 
 const selectedHalt = computed(() => {
@@ -65,12 +71,19 @@ const selectedHalt = computed(() => {
     const nextHalt = halts[(gui.lineSelection.selectedHalt + 1) % halts.length]
     const currentStationName = data.stations[data.findStationIndex(currentHalt.stationId)].name
     const nextStationName = data.stations[data.findStationIndex(nextHalt.stationId)].name
-    return `${currentStationName} → ${nextStationName}`
+    return {
+      fromIndex: gui.lineSelection.selectedHalt,
+      toIndex: (gui.lineSelection.selectedHalt + 1) % halts.length,
+      name: `${currentStationName} → ${nextStationName}`
+    }
   }
   if (gui.lineSelection.selectedType == 1) {
     const halt = data.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt]
     const stationName = data.stations[data.findStationIndex(halt.stationId)].name
-    return stationName
+    return {
+      index: gui.lineSelection.selectedHalt, 
+      name: stationName,
+    }
   }
   return null
 })
@@ -81,9 +94,22 @@ const selectStation = (delta: number) => {
   }
 }
 
+const selectLineAbsolute = (index: number) => {
+  gui.lineSelection.selectedLine = index
+  gui.lineSelection.selectedSet = -1
+  gui.lineSelection.selectedHalt = -1
+  gui.lineSelection.selectedType = -1
+}
+
 const selectSet = (delta: number) => {
   const line = data.lines[gui.lineSelection.selectedLine]
   gui.lineSelection.selectedSet = (gui.lineSelection.selectedSet + delta + line.divisor) % line.divisor
+}
+
+const selectSetAbsolute = (index: number) => {
+  gui.lineSelection.selectedSet = index
+  gui.lineSelection.selectedHalt = -1
+  gui.lineSelection.selectedType = -1
 }
 
 const selectHalt = (delta: number) => {
@@ -119,5 +145,9 @@ const selectHalt = (delta: number) => {
 .row {
   display: flex;
   align-items: flex-end;
+}
+
+.clickable {
+  cursor: pointer;
 }
 </style>
