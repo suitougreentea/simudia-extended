@@ -30,6 +30,7 @@ export const useGuiStore = defineStore("gui", () => {
 
   const mode = ref("edit")
   const inputtingTime = ref(false)
+  // TODO: refactor incomplete
   const lineSelection = ref({
     hoveredLine: -1,
     hoveredSet: -1,
@@ -166,17 +167,20 @@ export const useGuiStore = defineStore("gui", () => {
     lineSelection.value.selectedSet = index
     lineSelection.value.selectedHalt = -1
     lineSelection.value.selectedType = -1
-    lineSelection.value.hoveredSet = index
+    lineSelection.value.hoveredLine = -1
+    lineSelection.value.hoveredSet = -1
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
   }
 
-  const hoverSegment = (haltIndex, type) => {
+  const hoverSegment = (lineIndex: number, setIndex: number, haltIndex: number, type: number) => {
+    lineSelection.value.hoveredLine = lineIndex
+    lineSelection.value.hoveredSet = setIndex
     lineSelection.value.hoveredHalt = haltIndex
     lineSelection.value.hoveredType = type
   }
 
-  const unhoverSegment = (haltIndex, type) => {
+  const unhoverSegment = (lineIndex: number, setIndex: number, haltIndex: number, type: number) => {
     if (lineSelection.value.hoveredHalt === haltIndex && lineSelection.value.hoveredType === type) {
       lineSelection.value.hoveredLine = -1
       lineSelection.value.hoveredSet = -1
@@ -185,10 +189,14 @@ export const useGuiStore = defineStore("gui", () => {
     }
   }
 
-  const clickSegment = (haltIndex, type) => {
+  const clickSegment = (lineIndex: number, setIndex: number, haltIndex: number, type: number) => {
     unselectStations()
+    lineSelection.value.selectedLine = lineIndex
+    lineSelection.value.selectedSet = setIndex
     lineSelection.value.selectedHalt = haltIndex
     lineSelection.value.selectedType = type
+    lineSelection.value.hoveredLine = lineIndex
+    lineSelection.value.hoveredSet = setIndex
     lineSelection.value.hoveredHalt = haltIndex
     lineSelection.value.hoveredType = type
   }

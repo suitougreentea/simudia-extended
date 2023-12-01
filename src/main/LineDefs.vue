@@ -24,10 +24,12 @@
           <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="seg in currentHaltSegments[0]">
-          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="10" stroke-linecap="round" @mouseenter="gui.hoverSegment(seg.haltIndex, 0)" @mouseleave="gui.unhoverSegment(seg.haltIndex, 0)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, 0)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)" style="pointer-events: visibleStroke"></line>
+          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="10" stroke-linecap="round"
+            @mouseenter="hoverSegment(seg.haltIndex, 0)" @mouseleave="unhoverSegment(seg.haltIndex, 0)" @click.prevent.stop="clickSegment(seg.haltIndex, 0)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)" style="pointer-events: visibleStroke"></line>
         </g>
         <g v-for="seg in currentHaltSegments[1]">
-          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="15" stroke-linecap="round" @mouseenter="gui.hoverSegment(seg.haltIndex, 1)" @mouseleave="gui.unhoverSegment(seg.haltIndex, 1)" @click.prevent.stop="gui.clickSegment(seg.haltIndex, 1)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)" style="pointer-events: visibleStroke"></line>
+          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="15" stroke-linecap="round"
+            @mouseenter="hoverSegment(seg.haltIndex, 1)" @mouseleave="unhoverSegment(seg.haltIndex, 1)" @click.prevent.stop="clickSegment(seg.haltIndex, 1)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)" style="pointer-events: visibleStroke"></line>
         </g>
       </g>
     </symbol>
@@ -261,6 +263,18 @@ const selectedHaltPoints = computed(() => {
 const contextLine = (ev: MouseEvent, lineIndex: number) => {
   gui.resetInput() // needed by Sidebar
   lineContextMenu.value.open(ev, lineIndex)
+}
+
+const hoverSegment = (segmentIndex: number, type: number) => {
+  gui.hoverSegment(gui.lineSelection.selectedLine, gui.lineSelection.selectedSet, segmentIndex, type)
+}
+
+const unhoverSegment = (segmentIndex: number, type: number) => {
+  gui.unhoverSegment(gui.lineSelection.selectedLine, gui.lineSelection.selectedSet, segmentIndex, type)
+}
+
+const clickSegment = (segmentIndex: number, type: number) => {
+  gui.clickSegment(gui.lineSelection.selectedLine, gui.lineSelection.selectedSet, segmentIndex, type)
 }
 
 const contextSegment = (ev: MouseEvent, segmentIndex: number, type: number) => {
