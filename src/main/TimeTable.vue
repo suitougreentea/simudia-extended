@@ -1,7 +1,7 @@
 <template>
   <div class="grid">
-    <div v-if="data.times.length > 0" class="solid-border span-row"></div>
-    <template v-for="(e, i) in data.times">
+    <div v-if="times.length > 0" class="solid-border span-row"></div>
+    <template v-for="(e, i) in times">
       <!-- row 1 -->
       <div class="station"
         @mouseenter="hoverHalt(e.haltIndex, 1)" @mouseleave="unhoverHalt(e.haltIndex, 1)" @click.prevent.stop="clickHalt(e.haltIndex, 1)">
@@ -9,7 +9,7 @@
         <div v-if="e.scheduled" class="scheduled">Scheduled: {{ e.scheduledValue }}</div>
       </div>
       <div class="journey-time">
-        <div class="journey-time-body" v-if="i != data.times.length - 1"
+        <div class="journey-time-body" v-if="i != times.length - 1"
           @mouseenter="hoverHalt(e.haltIndex, 0)" @mouseleave="unhoverHalt(e.haltIndex, 0)" @click.prevent.stop="clickHalt(e.haltIndex, 0)">
           {{ TimeUtil.joinString(e.timeToNextStation, true) }}
         </div>
@@ -20,7 +20,7 @@
           <div class="no-border"></div>
           <div class="departure-time">{{ TimeUtil.joinString(e.departureTime, false) }}</div>
         </template>
-        <template v-else-if="i == data.times.length">
+        <template v-else-if="i == times.length - 1">
           <div class="arrival-time">{{ TimeUtil.joinString(e.arrivalTime, false) }}</div>
           <div class="no-border"></div>
           <div class="departure-time"></div>
@@ -37,37 +37,77 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
+import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
 import * as TimeUtil from "../time-util"
 
-export type Data = {
+const store = useMainStore()
+const gui = useGuiStore()
+
+const {
+  lineIndex,
+  setIndex, 
+} = defineProps<{
   lineIndex: number
   setIndex: number
-  times: {
-    haltIndex: number,
+}>()
+
+const times = computed(() => {
+  if (lineIndex == -1 || setIndex == -1) return []
+
+  const result: {
+    haltIndex: number
     stationName: string
     scheduled: boolean
     scheduledValue: number
     arrivalTime: number
     departureTime: number
     timeToNextStation: number
-  }[]
-}
+  }[] = []
 
-const gui = useGuiStore()
+  const monthLength = store.monthLength
+  const shiftDivisor = store.shiftDivisor
+  const line = store.lines[lineIndex]
+  const halts = line.halts
+  const haltTimes = store.computedTimes[lineIndex].haltTimes
+  const offsetTime = setIndex * (store.monthLength / line.divisor)
 
-const { data } = defineProps<{
-  data: Data
-}>()
+  for (let i = 0; i < halts.length; i++) {
+    const halt = halts[i]
+    if (halt.skip) continue
+    const station = store.findStation(halt.stationId)
+    const stationName = station.name
+    const scheduledValue = Math.round((haltTimes[i].departure % monthLength) / monthLength * shiftDivisor)
+    const arrivalTime = (haltTimes[i].arrival + offsetTime) % monthLength
+    const departureTime = (haltTimes[i].departure + offsetTime) % monthLength
+    const timeToNextStation = haltTimes[i].journey
+    const scheduled = haltTimes[i].scheduled
+    result.push({
+      haltIndex: i,
+      stationName,
+      scheduled,
+      scheduledValue,
+      arrivalTime,
+      departureTime,
+      timeToNextStation,
+    })
+  }
+  if (result.length > 0) {
+    result.push({ ...result[0] })
+  }
+
+  return result
+})
 
 const hoverHalt = (haltIndex: number, type: number) => {
-  gui.hoverSegment(data.lineIndex, data.setIndex, haltIndex, type)
+  gui.hoverSegment(lineIndex, setIndex, haltIndex, type)
 }
 const unhoverHalt = (haltIndex: number, type: number) => {
-  gui.unhoverSegment(data.lineIndex, data.setIndex, haltIndex, type)
+  gui.unhoverSegment(lineIndex, setIndex, haltIndex, type)
 }
 const clickHalt = (haltIndex: number, type: number) => {
-  gui.clickSegment(data.lineIndex, data.setIndex, haltIndex, type)
+  gui.clickSegment(lineIndex, setIndex, haltIndex, type)
 }
 </script>
 

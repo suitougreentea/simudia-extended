@@ -1,33 +1,39 @@
 <template>
   <defs>
     <symbol id="lines">
-      <polyline v-for="path in linePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
-      <polyline v-for="path in hoveredLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
-      <g v-if="gui.lineSelection.selectedSet == -1">
-        <polyline class="selected-line" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      <polyline v-for="path in allLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+
+      <g v-if="gui.lineSelection.hoveredSet == -1">
+        <polyline v-for="path in hoveredLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
       </g>
-      <polyline v-for="path in hoveredSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
-      <g v-if="gui.lineSelection.selectedHalt == -1">
-        <polyline class="selected-line" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      <g v-if="gui.lineSelection.hoveredHalt == -1">
+        <polyline v-for="path in hoveredSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width + 1" :stroke-dasharray="path.dashArray"></polyline>
       </g>
       <line v-for="seg in hoveredHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
       <circle v-for="e in hoveredHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
+
+      <g v-if="gui.lineSelection.selectedSet == -1">
+        <polyline class="selected-line" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      </g>
+      <g v-if="gui.lineSelection.selectedHalt == -1">
+        <polyline class="selected-line" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+      </g>
       <line class="selected-line" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
       <circle class="selected-line" v-for="e in selectedHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
     </symbol>
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
-        <g v-for="path in linePaths">
+        <g v-for="path in allLinePaths">
           <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverLine(path.lineIndex)" @mouseleave="gui.unhoverLine(path.lineIndex)" @click.prevent.stop="gui.clickLine(path.lineIndex)" @contextmenu.prevent.stop="contextLine($event, path.lineIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
         <g v-for="path in selectedLinePaths">
           <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
         </g>
-        <g v-for="seg in currentHaltSegments[0]">
+        <g v-for="seg in allHaltSegmentsInSelectedHalt[0]">
           <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="10" stroke-linecap="round"
             @mouseenter="hoverSegment(seg.haltIndex, 0)" @mouseleave="unhoverSegment(seg.haltIndex, 0)" @click.prevent.stop="clickSegment(seg.haltIndex, 0)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)" style="pointer-events: visibleStroke"></line>
         </g>
-        <g v-for="seg in currentHaltSegments[1]">
+        <g v-for="seg in allHaltSegmentsInSelectedHalt[1]">
           <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="15" stroke-linecap="round"
             @mouseenter="hoverSegment(seg.haltIndex, 1)" @mouseleave="unhoverSegment(seg.haltIndex, 1)" @click.prevent.stop="clickSegment(seg.haltIndex, 1)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)" style="pointer-events: visibleStroke"></line>
         </g>
@@ -184,7 +190,7 @@ const lineSegments = computed(() => {
   })
 })
 
-const linePaths = computed(() => {
+const allLinePaths = computed(() => {
   const segments = lineSegments.value
   const result: LinePath[] = []
   segments.forEach((line, lineIndex) => {
@@ -199,29 +205,29 @@ const linePaths = computed(() => {
 
 const hoveredLinePaths = computed(() => {
   if (gui.lineSelection.hoveredLine === -1) return []
-  return linePaths.value.filter(path => path.lineIndex === gui.lineSelection.hoveredLine)
+  return allLinePaths.value.filter(path => path.lineIndex === gui.lineSelection.hoveredLine)
 })
 
 const selectedLinePaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1) return []
-  return linePaths.value.filter(path => path.lineIndex === gui.lineSelection.selectedLine)
+  return allLinePaths.value.filter(path => path.lineIndex === gui.lineSelection.selectedLine)
 })
 
 const hoveredSetPaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.hoveredSet === -1) return []
-  return linePaths.value.filter(path =>
+  return allLinePaths.value.filter(path =>
     path.lineIndex === gui.lineSelection.selectedLine &&
     path.setIndex === gui.lineSelection.hoveredSet)
 })
 
 const selectedSetPaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.selectedSet === -1) return []
-  return linePaths.value.filter(path =>
+  return allLinePaths.value.filter(path =>
     path.lineIndex === gui.lineSelection.selectedLine &&
     path.setIndex === gui.lineSelection.selectedSet)
 })
 
-const currentHaltSegments = computed(() => {
+const allHaltSegmentsInSelectedHalt = computed(() => {
   const { selectedLine, selectedSet } = gui.lineSelection
   if (selectedLine === -1 || selectedSet === -1) return [[], []] as [DrawLineSegment[], DrawLineSegment[]]
   const segments = lineSegments.value
@@ -234,27 +240,40 @@ const currentHaltSegments = computed(() => {
   return result
 })
 
+const allHaltSegmentsInHoveredHalt = computed(() => {
+  const { hoveredLine, hoveredSet } = gui.lineSelection
+  if (hoveredLine === -1 || hoveredSet === -1) return [[], []] as [DrawLineSegment[], DrawLineSegment[]]
+  const segments = lineSegments.value
+  const line = segments[hoveredLine]
+  const result: [DrawLineSegment[], DrawLineSegment[]] = [[], []] // type
+
+  line.sets[hoveredSet].forEach(segment => {
+    result[segment.type].push({ x1: segment.x1, x2: segment.x2, y1: segment.y1, y2: segment.y2, haltIndex: segment.haltIndex, width: line.width, color: line.color, dashArray: segment.dashed ? "5, 5" : "" })
+  })
+  return result
+})
+
 const hoveredHaltSegments = computed(() => {
-  const current = currentHaltSegments.value
+  const current = allHaltSegmentsInHoveredHalt.value
   if (current[0].length === 0 || gui.lineSelection.hoveredType === -1) return []
   return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
 })
 
 const selectedHaltSegments = computed(() => {
-  const current = currentHaltSegments.value
+  const current = allHaltSegmentsInSelectedHalt.value
   if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
   return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
 })
 
 const hoveredHaltPoints = computed(() => {
-  const current = currentHaltSegments.value
+  const current = allHaltSegmentsInHoveredHalt.value
   if (current[0].length === 0 || gui.lineSelection.hoveredType !== 1) return []
   return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
     .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
 })
 
 const selectedHaltPoints = computed(() => {
-  const current = currentHaltSegments.value
+  const current = allHaltSegmentsInSelectedHalt.value
   if (current[0].length === 0 || gui.lineSelection.selectedType !== 1) return []
   return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
     .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]

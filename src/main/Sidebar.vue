@@ -11,6 +11,7 @@
     <v-container id="sidebar-below">
       <LineList v-if="gui.lineSelection.selectedLine == -1"></LineList>
       <LineInfo v-if="gui.lineSelection.selectedLine >= 0 && gui.lineSelection.selectedSet == -1"></LineInfo>
+      <SetInfo v-if="gui.lineSelection.selectedLine >= 0 && gui.lineSelection.selectedSet >= 0 && gui.lineSelection.selectedHalt == -1"></SetInfo>
     </v-container>
   </div>
 </template>
@@ -25,6 +26,7 @@ import JourneyInspector from "../inspectors/JourneyInspector.vue"
 import HaltInspector from "../inspectors/HaltInspector.vue"
 import LineList from "./LineList.vue"
 import LineInfo from "./LineInfo.vue"
+import SetInfo from "./SetInfo.vue"
 
 const gui = useGuiStore()
 </script>

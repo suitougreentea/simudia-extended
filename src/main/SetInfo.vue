@@ -1,5 +1,5 @@
 <template>
-  <TimeTable :line-index="gui.lineSelection.selectedLine" :set-index="0"></TimeTable>
+  <TimeTable :line-index="gui.lineSelection.selectedLine" :set-index="gui.lineSelection.selectedSet"></TimeTable>
 </template>
 
 <script setup lang="ts">
