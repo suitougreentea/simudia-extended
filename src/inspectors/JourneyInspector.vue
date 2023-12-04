@@ -1,7 +1,7 @@
 <template>
   <v-checkbox-btn label="Skip" v-model="currentHalt.skip"></v-checkbox-btn>
   <template v-if="!currentHalt.skip">
-    <TimeInputControl label="Journey time" omit-hour v-model="currentHalt.time"></TimeInputControl>
+    <TimeInputControl label="Journey time" omit-hour v-model="currentHalt.time" :hints="hints"></TimeInputControl>
   </template>
 </template>
 
@@ -20,16 +20,8 @@ const nextHalt = computed(() => {
   return halts[(gui.lineSelection.selectedHalt+1) % halts.length]
 })
 
-const stationName = computed(() => {
-  return store.stations[store.findStationIndex(currentHalt.value.stationId)].name
-})
-const nextStationName = computed(() => {
-  return store.stations[store.findStationIndex(nextHalt.value.stationId)].name
-})
+const hints = gui.getTimeHintsBetween(currentHalt.value.stationId, nextHalt.value.stationId)
 
-const changeHalt = (key, value) => {
-  store.modifyLineHalt({ lineIndex: gui.lineSelection.selectedLine, haltIndex: gui.lineSelection.selectedHalt, key, value })
-}
 </script>
 
 <style scoped>

@@ -1,16 +1,37 @@
 <template>  
-  <v-text-field type="text" v-model="model" :rules="[rule]" @change="onChange"></v-text-field>
+  <v-text-field type="text" v-model="model" :rules="[rule]" @change="onChange" @update:focused="onFocusChanged" ref="textField">
+    <v-tooltip v-if="hints != null && hints.length > 0" v-model="focused" activator="parent" :open-on-focus="false" :open-on-hover="false" location="bottom">
+      <v-list density="compact" style="pointer-events: initial;">
+        <v-list-item v-for="e in hints" @click.prevent.stop="setFromHint(e.time)">
+          <div class="hint-container">
+            <div class="hint-time">{{ TimeUtil.joinString(e.time) }}</div>
+            <div class="hint-spacer"></div>
+            <div class="hint-source">{{ e.source }}</div>
+          </div>
+        </v-list-item>
+      </v-list>
+    </v-tooltip>
+  </v-text-field>
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs, watch } from "vue";
+import { ref, toRefs, watch } from "vue"
 import * as TimeUtil from "../time-util"
+
+export type Hint = {
+  time: number,
+  source: string,
+}
+
 const props = withDefaults(defineProps<{
   modelValue: number,
   omitHour?: boolean,
+  hints?: Hint[],
 }>(), {
   omitHour: false,
 })
+
+const textField = ref(null)
 
 const emit = defineEmits<{
   "update:modelValue": [newValue: number],
@@ -42,11 +63,35 @@ const onChange = () => {
     update(props.modelValue)
   }
 }
+
+const focused = ref(false)
+const onFocusChanged = (newFocused) => {
+  focused.value = newFocused
+}
+
+const setFromHint = (time: number) => {
+  emit("update:modelValue", time)
+  update(time)
+}
 </script>
 
 <style scoped>
-input.error {
-  box-shadow: 0px 0px 2px 1px red;
+.hint-container {
+  display: flex;
+  align-items: baseline;
+}
+
+.hint-time {
+}
+
+.hint-spacer {
+  flex-grow: 1;
+  min-width: 12px;
+}
+
+.hint-source {
+  font-size: 85%;
+  opacity: 0.7;
 }
 </style>
 

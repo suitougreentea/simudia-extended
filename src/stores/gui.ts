@@ -364,6 +364,21 @@ export const useGuiStore = defineStore("gui", () => {
     return result
   }
 
+  const getTimeHintsBetween = (stationId0: number, stationId1: number) => {
+    const journeyTimes = getJourneyTimesAmong([stationId0, stationId1])
+    return journeyTimes.map(e => {
+      const line = data.lines[e.lineIndex]
+      const fromStation = data.findStation(e.fromId)
+      const toStation = data.findStation(e.toId)
+      const time = e.time
+      const source = `${line.name} - ${fromStation.name} → ${toStation.name}`
+      return {
+        time,
+        source,
+      }
+    })
+  }
+
   return {
     modified,
     currentFileHandle,
@@ -417,5 +432,6 @@ export const useGuiStore = defineStore("gui", () => {
 
     // journey times
     getJourneyTimesAmong,
+    getTimeHintsBetween,
   }
 })
