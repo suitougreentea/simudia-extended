@@ -20,7 +20,7 @@ const nextHalt = computed(() => {
   return halts[(gui.lineSelection.selectedHalt+1) % halts.length]
 })
 
-const hints = gui.getTimeHintsBetween(currentHalt.value.stationId, nextHalt.value.stationId)
+const hints = computed(() => gui.getTimeHintsBetween(currentHalt.value.stationId, nextHalt.value.stationId))
 
 </script>
 
