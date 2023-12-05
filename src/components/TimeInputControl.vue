@@ -1,7 +1,7 @@
 <template>  
   <v-text-field type="text" v-model="model" :rules="[rule]" @change="onChange" @update:focused="onFocusChanged" ref="textField">
     <v-tooltip v-if="hints != null && hints.length > 0" v-model="focused" activator="parent" :open-on-focus="false" :open-on-hover="false" location="bottom">
-      <v-list density="compact" style="pointer-events: initial;">
+      <v-list density="compact" style="pointer-events: initial;" bg-color="transparent">
         <v-list-item v-for="e in hints" @click.prevent.stop="setFromHint(e.time)">
           <div class="hint-container">
             <div class="hint-time">{{ TimeUtil.joinString(e.time) }}</div>
@@ -35,6 +35,7 @@ const textField = ref(null)
 
 const emit = defineEmits<{
   "update:modelValue": [newValue: number],
+  "selectedFromHints": [newValue: number],
 }>()
 
 const model = ref("")
@@ -72,6 +73,7 @@ const onFocusChanged = (newFocused) => {
 const setFromHint = (time: number) => {
   emit("update:modelValue", time)
   update(time)
+  emit("selectedFromHints", time)
 }
 </script>
 

@@ -24,7 +24,7 @@ app.use(createVuetify({
             density: "compact",
         },
         VTextField: {
-            hideDetails: "auto",
+            hideDetails: true,
             density: "compact",
         },
     },

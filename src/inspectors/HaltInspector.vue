@@ -8,7 +8,7 @@
     <TimeInputControl label="Loading time" omit-hour :disabled="!currentHalt.overrideLoadingTime" v-model="currentHalt.loadingTime"></TimeInputControl>
     <v-checkbox-btn label="Schedule departure" v-model="currentHalt.scheduled"></v-checkbox-btn>
     <TimeInputControl label="Departure time" :disabled="!currentHalt.scheduled" v-model="currentHalt.departureTime"
-      :hint="'Shift: ' + departureTimeShift(currentHalt.departureTime)" persistent-hint></TimeInputControl>
+      :hint="'Shift: ' + departureTimeShift(currentHalt.departureTime)" persistent-hint :hide-details="false"></TimeInputControl>
   </template>
   <v-divider class="ma-3"></v-divider>
   <v-btn @click="gui.insertHaltToSelectedLine(gui.lineSelection.selectedHalt)">Insert halt</v-btn>

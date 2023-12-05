@@ -1,63 +1,80 @@
 <template>  
-  <div class="time-input-container" v-if="inputtingTimeIndex >= 0" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
-    <div contenteditable :class="{ error: errorTime }" ref="timeInput" @keydown.enter.prevent="putTime" @input="inputTime"></div>
+  <div class="time-input-container" v-if="inputtingTimeIndex >= 0 && !temporaryHidden" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
+    <TimeInputControl omit-hour v-model="inputValue" :hints="hints" ref="timeInput"
+      @keydown.enter="onEnterKeyDown" @selected-from-hints="onSelectedFromHints"></TimeInputControl>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
 import { useMainStore } from "../stores/main"
-import { useGuiStore } from "../stores/gui";
-import { useGuiMessageStore } from "../stores/gui-message";
-import * as TimeUtil from "../time-util"
+import { useGuiStore } from "../stores/gui"
+import { useGuiMessageStore } from "../stores/gui-message"
+import TimeInputControl, { type Hint } from "../components/TimeInputControl.vue"
 
 const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
 const timeInput = ref(null)
+const inputValue = ref(0)
+const hints = ref<Hint[]>([])
 
-const rubberbands = ref([])
+const rubberbands = ref<{ time: number, station: number }[]>([])
 const inputtingTimeIndex = ref(-1)
-const errorTime = ref(false)
 const inputtingTimes = ref([])
+
+const temporaryHidden = ref(false)
 
 const timeInputPosition = computed(() => {
   if (inputtingTimeIndex.value > rubberbands.value.length - 2) return { x: 0, y: 0 }
   const { time: firstTime, station: firstStation } = rubberbands.value[inputtingTimeIndex.value]
   const { time: secondTime, station: secondStation } = rubberbands.value[inputtingTimeIndex.value + 1]
   const x = gui.x((firstTime + secondTime) / 2) - 50
-  const y = (gui.y(gui.stations[firstStation].accumulatedTime) + gui.y(gui.stations[secondStation].accumulatedTime)) / 2 - 10
+  const y = (gui.y(gui.stations[firstStation].accumulatedTime) + gui.y(gui.stations[secondStation].accumulatedTime)) / 2 - 20
   return { x, y }
 })
 
-const start = (inRubberbands) => {
+const start = async (inRubberbands: { time: number, station: number }[]) => {
   rubberbands.value = inRubberbands
-  inputtingTimeIndex.value = 0
-  nextTick(() => {
-    const element = timeInput
-    element.value.innerText = TimeUtil.joinStringSimple(rubberbands.value[inputtingTimeIndex.value + 1].time - rubberbands.value[inputtingTimeIndex.value].time)
-    element.value.focus()
-    document.execCommand("selectAll", false)
-  })
+  startInput(0)
 }
 
-const inputTime = () => {
-  const element = timeInput
-  const text = element.value.innerText.trim()
-  errorTime.value = !TimeUtil.isValidTimeInput(text)
+const startInput = async (index: number) => {
+  inputtingTimeIndex.value = index
+  const currentRubberband = rubberbands.value[inputtingTimeIndex.value]
+  const nextRubberband = rubberbands.value[inputtingTimeIndex.value + 1]
+  hints.value = [
+    { time: nextRubberband.time - currentRubberband.time, source: "Inferred from line" },
+    ...gui.getTimeHintsBetween(
+      gui.stations[currentRubberband.station].id,
+      gui.stations[nextRubberband.station].id)
+  ]
+  await nextTick()
+  inputValue.value = nextRubberband.time - currentRubberband.time
+  timeInput.value.$el.querySelector("input").focus()
+  await nextTick()
+  timeInput.value.$el.querySelector("input").select()
 }
 
-const putTime = () => {
-  const element = timeInput
-  const text = element.value.innerText.trim()
-  if (!TimeUtil.isValidTimeInput(text)) return
-  inputtingTimes.value.push(TimeUtil.parse(text))
+const onEnterKeyDown = async () => {
+  // TODO: hacky way to wait inputValue update
+  await nextTick()
+  await new Promise(r => setTimeout(r, 0))
+  putCurrentTime(inputValue.value)
+}
+
+const onSelectedFromHints = async (time: number) => {
+  putCurrentTime(time)
+}
+
+const putCurrentTime = async (time: number) => {
+  inputtingTimes.value.push(time)
   if (inputtingTimeIndex.value < rubberbands.value.length - 2) {
-    inputtingTimeIndex.value++
-    element.value.innerText = TimeUtil.joinStringSimple(rubberbands.value[inputtingTimeIndex.value + 1].time - rubberbands.value[inputtingTimeIndex.value].time)
-    element.value.focus()
-    document.execCommand("selectAll", false)
+    temporaryHidden.value = true
+    await nextTick()
+    temporaryHidden.value = false
+    startInput(inputtingTimeIndex.value + 1)
   } else {
     if (gui.lineInsertOrigin.line !== -1) {
       store.insertHalts({
@@ -94,15 +111,10 @@ defineExpose({
 
 <style scoped>
 .time-input-container {
-  min-width: 100px;
-  line-height: 20px;
   position: absolute;
-  white-space: nowrap;
+  width: 100px;
   background-color: rgba(255, 255, 255, 0.7);
   box-shadow: 0px 0px 2px 1px black;
-
-  .error {
-    box-shadow: 0px 0px 2px 1px red;
-  }
+  border-radius: 4px;
 }
 </style>
