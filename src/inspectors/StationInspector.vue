@@ -13,7 +13,7 @@
         <span class="journey-direction">{{ e.direction }}</span>
         <span>{{ e.haltNames }}</span>
       </div>
-      <TimeInputControl class="mb-3" label="Journey time" omit-hour :model-value="e.time" @update:model-value="changeJourneyTime(e.lineIndex, e.haltIndex, $event)"></TimeInputControl>
+      <TimeInputControl class="mb-3" label="Journey time" omit-hour :model-value="e.time" @update:model-value="changeJourneyTime(e.lineIndex, e.haltIndex, $event)" :hints="e.hints"></TimeInputControl>
     </template>
     <v-divider class="ma-3"></v-divider>
   </template>
@@ -41,6 +41,7 @@ const times = computed(() => gui.getJourneyTimesAmong(gui.selectedStationIds).ma
   const direction = fromIndex < toIndex ? "↓" : fromIndex > toIndex ? "↑" : ""
   const fromName = data.findStation(e.fromId).name
   const toName = data.findStation(e.toId).name
+  const hints = gui.getTimeHintsBetween(e.fromId, e.toId)
   return {
     lineName,
     lineColor,
@@ -49,6 +50,7 @@ const times = computed(() => gui.getJourneyTimesAmong(gui.selectedStationIds).ma
     time: e.time,
     lineIndex: e.lineIndex,
     haltIndex: e.haltIndex,
+    hints,
   }
 }))
 
