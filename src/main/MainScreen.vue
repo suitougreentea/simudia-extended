@@ -28,19 +28,19 @@
       <div style="position: absolute; left: var(--v-layout-left); right: var(--v-layout-right); top: var(--v-layout-top); bottom: var(--v-layout-bottom);">
         <Workspace style="position: absolute; width: 100%; height: 100%;" ref="workspace"></Workspace>
         <div :style="horizontalZoomStyle">
-          <v-btn-group density="comfortable" class="ma-2">
+          <v-btn-group density="comfortable" class="ma-2" elevation="4">
             <v-btn color="grey-lighten-4" icon="mdi-plus" @click.prevent.stop="zoomInHorizontal"></v-btn>
             <v-btn color="grey-lighten-4" icon="mdi-minus" @click.prevent.stop="zoomOutHorizontal"></v-btn>
           </v-btn-group>
         </div>
         <div :style="verticalZoomStyle">
-          <v-btn-group density="comfortable" class="ma-2" style="flex-direction: column; height: 80px;">
+          <v-btn-group density="comfortable" class="ma-2" style="flex-direction: column; height: 80px;" elevation="4">
             <v-btn color="grey-lighten-4" icon="mdi-plus" style="border-end-start-radius: revert; height: 50%;" @click.prevent.stop="zoomInVertical"></v-btn>
             <v-btn color="grey-lighten-4" icon="mdi-minus" style="border-start-end-radius: revert; height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
           </v-btn-group>
         </div>
         <div :style="toggleSidebarStyle">
-          <v-btn-group density="comfortable" class="ma-2">
+          <v-btn-group density="comfortable" class="ma-2" elevation="4">
             <v-btn color="grey-lighten-4" :icon="showSidebar ? 'mdi-arrow-collapse-right' : 'mdi-arrow-expand-left'" @click.prevent.stop="toggleSidebar"></v-btn>
           </v-btn-group>
         </div>
