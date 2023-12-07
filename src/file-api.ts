@@ -27,6 +27,33 @@ export const createNewFileHandle = (name?: string): NewFileHandle => ({
   getFilename: () => name ?? "New File.simudiax",
 })
 
+export const createUrlFileHandle = (url: string): OpenFileHandle => new UrlOpenFileHandle(url)
+class UrlOpenFileHandle implements OpenFileHandle {
+  url: string
+  resolvedFilename: string | null = null
+  hasOpenedFile: true = true
+
+  constructor(url: string) {
+    this.url = url
+  }
+  getFilename(): string {
+    if (this.resolvedFilename != null) return this.resolvedFilename
+    const url = new URL(this.url)
+    const names = url.pathname.split("/").filter(e => e != "")
+    if (names.length == 0) return "Imported File"
+    return names[names.length - 1]
+  }
+  async open(): Promise<string> {
+    const response = await fetch(this.url)
+    if (!response.ok) throw new Error(response.statusText)
+    this.resolvedFilename = null // TODO: parse Content-Disposition?
+    return await response.text()
+  }
+  save(content: string): Promise<void> {
+    throw new Error("Not supported")
+  }
+}
+
 export class FileApiFileHandler implements FileHandler {
   name = "File API"
   fileDropAvailable = true

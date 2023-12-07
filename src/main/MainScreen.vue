@@ -12,6 +12,7 @@
             <v-list-item @click="saveFile">Save</v-list-item>
             <v-list-item @click="saveFileAs">Save As...</v-list-item>
             <v-list-item @click="importLegacyFile">Import SimuDia data...</v-list-item>
+            <v-list-item @click="importUrl">Import from URL / Examples...</v-list-item>
             <v-divider></v-divider>
             <v-list-item @click="showAboutDialog">About</v-list-item>
           </v-list>
@@ -65,14 +66,15 @@
 
     <SaveChangesDialog ref="saveChangesDialog"></SaveChangesDialog>
     <FileOpenInfoDialog ref="fileOpenInfoDialog"></FileOpenInfoDialog>
+    <ImportUrlDialog ref="importUrlDialog"></ImportUrlDialog>
     <AboutDialog ref="aboutDialog"></AboutDialog>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { type StyleValue, computed, ref, watch, provide } from "vue"
+import { type StyleValue, computed, ref, watch, provide, onMounted } from "vue"
 import { useMainStore } from "../stores/main"
-import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle } from "../file-api"
+import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle, createUrlFileHandle } from "../file-api"
 import { deserialize, serialize } from "../serialization"
 import Workspace from "./Workspace.vue"
 import Sidebar from "./Sidebar.vue"
@@ -83,6 +85,7 @@ import LineContextMenu from "../context-menus/LineContextMenu.vue"
 import LineSegmentContextMenu from "../context-menus/LineSegmentContextMenu.vue"
 import SaveChangesDialog from "../dialogs/SaveChangesDialog.vue"
 import FileOpenInfoDialog from "../dialogs/FileOpenInfoDialog.vue"
+import ImportUrlDialog from "../dialogs/ImportUrlDialog.vue"
 import AboutDialog from "../dialogs/AboutDialog.vue"
 import { stationContextMenuInjection, lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
 import { registerSW } from "virtual:pwa-register"
@@ -117,6 +120,7 @@ provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
 
 const saveChangesDialog = ref<InstanceType<typeof SaveChangesDialog>>(null)
 const fileOpenInfoDialog = ref<InstanceType<typeof FileOpenInfoDialog>>(null)
+const importUrlDialog = ref<InstanceType<typeof ImportUrlDialog>>(null)
 const aboutDialog = ref<InstanceType<typeof AboutDialog>>(null)
 
 const title = computed(() => {
@@ -144,7 +148,7 @@ const toggleInputMode = () => {
 }
 
 // returns true if succeeds
-const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "legacy" | null): Promise<boolean> => {
+const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "legacy" | null, forceImport: boolean): Promise<boolean> => {
   let content: string
   try {
     content = await fileHandle.open()
@@ -161,8 +165,15 @@ const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "
 
   store.$patch(result)
 
+  let imported = forceImport
+  let newFilenameWhenImported = fileHandle.getFilename()
   if (resolvedType == "legacy") {
-    gui.currentFileHandle = createNewFileHandle(fileHandle.getFilename().replace(/\.simudia$/, ".simudiax"))
+    imported = true
+    newFilenameWhenImported = fileHandle.getFilename().replace(/\.simudia$/, ".simudiax")
+  }
+
+  if (imported) {
+    gui.currentFileHandle = createNewFileHandle(newFilenameWhenImported)
     gui.modified = true
   } else {
     gui.currentFileHandle = fileHandle
@@ -229,7 +240,7 @@ const openFile = async (): Promise<boolean> => {
   const fileHandle = await api.open({ type: "standard" })
   if (fileHandle == null) return false
 
-  return await openFileInternal(fileHandle, "standard")
+  return await openFileInternal(fileHandle, "standard", false)
 }
 
 // returns true if succeeds
@@ -240,7 +251,19 @@ const importLegacyFile = async (): Promise<boolean> => {
   const fileHandle = await api.open({ type: "legacy" })
   if (fileHandle == null) return false
 
-  return await openFileInternal(fileHandle, "legacy")
+  return await openFileInternal(fileHandle, "legacy", true)
+}
+
+// returns true if succeeds
+const importUrl = async(): Promise<boolean> => {
+  if (!await checkModifiedAndSaveFile()) return false
+
+  const url = await importUrlDialog.value.open()
+  if (url == null) return false
+  const fileHandle = createUrlFileHandle(url)
+  if (fileHandle == null) return false
+
+  return await openFileInternal(fileHandle, null, true)
 }
 
 // returns true if succeeds
@@ -285,8 +308,18 @@ const drop = async (e: DragEvent): Promise<boolean> => {
 
   if (!await checkModifiedAndSaveFile()) return false
 
-  return await openFileInternal(fileHandle, null)
+  return await openFileInternal(fileHandle, null, false)
 }
+
+onMounted(async () => {
+  const searchParams = new URL(window.location.href).searchParams
+  const url = searchParams.get("open_url")
+  if (url != null && url.trim() != "") {
+    const fileHandle = createUrlFileHandle(url)
+    if (fileHandle == null) return
+    await openFileInternal(fileHandle, null, true)
+  }
+})
 
 const showAboutDialog = () => {
   aboutDialog.value.open()
