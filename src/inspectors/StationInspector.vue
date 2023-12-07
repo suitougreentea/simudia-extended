@@ -30,8 +30,8 @@ import { useGuiStore } from "../stores/gui"
 const data = useMainStore()
 const gui = useGuiStore()
 
-const target = computed(() => gui.resolvedSelectedStations)
 const targetIds = computed(() => gui.resolvedSelectedStations.map(e => e.id))
+const target = computed(() => targetIds.value.map(id => data.findStation(id)))
 
 const times = computed(() => gui.getJourneyTimesAmong(gui.selectedStationIds).map(e => {
   const lineName = data.lines[e.lineIndex].name
