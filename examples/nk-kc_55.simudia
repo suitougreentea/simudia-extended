@@ -1,0 +1,464 @@
+﻿[General]
+month_length=162302
+shift_divisor=3840
+default_loading_time=0030
+
+[Stations]
+姶良
+延岡
+東延岡
+加積今井
+羽生
+向田
+大牟田
+熊野
+敷島
+倉谷
+加積本居
+千種
+許田
+名護
+日立木
+加積浅川
+笠浦
+荒浜
+加積五十川
+昌浦
+簑島
+宮前
+石巻
+宮ノ越
+小千谷
+松戸
+萩町
+駒形
+函南
+東金
+加積曽根
+樫田
+高岡
+名立
+
+倉谷@02
+北倉谷
+福島
+北福島
+大久保
+大泉
+矢板
+笹津
+沼津
+牧之原温泉
+朝霞
+上枝
+津幡
+加積清里
+夕張
+相木
+
+
+[RawTimes]
+姶良        ->	延岡        :	0300
+延岡　　　　->	東延岡　　　:	0202
+東延岡      ->	加積今井    :	0300
+加積今井    ->	羽生        :	0220
+羽生        ->	向田        :	0248
+向田        ->	大牟田      :	0254
+大牟田      ->	熊野        :	0512
+熊野        ->	敷島        :	0306
+敷島        ->	倉谷        :	0218
+倉谷        ->	加積本居    :	0218
+加積本居    ->	千種        :	0230
+千種        ->	許田        :	0306
+許田        ->	名護        :	0340
+名護        ->	日立木      :	0318
+日立木      ->	加積浅川    :	0242
+加積浅川    ->	笠浦        :	0224
+笠浦        ->	荒浜        :	0300
+荒浜        ->	加積五十川  :	0354
+加積五十川  ->	昌浦        :	0236
+昌浦        ->	簑島        :	0230
+簑島        ->	宮前        :	0154
+宮前        ->	石巻        :	0246
+石巻　　　　->　宮ノ越　　　:	0228
+宮ノ越      ->  小千谷      :	0300
+小千谷      ->  松戸        :	0228
+松戸        ->  萩町        :	0408
+萩町        ->  駒形        :	0436
+駒形        ->  函南        :	0424
+函南        ->  東金        :	0400
+東金        ->  加積曽根    :	0300
+加積曽根    ->  樫田        :	0242
+樫田        ->  高岡        :	0306
+高岡        ->  名立        :	0300
+                            	
+名立        ->  高岡        :	0300
+高岡        ->  樫田        :	0306
+樫田        ->  加積曽根    :	0242
+加積曽根    ->  東金        :	0300
+東金        ->  函南        :	0400
+函南        ->  駒形        :	0424
+駒形        ->  萩町        :	0436
+萩町        ->  松戸        :	0408
+松戸        ->  小千谷      :	0228
+小千谷      ->  宮ノ越      :	0300
+宮ノ越      ->  石巻        :	0228
+石巻        ->	宮前        :	0246
+宮前        ->	簑島        :	0154
+簑島        ->	昌浦        :	0230
+昌浦        ->	加積五十川  :	0236
+加積五十川  ->	荒浜        :	0354
+荒浜        ->	笠浦        :	0300
+笠浦        ->	加積浅川    :	0224
+加積浅川    ->	日立木      :	0242
+日立木      ->	名護        :	0318
+名護        ->	許田        :	0340
+許田        ->	千種        :	0306
+千種        ->	加積本居    :	0230
+加積本居    ->	倉谷        :	0218
+倉谷        ->	敷島        :	0218
+敷島        ->	熊野        :	0306
+熊野        ->	大牟田      :	0512
+大牟田      ->	向田        :	0254
+向田        ->	羽生        :	0248
+羽生        ->	加積今井    :	0220
+加積今井    ->	東延岡      :	0300
+東延岡      ->	延岡        :	0202
+延岡        ->	姶良        :	0300
+
+倉谷@02 　　->	北倉谷　　　:	0234
+北倉谷      ->	福島        :	0254
+福島        ->	北福島      :	0206
+北福島      ->	大久保      :	0318
+大久保      ->	大泉        :	0300
+大泉        ->	矢板        :	0348
+
+矢板        ->	笹津  　    :	0306
+笹津      　->	沼津        :	0306
+沼津        ->	牧之原温泉  :	0424
+牧之原温泉  ->	朝霞　　　　:	0346
+朝霞        ->	上枝        :	0300
+上枝        ->	津幡        :	0254
+津幡        ->	加積清里    :	0324
+加積清里    ->	夕張        :	0342
+夕張　　    ->	相木        :	0300
+            	            	
+相木　　    ->	夕張        :	0300
+夕張        ->	加積清里    :	0342
+加積清里    ->	津幡        :	0324
+津幡        ->	上枝        :	0254
+上枝        ->	朝霞        :	0300
+朝霞        ->	牧之原温泉  :	0346
+牧之原温泉  ->	沼津        :	0424
+沼津        ->	笹津   　   :	0306
+笹津     　 ->	矢板        :	0306
+
+矢板        ->	大泉        :	0348
+大泉        ->	大久保      :	0300
+大久保      ->	北福島      :	0318
+北福島      ->	福島        :	0200
+福島        ->	北倉谷      :	0254
+北倉谷      ->	倉谷@02     :	0234
+
+[Lines]
+name = 1M 加積本線 特急「おおるり」(2)
+divisor = 4
+color = #FF0000
+<trip_offset=0600,shift=0000,reverse>姶良
+<trip_offset=-0110>延岡
+<trip_offset=-0336>羽生
+<trip_offset=-0404>倉谷
+<trip_offset=-0234>笠浦
+<trip_offset=-0558>石巻
+<trip_offset=1200>高岡
+<trip_offset=1200,shift=2500,reverse>名立
+<trip_offset=-0558>高岡
+<trip_offset=-0234>石巻
+<trip_offset=-0404>笠浦
+<trip_offset=-0336>倉谷
+<trip_offset=-0110>羽生
+<trip_offset=0600>延岡
+-----
+name = 1001M 加積本線 急行「かづみ」(3)
+divisor = 8
+color = #FF8c00
+<trip_offset=0600,shift=010000,reverse>姶良
+<trip_offset=-0112>延岡
+<trip_offset=-0028>羽生
+<trip_offset=0004>大牟田
+<trip_offset=-0032>熊野
+<trip_offset=-0030>倉谷
+<trip_offset=-0010>千種
+<trip_offset=-0114>名護
+<trip_offset=-0244>笠浦
+<trip_offset=-0000>石巻
+<trip_offset=-0016>松戸
+<trip_offset=-0234>函南
+<trip_offset=-0234,shift=014000,reverse>高岡
+<trip_offset=-0016>函南
+<trip_offset=-0128>松戸
+<trip_offset=-0244>石巻
+<trip_offset=-0114>笠浦
+<trip_offset=-0010>名護
+<trip_offset=-0030>千種
+<trip_offset=-0032>倉谷
+<trip_offset=0004>熊野
+<trip_offset=-0028>大牟田
+<trip_offset=-0112>羽生
+<trip_offset=0600>延岡
+-----
+name = 1501M 加積本線 急行「ゆうぎり」 名立直通(2)
+divisor = 4
+color = #FF8c00
+<trip_offset=0600,shift=020000,reverse>姶良
+<trip_offset=-0112>延岡
+<trip_offset=-0028>羽生
+<trip_offset=0004>大牟田
+<trip_offset=-0032>熊野
+<trip_offset=-0030>倉谷
+<trip_offset=-0010>千種
+<trip_offset=-0114>名護
+<trip_offset=-0244>笠浦
+<trip_offset=-0128>石巻
+<trip_offset=-0016>松戸
+<trip_offset=-0234>函南
+<trip_offset=1200>高岡
+<trip_offset=1200,shift=023000,reverse>名立
+<trip_offset=-0234>高岡
+<trip_offset=-0016>函南
+<trip_offset=-0128>松戸
+<trip_offset=-0244>石巻
+<trip_offset=-0114>笠浦
+<trip_offset=-0010>名護
+<trip_offset=-0030>千種
+<trip_offset=-0032>倉谷
+<trip_offset=0004>熊野
+<trip_offset=-0028>大牟田
+<trip_offset=-0112>羽生
+<trip_offset=0600>延岡
+-----
+name = 2001D,2003D 彼杵本線「やましぎ」 急行(2)
+divisor = 8
+color = #FF8c00
+<trip_offset=0600,shift=2000,reverse>姶良
+<trip_offset=-0000>延岡
+<trip_offset=-0000>羽生
+<trip_offset=-0000>大牟田
+<trip_offset=-0000>熊野
+<trip_offset=-0000>倉谷
+<trip_offset=-0000>倉谷@02
+<trip_offset=-0000>福島
+<trip_offset=-0000>大泉
+<trip_offset=-0000>矢板
+<trip_offset=-0106>沼津
+<trip_offset=-0010>津幡
+<trip_offset=0400>夕張
+<trip_offset=0400,shift=2000,reverse>相木
+<trip_offset=-0010>夕張
+<trip_offset=-0106>津幡
+<trip_offset=-0000>沼津
+<trip_offset=-0000>矢板
+<trip_offset=-0000>大泉
+<trip_offset=-0000>福島
+<trip_offset=-0000>倉谷@02
+<trip_offset=-0000>倉谷
+<trip_offset=-0000>熊野
+<trip_offset=-0000>大牟田
+<trip_offset=-0000>羽生
+<trip_offset=0600>延岡
+-----
+name = 2801D 彼杵本線,高沼線直通「奥勝部」 急行
+divisor = 2
+color = #FF8c00
+<trip_offset=-0000,shift=013000,reverse>延岡
+<trip_offset=-0000>羽生
+<trip_offset=-0000>大牟田
+<trip_offset=-0000>熊野
+<trip_offset=-0000>倉谷
+<trip_offset=-0000>倉谷@02
+<trip_offset=-0000>福島
+<trip_offset=-0000>大泉
+<trip_offset=-0000>矢板
+<trip_offset=0400,shift=061000,reverse>沼津
+<trip_offset=-0000>矢板
+<trip_offset=-0000>大泉
+<trip_offset=-0000>福島
+<trip_offset=-0000>倉谷@02
+<trip_offset=-0000>倉谷
+<trip_offset=-0000>熊野
+<trip_offset=-0000>大牟田
+<trip_offset=-0000>羽生
+-----
+name = 101M 加積本線 普通(3)
+divisor = 16
+<shift=1500,reverse>延岡
+東延岡
+加積今井
+羽生
+向田
+大牟田
+熊野
+敷島
+倉谷
+加積本居
+千種
+許田
+名護
+日立木
+加積浅川
+笠浦
+荒浜
+加積五十川
+昌浦
+簑島
+宮前
+<shift=4000,reverse>石巻
+宮前
+簑島
+昌浦
+加積五十川
+荒浜
+笠浦
+加積浅川
+日立木
+名護
+許田
+千種
+加積本居
+倉谷
+敷島
+熊野
+大牟田
+向田
+羽生
+加積今井
+東延岡
+-----
+name = 151M 加積本線 普通
+divisor = 4
+<shift=4800,reverse>高岡
+樫田
+加積曽根
+東金
+函南
+駒形
+萩町
+松戸
+小千谷
+宮ノ越
+<shift=013300,reverse>石巻
+宮ノ越
+小千谷
+松戸
+萩町
+駒形
+函南
+東金
+加積曽根
+樫田
+-----
+name = 153M 加積本線 普通
+divisor = 8
+<shift=020000,reverse>高岡
+樫田
+加積曽根
+東金
+函南
+駒形
+萩町
+松戸
+小千谷
+宮ノ越
+<shift=4200,reverse>石巻
+宮ノ越
+小千谷
+松戸
+萩町
+駒形
+函南
+東金
+加積曽根
+樫田
+-----
+name = 201M 加積本線 普通(2)
+divisor = 16
+<shift=4000,reverse>延岡
+東延岡
+加積今井
+羽生
+向田
+大牟田
+熊野
+敷島
+倉谷
+倉谷@02
+北倉谷
+福島
+北福島
+大久保
+大泉
+<shift=4000,reverse>矢板
+大泉
+大久保
+北福島
+福島
+北倉谷
+倉谷@02
+倉谷
+敷島
+熊野
+大牟田
+向田
+羽生
+加積今井
+東延岡
+-----
+name = 250D 彼杵本線 普通
+divisor = 8
+<shift=4500,trip_offset=0400,reverse>相木
+夕張
+加積清里
+津幡
+上枝
+朝霞
+牧之原温泉
+沼津
+笹津
+<shift=014000,reverse>矢板
+笹津
+沼津
+牧之原温泉
+朝霞
+上枝
+津幡
+加積清里
+<trip_offset=0400>夕張
+-----
+name = 252D 彼杵本線 普通
+divisor = 4
+<shift=015300,reverse>夕張
+加積清里
+<shift=020500>津幡
+上枝
+朝霞
+牧之原温泉
+沼津
+笹津
+<shift=023800,reverse>矢板
+笹津
+沼津
+牧之原温泉
+朝霞
+上枝
+<shift=030500>津幡
+加積清里
+-----
+name = 301M 加積本線 普通(2)
+divisor = 32
+<trip_offset=0700,shift=1500,reverse>延岡
+<trip_offset=0700,shift=1000,reverse>姶良
+-----
+name = 351M 加積本線 普通
+divisor = 8
+<trip_offset=1200,shift=4500,reverse>高岡
+<trip_offset=1200,shift=011500,reverse>名立
