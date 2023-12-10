@@ -7,8 +7,10 @@
     <v-checkbox-btn label="Override loading" v-model="currentHalt.overrideLoadingTime"></v-checkbox-btn>
     <TimeInputControl label="Loading time" omit-hour :disabled="!currentHalt.overrideLoadingTime" v-model="currentHalt.loadingTime"></TimeInputControl>
     <v-checkbox-btn label="Schedule departure" v-model="currentHalt.scheduled"></v-checkbox-btn>
-    <TimeInputControl label="Departure time" :disabled="!currentHalt.scheduled" v-model="currentHalt.departureTime"
-      :hint="'Shift: ' + departureTimeShift(currentHalt.departureTime)" persistent-hint :hide-details="false"></TimeInputControl>
+    <TimeInputControl label="Departure time" :disabled="!currentHalt.scheduled"
+      v-model="currentHalt.departureTime"></TimeInputControl>
+    <NumberInputControl label="Departure time (Shift)" :disabled="!currentHalt.scheduled"
+      :model-value="departureTimeShift(currentHalt.departureTime)" @update:model-value="currentHalt.departureTime = shiftToTime($event)"></NumberInputControl>
   </template>
   <v-divider class="ma-3"></v-divider>
   <v-btn @click="gui.insertHaltToSelectedLine(gui.lineSelection.selectedHalt)">Insert halt</v-btn>
@@ -18,6 +20,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import TimeInputControl from "../components/TimeInputControl.vue"
+import NumberInputControl from "../components/NumberInputControl.vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
 
