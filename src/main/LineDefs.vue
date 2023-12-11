@@ -178,7 +178,7 @@ const lineSegments = computed(() => {
         const nextArrTime = nextTime.arrival + offsetTime
         pushSegment(sets[set], {
           t1: currArrTime, y1: currY, t2: currDepTime, y2: currY,
-          haltIndex: j, type: 1, dashed: nextHalt.skip
+          haltIndex: j, type: 1, dashed: currHalt.skip
         })
         pushSegment(sets[set], {
           t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
