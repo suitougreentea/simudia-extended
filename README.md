@@ -1,6 +1,8 @@
 # SimuDia-Extended
 
-Web-app version (ウェブアプリ版):
+**Since v1.0.0, SimuDia-Extended is served as an web app:**
+
+**v1.0.0から、SimuDia-ExtendedはWebアプリとして提供されています:**
 
 https://suitougreentea.github.io/simudia-extended/
 
@@ -22,10 +24,26 @@ npm run dev
 npm run build
 ```
 
+### Test Production Build
+
+```sh
+npm run preview
+```
+
 ### Lint with [ESLint](https://eslint.org/)
+
+*Note: currently not properly working*
 
 ```sh
 npm run lint
+```
+
+### Format with [Prettier](https://prettier.io/)
+
+*Note: currently not used*
+
+```sh
+npm run format
 ```
 
 ## Contributing
@@ -36,4 +54,3 @@ Issues / Forks / PRs
 ## License
 
 MIT. See [LICENSE](LICENSE)
-
