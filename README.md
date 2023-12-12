@@ -32,7 +32,7 @@ npm run preview
 
 ### Lint with [ESLint](https://eslint.org/)
 
-*Note: currently not properly working*
+*Note: currently not used*
 
 ```sh
 npm run lint
