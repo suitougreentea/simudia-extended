@@ -1,5 +1,5 @@
 <template>
-  <Dialog ref="dialog" width="unset">
+  <DialogBase ref="dialog" width="unset">
     <v-card>
       <template #prepend>
         <img class="icon" src="/pwa-icon-512.png" />
@@ -20,16 +20,16 @@
         <v-btn color="primary" @click="dialog.close(null)">Close</v-btn>
       </v-card-actions>
     </v-card>
-  </Dialog>
+  </DialogBase>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue"
-import Dialog from "../components/Dialog.vue"
+import DialogBase from "../components/DialogBase.vue"
 
 type Actions = null
 
-const dialog = ref<InstanceType<typeof Dialog>>()
+const dialog = ref<InstanceType<typeof DialogBase>>()
 const open = async () => {
   return (await dialog.value.open()) as Actions
 }

@@ -1,7 +1,7 @@
 <template>
   <div style="height: 100%">
     <v-container id="sidebar-above">
-      <Navigator></Navigator>
+      <SelectionNavigator></SelectionNavigator>
       <GlobalInspector v-if="gui.resolvedSelectedStations.length == 0 && gui.lineSelection.selectedLine == -1"></GlobalInspector>
       <StationInspector v-if="gui.resolvedSelectedStations.length > 0"></StationInspector>
       <LineInspector v-if="gui.lineSelection.selectedLine >= 0 && gui.lineSelection.selectedSet == -1"></LineInspector>
@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { useGuiStore } from "../stores/gui"
-import Navigator from "./Navigator.vue"
+import SelectionNavigator from "./SelectionNavigator.vue"
 import GlobalInspector from "../inspectors/GlobalInspector.vue"
 import StationInspector from "../inspectors/StationInspector.vue"
 import LineInspector from "../inspectors/LineInspector.vue"

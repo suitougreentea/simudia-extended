@@ -1,5 +1,5 @@
 <template>
-  <Dialog ref="dialog" persistent width="unset">
+  <DialogBase ref="dialog" persistent width="unset">
     <v-card>
       <v-card-text>
         <div v-if="type == 'error'">Error(s) generated while processing file:</div>
@@ -11,14 +11,14 @@
         <v-btn color="primary" @click="dialog.close(null)">OK</v-btn>
       </v-card-actions>
     </v-card>
-  </Dialog>
+  </DialogBase>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue"
-import Dialog from "../components/Dialog.vue"
+import DialogBase from "../components/DialogBase.vue"
 
-const dialog = ref<InstanceType<typeof Dialog>>()
+const dialog = ref<InstanceType<typeof DialogBase>>()
 const type = ref<"error" | "warning">("error")
 const messages = ref<string[]>([])
 const open = async (type_: "error" | "warning", messages_: string[]) => {

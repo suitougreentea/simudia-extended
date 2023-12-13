@@ -1,5 +1,5 @@
 <template>
-  <Dialog ref="dialog" persistent class="w-75">
+  <DialogBase ref="dialog" persistent class="w-75">
     <v-card>
       <v-container>
         <v-text-field v-model="url" label="URL to import">
@@ -25,17 +25,17 @@
         <v-btn color="primary" @click="dialog.close(null)">Cancel</v-btn>
       </v-card-actions>
     </v-card>
-  </Dialog>
+  </DialogBase>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue"
-import Dialog from "../components/Dialog.vue"
+import DialogBase from "../components/DialogBase.vue"
 import { fetchExampleList, type Example } from "../example"
 
 type Actions = string | null
 
-const dialog = ref<InstanceType<typeof Dialog>>()
+const dialog = ref<InstanceType<typeof DialogBase>>()
 const open = async () => {
   url.value = ""
   loadExamples()

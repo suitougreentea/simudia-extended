@@ -28,7 +28,7 @@
     <v-main
       ><!-- TODO: @contextmenu.prevent after replacing contenteditable elements -->
       <div style="position: absolute; left: var(--v-layout-left); right: var(--v-layout-right); top: var(--v-layout-top); bottom: var(--v-layout-bottom)">
-        <Workspace ref="workspace" style="position: absolute; width: 100%; height: 100%"></Workspace>
+        <MainWorkspace ref="workspace" style="position: absolute; width: 100%; height: 100%"></MainWorkspace>
         <div :style="horizontalZoomStyle">
           <v-btn-group density="comfortable" class="ma-2" elevation="4">
             <v-btn color="grey-lighten-4" icon="mdi-plus" @click.prevent.stop="zoomInHorizontal"></v-btn>
@@ -50,7 +50,7 @@
     </v-main>
 
     <v-navigation-drawer v-model="showSidebar" permanent location="right" :width="sidebarWidth">
-      <Sidebar ref="sideBar"></Sidebar>
+      <SidebarContent></SidebarContent>
     </v-navigation-drawer>
 
     <v-snackbar v-model="updateNotification" timeout="-1">
@@ -77,8 +77,8 @@ import { type StyleValue, computed, ref, watch, provide, onMounted } from "vue"
 import { useMainStore } from "../stores/main"
 import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle, createUrlFileHandle } from "../file-api"
 import { deserialize, serialize } from "../serialization"
-import Workspace from "./Workspace.vue"
-import Sidebar from "./Sidebar.vue"
+import MainWorkspace from "./MainWorkspace.vue"
+import SidebarContent from "./SidebarContent.vue"
 import { useGuiStore } from "../stores/gui"
 import { useGuiMessageStore } from "../stores/gui-message"
 import StationContextMenu from "../context-menus/StationContextMenu.vue"
@@ -95,7 +95,7 @@ const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const workspace = ref<InstanceType<typeof Workspace>>(null)
+const workspace = ref<InstanceType<typeof MainWorkspace>>(null)
 const horizontalZoomStyle = computed(
   () =>
     ({

@@ -1,5 +1,5 @@
 <template>
-  <Dialog ref="dialog" persistent width="unset">
+  <DialogBase ref="dialog" persistent width="unset">
     <v-card>
       <v-card-text>Save changes?</v-card-text>
       <v-card-actions>
@@ -9,16 +9,16 @@
         <v-btn color="primary" @click="dialog.close('cancel')">Cancel</v-btn>
       </v-card-actions>
     </v-card>
-  </Dialog>
+  </DialogBase>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue"
-import Dialog from "../components/Dialog.vue"
+import DialogBase from "../components/DialogBase.vue"
 
 type Actions = "yes" | "no" | "cancel"
 
-const dialog = ref<InstanceType<typeof Dialog>>()
+const dialog = ref<InstanceType<typeof DialogBase>>()
 const open = async () => {
   return (await dialog.value.open()) as Actions
 }
