@@ -39,19 +39,19 @@ export type LineHaltV0 = {
 }
 
 type FileFormatV0 = {
-  fileVersion: 0,
-  monthLength: Time,
-  shiftDivisor: number,
-  stations: StationV0[],
-  lines: LineV0[],
+  fileVersion: 0
+  monthLength: Time
+  shiftDivisor: number
+  stations: StationV0[]
+  lines: LineV0[]
 }
 
 type FileFormatV1 = {
-  fileVersion: 1,
-  monthLength: Time,
-  shiftDivisor: number,
-  stations: StationV1[],
-  lines: LineV0[],
+  fileVersion: 1
+  monthLength: Time
+  shiftDivisor: number
+  stations: StationV1[]
+  lines: LineV0[]
 }
 
 type FileFormatLatest = FileFormatV1
@@ -75,7 +75,7 @@ const detectFileType = (input: string): "standard" | "legacy" | null => {
   return null
 }
 
-export const deserialize = (input: string, type: "standard" | "legacy" | null): { result?: State, type?: "standard" | "legacy", errors: string[], warnings: string[] } => {
+export const deserialize = (input: string, type: "standard" | "legacy" | null): { result?: State; type?: "standard" | "legacy"; errors: string[]; warnings: string[] } => {
   const error = (message: string) => ({
     errors: [message],
     warnings: [],
@@ -127,7 +127,7 @@ export const deserialize = (input: string, type: "standard" | "legacy" | null): 
   }
 }
 
-export const serialize = (input: State): { result?: string, errors: string[], warnings: string[] } => {
+export const serialize = (input: State): { result?: string; errors: string[]; warnings: string[] } => {
   const error = (message: string) => ({
     errors: [message],
     warnings: [],
@@ -154,7 +154,7 @@ const convertToV1 = (ctx: FileContext, input: FileFormatV0): FileFormatV1 => {
   return {
     ...input,
     fileVersion: 1,
-    stations: input.stations.map(e => ({ ...e, width: undefined }))
+    stations: input.stations.map((e) => ({ ...e, width: undefined })),
   }
 }
 
@@ -162,18 +162,18 @@ const fromFileFormatV1 = (ctx: FileContext, input: FileFormatV1): State => {
   return {
     monthLength: input.monthLength,
     shiftDivisor: input.shiftDivisor,
-    stations: input.stations.map(e => ({
+    stations: input.stations.map((e) => ({
       id: e.id,
       name: e.name,
     })),
-    lines: input.lines.map(e => ({
+    lines: input.lines.map((e) => ({
       name: e.name,
       divisor: e.divisor,
       lineWidth: e.lineWidth,
       color: e.color,
       defaultLoadingTime: e.defaultLoadingTime,
       reversingTime: e.reversingTime,
-      halts: e.halts.map(h => ({
+      halts: e.halts.map((h) => ({
         stationId: h.stationId,
         time: h.time,
         overrideLoadingTime: h.overrideLoadingTime,
@@ -185,7 +185,7 @@ const fromFileFormatV1 = (ctx: FileContext, input: FileFormatV1): State => {
         departureTime: h.departureTime,
         skip: h.skip,
       })),
-      visible: e.visible
+      visible: e.visible,
     })),
   }
 }
@@ -202,18 +202,18 @@ const toFileFormat = (ctx: FileContext, input: State): FileFormatLatest => {
     fileVersion: 1,
     monthLength: input.monthLength,
     shiftDivisor: input.shiftDivisor,
-    stations: input.stations.map(e => ({
+    stations: input.stations.map((e) => ({
       id: e.id,
       name: e.name,
     })),
-    lines: input.lines.map(e => ({
+    lines: input.lines.map((e) => ({
       name: e.name,
       divisor: e.divisor,
       lineWidth: e.lineWidth,
       color: e.color,
       defaultLoadingTime: e.defaultLoadingTime,
       reversingTime: e.reversingTime,
-      halts: e.halts.map(h => ({
+      halts: e.halts.map((h) => ({
         stationId: h.stationId,
         time: h.time,
         overrideLoadingTime: h.overrideLoadingTime,
@@ -225,7 +225,7 @@ const toFileFormat = (ctx: FileContext, input: State): FileFormatLatest => {
         departureTime: h.departureTime,
         skip: h.skip,
       })),
-      visible: e.visible
+      visible: e.visible,
     })),
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <Dialog persistent ref="dialog" width="unset">
+  <Dialog ref="dialog" persistent width="unset">
     <v-card>
       <v-card-text>Save changes?</v-card-text>
       <v-card-actions>
@@ -20,7 +20,7 @@ type Actions = "yes" | "no" | "cancel"
 
 const dialog = ref<InstanceType<typeof Dialog>>()
 const open = async () => {
-  return await dialog.value.open() as Actions
+  return (await dialog.value.open()) as Actions
 }
 
 defineExpose({
@@ -28,5 +28,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -13,29 +13,100 @@
       <circle v-for="e in hoveredHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
 
       <g v-if="gui.lineSelection.selectedSet == -1">
-        <polyline class="selected-line" v-for="path in selectedLinePaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+        <polyline
+          v-for="path in selectedLinePaths"
+          class="selected-line"
+          :points="path.d"
+          fill="transparent"
+          :stroke="path.color"
+          :stroke-width="path.width"
+          :stroke-dasharray="path.dashArray"
+        ></polyline>
       </g>
       <g v-if="gui.lineSelection.selectedHalt == -1">
-        <polyline class="selected-line" v-for="path in selectedSetPaths" :points="path.d" fill="transparent" :stroke="path.color" :stroke-width="path.width" :stroke-dasharray="path.dashArray"></polyline>
+        <polyline
+          v-for="path in selectedSetPaths"
+          class="selected-line"
+          :points="path.d"
+          fill="transparent"
+          :stroke="path.color"
+          :stroke-width="path.width"
+          :stroke-dasharray="path.dashArray"
+        ></polyline>
       </g>
-      <line class="selected-line" v-for="seg in selectedHaltSegments" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" :stroke="seg.color" :stroke-width="seg.width + 1" :stroke-dasharray="seg.dashArray"></line>
-      <circle class="selected-line" v-for="e in selectedHaltPoints" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
+      <line
+        v-for="seg in selectedHaltSegments"
+        class="selected-line"
+        :x1="seg.x1"
+        :y1="seg.y1"
+        :x2="seg.x2"
+        :y2="seg.y2"
+        :stroke="seg.color"
+        :stroke-width="seg.width + 1"
+        :stroke-dasharray="seg.dashArray"
+      ></line>
+      <circle v-for="e in selectedHaltPoints" class="selected-line" :cx="e.x" :cy="e.y" :r="e.r" :fill="e.color"></circle>
     </symbol>
     <symbol id="lines-hover">
       <g v-if="gui.mode == 'edit'">
         <g v-for="path in allLinePaths">
-          <polyline v-if="path.lineIndex != gui.lineSelection.selectedLine" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverLine(path.lineIndex)" @mouseleave="gui.unhoverLine(path.lineIndex)" @click.prevent.stop="gui.clickLine(path.lineIndex)" @contextmenu.prevent.stop="contextLine($event, path.lineIndex)" style="pointer-events: visibleStroke"></polyline>
+          <polyline
+            v-if="path.lineIndex != gui.lineSelection.selectedLine"
+            :points="path.d"
+            fill="transparent"
+            stroke="transparent"
+            stroke-width="10"
+            style="pointer-events: visibleStroke"
+            @mouseenter="gui.hoverLine(path.lineIndex)"
+            @mouseleave="gui.unhoverLine(path.lineIndex)"
+            @click.prevent.stop="gui.clickLine(path.lineIndex)"
+            @contextmenu.prevent.stop="contextLine($event, path.lineIndex)"
+          ></polyline>
         </g>
         <g v-for="path in selectedLinePaths">
-          <polyline v-if="path.setIndex != gui.lineSelection.selectedSet" :points="path.d" fill="transparent" stroke="transparent" stroke-width="10" @mouseenter="gui.hoverSet(path.setIndex)" @mouseleave="gui.unhoverSet(path.setIndex)" @click.prevent.stop="gui.clickSet(path.setIndex)" style="pointer-events: visibleStroke"></polyline>
+          <polyline
+            v-if="path.setIndex != gui.lineSelection.selectedSet"
+            :points="path.d"
+            fill="transparent"
+            stroke="transparent"
+            stroke-width="10"
+            style="pointer-events: visibleStroke"
+            @mouseenter="gui.hoverSet(path.setIndex)"
+            @mouseleave="gui.unhoverSet(path.setIndex)"
+            @click.prevent.stop="gui.clickSet(path.setIndex)"
+          ></polyline>
         </g>
         <g v-for="seg in allHaltSegmentsInSelectedHalt[0]">
-          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="10" stroke-linecap="round"
-            @mouseenter="hoverSegment(seg.haltIndex, 0)" @mouseleave="unhoverSegment(seg.haltIndex, 0)" @click.prevent.stop="clickSegment(seg.haltIndex, 0)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)" style="pointer-events: visibleStroke"></line>
+          <line
+            :x1="seg.x1"
+            :y1="seg.y1"
+            :x2="seg.x2"
+            :y2="seg.y2"
+            stroke="transparent"
+            :stroke-width="10"
+            stroke-linecap="round"
+            style="pointer-events: visibleStroke"
+            @mouseenter="hoverSegment(seg.haltIndex, 0)"
+            @mouseleave="unhoverSegment(seg.haltIndex, 0)"
+            @click.prevent.stop="clickSegment(seg.haltIndex, 0)"
+            @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 0)"
+          ></line>
         </g>
         <g v-for="seg in allHaltSegmentsInSelectedHalt[1]">
-          <line :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2" stroke="transparent" :stroke-width="15" stroke-linecap="round"
-            @mouseenter="hoverSegment(seg.haltIndex, 1)" @mouseleave="unhoverSegment(seg.haltIndex, 1)" @click.prevent.stop="clickSegment(seg.haltIndex, 1)" @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)" style="pointer-events: visibleStroke"></line>
+          <line
+            :x1="seg.x1"
+            :y1="seg.y1"
+            :x2="seg.x2"
+            :y2="seg.y2"
+            stroke="transparent"
+            :stroke-width="15"
+            stroke-linecap="round"
+            style="pointer-events: visibleStroke"
+            @mouseenter="hoverSegment(seg.haltIndex, 1)"
+            @mouseleave="unhoverSegment(seg.haltIndex, 1)"
+            @click.prevent.stop="clickSegment(seg.haltIndex, 1)"
+            @contextmenu.prevent.stop="contextSegment($event, seg.haltIndex, 1)"
+          ></line>
         </g>
       </g>
     </symbol>
@@ -45,8 +116,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue"
 import { useMainStore } from "../stores/main"
-import { useGuiStore } from "../stores/gui";
-import { lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection";
+import { useGuiStore } from "../stores/gui"
+import { lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
 
 const store = useMainStore()
 const gui = useGuiStore()
@@ -118,15 +189,15 @@ const segmentToPaths = (segments: LineSegment[]): Path[] => {
   let current: string[] = []
   let i = 0
   for (; i < segments.length; i++) {
-    if (i >= 1 && (segments[i-1].x2 !== segments[i].x1 || segments[i-1].dashed !== segments[i].dashed)) {
-      current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
-      result.push({ d: current.join(","), dashed: segments[i-1].dashed })
+    if (i >= 1 && (segments[i - 1].x2 !== segments[i].x1 || segments[i - 1].dashed !== segments[i].dashed)) {
+      current.push(`${segments[i - 1].x2},${segments[i - 1].y2}`)
+      result.push({ d: current.join(","), dashed: segments[i - 1].dashed })
       current = []
     }
     current.push(`${segments[i].x1},${segments[i].y1}`)
   }
-  current.push(`${segments[i-1].x2},${segments[i-1].y2}`)
-  result.push({ d: current.join(","), dashed: segments[i-1].dashed })
+  current.push(`${segments[i - 1].x2},${segments[i - 1].y2}`)
+  result.push({ d: current.join(","), dashed: segments[i - 1].dashed })
   return result
 }
 
@@ -140,19 +211,22 @@ const lineSegments = computed(() => {
     if (segment.t1 >= monthLength) {
       pushSegment(array, { ...segment, t1: segment.t1 - monthLength, t2: segment.t2 - monthLength })
     } else if (segment.t2 > monthLength) {
-      const intermediateY = segment.y1 + (segment.y2 - segment.y1) * (monthLength - segment.t1) / (segment.t2 - segment.t1)
+      const intermediateY = segment.y1 + ((segment.y2 - segment.y1) * (monthLength - segment.t1)) / (segment.t2 - segment.t1)
       pushSegment(array, { ...segment, t1: segment.t1, t2: monthLength, y2: intermediateY })
       pushSegment(array, { ...segment, t1: 0, t2: segment.t2 - monthLength, y1: intermediateY })
     } else if (segment.t1 < 0) {
-      const intermediateY = segment.y1 + (segment.y2 - segment.y1) * (-segment.t1) / (segment.t2 - segment.t1)
+      const intermediateY = segment.y1 + ((segment.y2 - segment.y1) * -segment.t1) / (segment.t2 - segment.t1)
       pushSegment(array, { ...segment, t1: segment.t1 + monthLength, t2: monthLength, y2: intermediateY })
       pushSegment(array, { ...segment, t1: 0, t2: segment.t2, y1: intermediateY })
     } else {
       array.push({
         x1: gui.x(segment.t1),
         x2: gui.x(segment.t2),
-        y1: segment.y1, y2: segment.y2,
-        haltIndex: segment.haltIndex, type: segment.type, dashed: segment.dashed
+        y1: segment.y1,
+        y2: segment.y2,
+        haltIndex: segment.haltIndex,
+        type: segment.type,
+        dashed: segment.dashed,
       })
     }
   }
@@ -166,23 +240,33 @@ const lineSegments = computed(() => {
       const offsetTime = set * (store.monthLength / line.divisor)
       for (let j = 0; j < length; j++) {
         const currHalt = line.halts[j]
-        const nextHalt = line.halts[(j+1) % length]
+        const nextHalt = line.halts[(j + 1) % length]
         const currStationIndex = store.findStationIndex(currHalt.stationId)
         const nextStationIndex = store.findStationIndex(nextHalt.stationId)
         const currY = gui.y(gui.stations[currStationIndex].accumulatedTime)
         const nextY = gui.y(gui.stations[nextStationIndex].accumulatedTime)
         const currTime = haltTimes[j]
-        const nextTime = haltTimes[(j+1) % length]
+        const nextTime = haltTimes[(j + 1) % length]
         const currArrTime = currTime.departure - currTime.wait + offsetTime
         const currDepTime = currTime.departure + offsetTime
         const nextArrTime = nextTime.arrival + offsetTime
         pushSegment(sets[set], {
-          t1: currArrTime, y1: currY, t2: currDepTime, y2: currY,
-          haltIndex: j, type: 1, dashed: currHalt.skip
+          t1: currArrTime,
+          y1: currY,
+          t2: currDepTime,
+          y2: currY,
+          haltIndex: j,
+          type: 1,
+          dashed: currHalt.skip,
         })
         pushSegment(sets[set], {
-          t1: currDepTime, y1: currY, t2: nextArrTime, y2: nextY,
-          haltIndex: j, type: 0, dashed: currHalt.skip
+          t1: currDepTime,
+          y1: currY,
+          t2: nextArrTime,
+          y2: nextY,
+          haltIndex: j,
+          type: 0,
+          dashed: currHalt.skip,
         })
       }
     }
@@ -196,7 +280,11 @@ const allLinePaths = computed(() => {
   segments.forEach((line, lineIndex) => {
     if (line.visible) {
       line.sets.forEach((set, setIndex) => {
-        result.push(...segmentToPaths(set).map(path => { return { lineIndex, setIndex, d: path.d, width: line.width, color: line.color, dashArray: path.dashed ? "5, 5": "" } }))
+        result.push(
+          ...segmentToPaths(set).map((path) => {
+            return { lineIndex, setIndex, d: path.d, width: line.width, color: line.color, dashArray: path.dashed ? "5, 5" : "" }
+          })
+        )
       })
     }
   })
@@ -205,26 +293,22 @@ const allLinePaths = computed(() => {
 
 const hoveredLinePaths = computed(() => {
   if (gui.lineSelection.hoveredLine === -1) return []
-  return allLinePaths.value.filter(path => path.lineIndex === gui.lineSelection.hoveredLine)
+  return allLinePaths.value.filter((path) => path.lineIndex === gui.lineSelection.hoveredLine)
 })
 
 const selectedLinePaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1) return []
-  return allLinePaths.value.filter(path => path.lineIndex === gui.lineSelection.selectedLine)
+  return allLinePaths.value.filter((path) => path.lineIndex === gui.lineSelection.selectedLine)
 })
 
 const hoveredSetPaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.hoveredSet === -1) return []
-  return allLinePaths.value.filter(path =>
-    path.lineIndex === gui.lineSelection.selectedLine &&
-    path.setIndex === gui.lineSelection.hoveredSet)
+  return allLinePaths.value.filter((path) => path.lineIndex === gui.lineSelection.selectedLine && path.setIndex === gui.lineSelection.hoveredSet)
 })
 
 const selectedSetPaths = computed(() => {
   if (gui.lineSelection.selectedLine === -1 || gui.lineSelection.selectedSet === -1) return []
-  return allLinePaths.value.filter(path =>
-    path.lineIndex === gui.lineSelection.selectedLine &&
-    path.setIndex === gui.lineSelection.selectedSet)
+  return allLinePaths.value.filter((path) => path.lineIndex === gui.lineSelection.selectedLine && path.setIndex === gui.lineSelection.selectedSet)
 })
 
 const allHaltSegmentsInSelectedHalt = computed(() => {
@@ -234,8 +318,17 @@ const allHaltSegmentsInSelectedHalt = computed(() => {
   const line = segments[selectedLine]
   const result: [DrawLineSegment[], DrawLineSegment[]] = [[], []] // type
 
-  line.sets[selectedSet].forEach(segment => {
-    result[segment.type].push({ x1: segment.x1, x2: segment.x2, y1: segment.y1, y2: segment.y2, haltIndex: segment.haltIndex, width: line.width, color: line.color, dashArray: segment.dashed ? "5, 5" : "" })
+  line.sets[selectedSet].forEach((segment) => {
+    result[segment.type].push({
+      x1: segment.x1,
+      x2: segment.x2,
+      y1: segment.y1,
+      y2: segment.y2,
+      haltIndex: segment.haltIndex,
+      width: line.width,
+      color: line.color,
+      dashArray: segment.dashed ? "5, 5" : "",
+    })
   })
   return result
 })
@@ -247,8 +340,17 @@ const allHaltSegmentsInHoveredHalt = computed(() => {
   const line = segments[hoveredLine]
   const result: [DrawLineSegment[], DrawLineSegment[]] = [[], []] // type
 
-  line.sets[hoveredSet].forEach(segment => {
-    result[segment.type].push({ x1: segment.x1, x2: segment.x2, y1: segment.y1, y2: segment.y2, haltIndex: segment.haltIndex, width: line.width, color: line.color, dashArray: segment.dashed ? "5, 5" : "" })
+  line.sets[hoveredSet].forEach((segment) => {
+    result[segment.type].push({
+      x1: segment.x1,
+      x2: segment.x2,
+      y1: segment.y1,
+      y2: segment.y2,
+      haltIndex: segment.haltIndex,
+      width: line.width,
+      color: line.color,
+      dashArray: segment.dashed ? "5, 5" : "",
+    })
   })
   return result
 })
@@ -256,27 +358,29 @@ const allHaltSegmentsInHoveredHalt = computed(() => {
 const hoveredHaltSegments = computed(() => {
   const current = allHaltSegmentsInHoveredHalt.value
   if (current[0].length === 0 || gui.lineSelection.hoveredType === -1) return []
-  return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
+  return current[gui.lineSelection.hoveredType].filter((e) => e.haltIndex === gui.lineSelection.hoveredHalt)
 })
 
 const selectedHaltSegments = computed(() => {
   const current = allHaltSegmentsInSelectedHalt.value
   if (current[0].length === 0 || gui.lineSelection.selectedType === -1) return []
-  return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
+  return current[gui.lineSelection.selectedType].filter((e) => e.haltIndex === gui.lineSelection.selectedHalt)
 })
 
 const hoveredHaltPoints = computed(() => {
   const current = allHaltSegmentsInHoveredHalt.value
   if (current[0].length === 0 || gui.lineSelection.hoveredType !== 1) return []
-  return current[gui.lineSelection.hoveredType].filter(e => e.haltIndex === gui.lineSelection.hoveredHalt)
-    .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
+  return current[gui.lineSelection.hoveredType]
+    .filter((e) => e.haltIndex === gui.lineSelection.hoveredHalt)
+    .map((e) => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
 })
 
 const selectedHaltPoints = computed(() => {
   const current = allHaltSegmentsInSelectedHalt.value
   if (current[0].length === 0 || gui.lineSelection.selectedType !== 1) return []
-  return current[gui.lineSelection.selectedType].filter(e => e.haltIndex === gui.lineSelection.selectedHalt)
-    .map(e => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
+  return current[gui.lineSelection.selectedType]
+    .filter((e) => e.haltIndex === gui.lineSelection.selectedHalt)
+    .map((e) => ({ x: (e.x1 + e.x2) / 2, y: e.y1, r: e.width + 2, color: e.color })) as DrawPoint[]
 })
 
 const contextLine = (ev: MouseEvent, lineIndex: number) => {

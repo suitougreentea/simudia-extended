@@ -1,9 +1,15 @@
 <template>
   <v-list>
-    <v-list-item density="compact" v-for="(line, lineIndex) in store.lines"
-      :class="{ 'hovered-line': gui.lineSelection.hoveredLine == lineIndex }" 
-      @mouseenter="gui.hoverLine(lineIndex)" @mouseleave="gui.unhoverLine(lineIndex)" @click.stop="clickLine($event, lineIndex)" @contextmenu.prevent.stop="contextLine($event, lineIndex)">
-      <template v-slot:prepend>
+    <v-list-item
+      v-for="(line, lineIndex) in store.lines"
+      density="compact"
+      :class="{ 'hovered-line': gui.lineSelection.hoveredLine == lineIndex }"
+      @mouseenter="gui.hoverLine(lineIndex)"
+      @mouseleave="gui.unhoverLine(lineIndex)"
+      @click.stop="clickLine($event, lineIndex)"
+      @contextmenu.prevent.stop="contextLine($event, lineIndex)"
+    >
+      <template #prepend>
         <v-list-item-action start>
           <v-checkbox-btn v-model="line.visible" :color="line.color"></v-checkbox-btn>
         </v-list-item-action>
@@ -39,6 +45,6 @@ const contextLine = (ev: MouseEvent, lineIndex: number) => {
 
 <style scoped>
 .hovered-line {
-  background-color: #EEE;
+  background-color: #eee;
 }
 </style>

@@ -17,15 +17,14 @@ const gui = useGuiStore()
 
 const targetIds = ref<number[]>([])
 const menu = ref<InstanceType<typeof ContextMenu>>()
-const open = ((ev: MouseEvent, stationIds: number[]) => {
+const open = (ev: MouseEvent, stationIds: number[]) => {
   targetIds.value = stationIds
   menu.value?.openByEvent(ev)
-})
+}
 
 defineExpose({
   open,
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

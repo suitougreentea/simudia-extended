@@ -1,8 +1,8 @@
 <template>
   <Dialog ref="dialog" width="unset">
     <v-card>
-      <template v-slot:prepend>
-        <img class="icon" src="/pwa-icon-512.png">
+      <template #prepend>
+        <img class="icon" src="/pwa-icon-512.png" />
       </template>
       <v-card-title>SimuDia-Extended</v-card-title>
       <v-card-subtitle>
@@ -31,7 +31,7 @@ type Actions = null
 
 const dialog = ref<InstanceType<typeof Dialog>>()
 const open = async () => {
-  return await dialog.value.open() as Actions
+  return (await dialog.value.open()) as Actions
 }
 
 const version = __VERSION__ != null ? `Version ${__VERSION__}` : ""

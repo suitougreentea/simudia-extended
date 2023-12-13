@@ -1,7 +1,6 @@
-<template>  
-  <div class="time-input-container" v-if="inputtingTimeIndex >= 0 && !temporaryHidden" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
-    <TimeInputControl omit-hour v-model="inputValue" :hints="hints" ref="timeInput"
-      @keydown.enter="onEnterKeyDown" @selected-from-hints="onSelectedFromHints"></TimeInputControl>
+<template>
+  <div v-if="inputtingTimeIndex >= 0 && !temporaryHidden" class="time-input-container" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
+    <TimeInputControl ref="timeInput" v-model="inputValue" omit-hour :hints="hints" @keydown.enter="onEnterKeyDown" @selected-from-hints="onSelectedFromHints"></TimeInputControl>
   </div>
 </template>
 
@@ -20,7 +19,7 @@ const timeInput = ref(null)
 const inputValue = ref(0)
 const hints = ref<Hint[]>([])
 
-const rubberbands = ref<{ time: number, station: number }[]>([])
+const rubberbands = ref<{ time: number; station: number }[]>([])
 const inputtingTimeIndex = ref(-1)
 const inputtingTimes = ref([])
 
@@ -35,7 +34,7 @@ const timeInputPosition = computed(() => {
   return { x, y }
 })
 
-const start = async (inRubberbands: { time: number, station: number }[]) => {
+const start = async (inRubberbands: { time: number; station: number }[]) => {
   rubberbands.value = inRubberbands
   startInput(0)
 }
@@ -46,9 +45,7 @@ const startInput = async (index: number) => {
   const nextRubberband = rubberbands.value[inputtingTimeIndex.value + 1]
   hints.value = [
     { time: nextRubberband.time - currentRubberband.time, source: "Inferred from line" },
-    ...gui.getTimeHintsBetween(
-      gui.stations[currentRubberband.station].id,
-      gui.stations[nextRubberband.station].id)
+    ...gui.getTimeHintsBetween(gui.stations[currentRubberband.station].id, gui.stations[nextRubberband.station].id),
   ]
   await nextTick()
   inputValue.value = nextRubberband.time - currentRubberband.time
@@ -60,7 +57,7 @@ const startInput = async (index: number) => {
 const onEnterKeyDown = async () => {
   // TODO: hacky way to wait inputValue update
   await nextTick()
-  await new Promise(r => setTimeout(r, 0))
+  await new Promise((r) => setTimeout(r, 0))
   putCurrentTime(inputValue.value)
 }
 
@@ -78,17 +75,19 @@ const putCurrentTime = async (time: number) => {
   } else {
     if (gui.lineInsertOrigin.line !== -1) {
       store.insertHalts({
-        lineIndex: gui.lineInsertOrigin.line, haltIndex: gui.lineInsertOrigin.halt,
-        stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value
+        lineIndex: gui.lineInsertOrigin.line,
+        haltIndex: gui.lineInsertOrigin.halt,
+        stationIndices: rubberbands.value.map((e) => e.station),
+        times: inputtingTimes.value,
       })
     } else {
-      store.addLine({ stationIndices: rubberbands.value.map(e => e.station), times: inputtingTimes.value, firstTime: rubberbands.value[0].time })
+      store.addLine({ stationIndices: rubberbands.value.map((e) => e.station), times: inputtingTimes.value, firstTime: rubberbands.value[0].time })
     }
     gui.resetInput()
   }
 }
 
-const reset = () =>  {
+const reset = () => {
   rubberbands.value = []
   inputtingTimeIndex.value = -1
   inputtingTimes.value = []

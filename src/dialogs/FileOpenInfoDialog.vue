@@ -1,5 +1,5 @@
 <template>
-  <Dialog persistent ref="dialog" width="unset">
+  <Dialog ref="dialog" persistent width="unset">
     <v-card>
       <v-card-text>
         <div v-if="type == 'error'">Error(s) generated while processing file:</div>
@@ -24,7 +24,7 @@ const messages = ref<string[]>([])
 const open = async (type_: "error" | "warning", messages_: string[]) => {
   type.value = type_
   messages.value = messages_
-  return await dialog.value.open() as null
+  return (await dialog.value.open()) as null
 }
 
 defineExpose({
@@ -32,5 +32,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

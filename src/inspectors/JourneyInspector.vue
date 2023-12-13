@@ -1,7 +1,7 @@
 <template>
-  <v-checkbox-btn label="Skip" v-model="currentHalt.skip"></v-checkbox-btn>
+  <v-checkbox-btn v-model="currentHalt.skip" label="Skip"></v-checkbox-btn>
   <template v-if="!currentHalt.skip">
-    <TimeInputControl label="Journey time" omit-hour v-model="currentHalt.time" :hints="hints"></TimeInputControl>
+    <TimeInputControl v-model="currentHalt.time" label="Journey time" omit-hour :hints="hints"></TimeInputControl>
   </template>
 </template>
 
@@ -14,15 +14,15 @@ import { useGuiStore } from "../stores/gui"
 const store = useMainStore()
 const gui = useGuiStore()
 
-const currentHalt = computed(() => { return store.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt] })
+const currentHalt = computed(() => {
+  return store.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt]
+})
 const nextHalt = computed(() => {
   const halts = store.lines[gui.lineSelection.selectedLine].halts
-  return halts[(gui.lineSelection.selectedHalt+1) % halts.length]
+  return halts[(gui.lineSelection.selectedHalt + 1) % halts.length]
 })
 
 const hints = computed(() => gui.getTimeHintsBetween(currentHalt.value.stationId, nextHalt.value.stationId))
-
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

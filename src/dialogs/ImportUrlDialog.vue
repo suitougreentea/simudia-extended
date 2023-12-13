@@ -1,9 +1,9 @@
 <template>
-  <Dialog persistent ref="dialog" class="w-75">
+  <Dialog ref="dialog" persistent class="w-75">
     <v-card>
       <v-container>
         <v-text-field v-model="url" label="URL to import">
-          <template v-slot:append>
+          <template #append>
             <v-btn icon="mdi-arrow-right" color="primary" @click="openUrl"></v-btn>
           </template>
         </v-text-field>
@@ -39,7 +39,7 @@ const dialog = ref<InstanceType<typeof Dialog>>()
 const open = async () => {
   url.value = ""
   loadExamples()
-  return await dialog.value.open() as Actions
+  return (await dialog.value.open()) as Actions
 }
 
 const url = ref("")

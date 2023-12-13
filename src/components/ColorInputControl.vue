@@ -1,7 +1,7 @@
 <template>
   <v-text-field v-model="textModel" :rules="[rule]" @change="onTextChange">
-    <template v-slot:append>
-      <input style="opacity: revert; width: 28px; height: 28px; margin-left: -4px; margin-right: 12px;" type="color" v-model="colorModel" @change="onColorChange">
+    <template #append>
+      <input v-model="colorModel" style="opacity: revert; width: 28px; height: 28px; margin-left: -4px; margin-right: 12px" type="color" @change="onColorChange" />
     </template>
   </v-text-field>
 </template>
@@ -9,11 +9,11 @@
 <script setup lang="ts">
 import { ref, toRefs, watch } from "vue"
 const props = defineProps<{
-  modelValue: string,
+  modelValue: string
 }>()
 
 const emit = defineEmits<{
-  "update:modelValue": [newValue: string],
+  "update:modelValue": [newValue: string]
 }>()
 
 const textModel = ref("")
@@ -49,5 +49,4 @@ const onColorChange = () => {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

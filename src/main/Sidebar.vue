@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { useGuiStore } from "../stores/gui";
+import { useGuiStore } from "../stores/gui"
 import Navigator from "./Navigator.vue"
 import GlobalInspector from "../inspectors/GlobalInspector.vue"
 import StationInspector from "../inspectors/StationInspector.vue"

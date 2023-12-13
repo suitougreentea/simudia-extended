@@ -1,6 +1,6 @@
 <template>
   <template v-if="gui.isSingleStationSelected">
-    <v-text-field label="Name" v-model="target[0].name"></v-text-field>
+    <v-text-field v-model="target[0].name" label="Name"></v-text-field>
     <v-divider class="ma-3"></v-divider>
   </template>
   <template v-if="!gui.isSingleStationSelected">
@@ -13,7 +13,7 @@
         <span class="journey-direction">{{ e.direction }}</span>
         <span>{{ e.haltNames }}</span>
       </div>
-      <TimeInputControl class="mb-3" label="Journey time" omit-hour :model-value="e.time" @update:model-value="changeJourneyTime(e.lineIndex, e.haltIndex, $event)" :hints="e.hints"></TimeInputControl>
+      <TimeInputControl class="mb-3" label="Journey time" omit-hour :model-value="e.time" :hints="e.hints" @update:model-value="changeJourneyTime(e.lineIndex, e.haltIndex, $event)"></TimeInputControl>
     </template>
     <v-divider class="ma-3"></v-divider>
   </template>
@@ -30,29 +30,31 @@ import { useGuiStore } from "../stores/gui"
 const data = useMainStore()
 const gui = useGuiStore()
 
-const targetIds = computed(() => gui.resolvedSelectedStations.map(e => e.id))
-const target = computed(() => targetIds.value.map(id => data.findStation(id)))
+const targetIds = computed(() => gui.resolvedSelectedStations.map((e) => e.id))
+const target = computed(() => targetIds.value.map((id) => data.findStation(id)))
 
-const times = computed(() => gui.getJourneyTimesAmong(gui.selectedStationIds).map(e => {
-  const lineName = data.lines[e.lineIndex].name
-  const lineColor = data.lines[e.lineIndex].color
-  const fromIndex = data.findStationIndex(e.fromId)
-  const toIndex = data.findStationIndex(e.toId)
-  const direction = fromIndex < toIndex ? "↓" : fromIndex > toIndex ? "↑" : ""
-  const fromName = data.findStation(e.fromId).name
-  const toName = data.findStation(e.toId).name
-  const hints = gui.getTimeHintsBetween(e.fromId, e.toId)
-  return {
-    lineName,
-    lineColor,
-    direction,
-    haltNames: `${fromName} → ${toName}`,
-    time: e.time,
-    lineIndex: e.lineIndex,
-    haltIndex: e.haltIndex,
-    hints,
-  }
-}))
+const times = computed(() =>
+  gui.getJourneyTimesAmong(gui.selectedStationIds).map((e) => {
+    const lineName = data.lines[e.lineIndex].name
+    const lineColor = data.lines[e.lineIndex].color
+    const fromIndex = data.findStationIndex(e.fromId)
+    const toIndex = data.findStationIndex(e.toId)
+    const direction = fromIndex < toIndex ? "↓" : fromIndex > toIndex ? "↑" : ""
+    const fromName = data.findStation(e.fromId).name
+    const toName = data.findStation(e.toId).name
+    const hints = gui.getTimeHintsBetween(e.fromId, e.toId)
+    return {
+      lineName,
+      lineColor,
+      direction,
+      haltNames: `${fromName} → ${toName}`,
+      time: e.time,
+      lineIndex: e.lineIndex,
+      haltIndex: e.haltIndex,
+      hints,
+    }
+  })
+)
 
 const changeJourneyTime = (lineIndex: number, haltIndex: number, newTime: number) => {
   data.lines[lineIndex].halts[haltIndex].time = newTime

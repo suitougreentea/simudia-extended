@@ -3,14 +3,12 @@
     <div v-if="times.length > 0" class="solid-border span-row"></div>
     <template v-for="(e, i) in times">
       <!-- row 1 -->
-      <div class="station"
-        @mouseenter="hoverHalt(e.haltIndex, 1)" @mouseleave="unhoverHalt(e.haltIndex, 1)" @click.prevent.stop="clickHalt(e.haltIndex, 1)">
+      <div class="station" @mouseenter="hoverHalt(e.haltIndex, 1)" @mouseleave="unhoverHalt(e.haltIndex, 1)" @click.prevent.stop="clickHalt(e.haltIndex, 1)">
         <div class="station-name">{{ e.stationName }}</div>
         <div v-if="e.scheduled" class="scheduled">Scheduled: {{ e.scheduledValue }}</div>
       </div>
       <div class="journey-time">
-        <div class="journey-time-body" v-if="i != times.length - 1"
-          @mouseenter="hoverHalt(e.haltIndex, 0)" @mouseleave="unhoverHalt(e.haltIndex, 0)" @click.prevent.stop="clickHalt(e.haltIndex, 0)">
+        <div v-if="i != times.length - 1" class="journey-time-body" @mouseenter="hoverHalt(e.haltIndex, 0)" @mouseleave="unhoverHalt(e.haltIndex, 0)" @click.prevent.stop="clickHalt(e.haltIndex, 0)">
           {{ TimeUtil.joinString(e.timeToNextStation, true) }}
         </div>
       </div>
@@ -45,10 +43,7 @@ import * as TimeUtil from "../time-util"
 const store = useMainStore()
 const gui = useGuiStore()
 
-const {
-  lineIndex,
-  setIndex, 
-} = defineProps<{
+const { lineIndex, setIndex } = defineProps<{
   lineIndex: number
   setIndex: number
 }>()
@@ -78,7 +73,7 @@ const times = computed(() => {
     if (halt.skip) continue
     const station = store.findStation(halt.stationId)
     const stationName = station.name
-    const scheduledValue = Math.round((haltTimes[i].departure % monthLength) / monthLength * shiftDivisor)
+    const scheduledValue = Math.round(((haltTimes[i].departure % monthLength) / monthLength) * shiftDivisor)
     const arrivalTime = (haltTimes[i].arrival + offsetTime) % monthLength
     const departureTime = (haltTimes[i].departure + offsetTime) % monthLength
     const timeToNextStation = haltTimes[i].journey
@@ -170,11 +165,13 @@ const clickHalt = (haltIndex: number, type: number) => {
   font-size: 85%;
 }
 
-.station, .journey-time-body {
+.station,
+.journey-time-body {
   cursor: pointer;
 }
 
-.station:hover, .journey-time-body:hover {
+.station:hover,
+.journey-time-body:hover {
   background-color: rgb(240, 240, 240);
 }
 
@@ -184,7 +181,8 @@ const clickHalt = (haltIndex: number, type: number) => {
   align-items: center;
 }
 
-.arrival-time, .departure-time {
+.arrival-time,
+.departure-time {
   height: 1.3rem;
   line-height: 1.3rem;
   padding-left: 4px;

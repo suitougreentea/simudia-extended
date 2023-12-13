@@ -1,6 +1,6 @@
 <template>
-  <div ref="container" style="overflow: scroll;" @click="clickBackground">
-    <svg style="position: absolute; top: 0; left: 0;" :width="gui.layout.width" :height="gui.layout.height">
+  <div ref="container" style="overflow: scroll" @click="clickBackground">
+    <svg style="position: absolute; top: 0; left: 0" :width="gui.layout.width" :height="gui.layout.height">
       <filter id="selected-shadow" filterUnits="userSpaceOnUse" width="200%" height="200%">
         <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
         <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
@@ -16,11 +16,34 @@
       <use xlink:href="#stations-hover"></use>
       <use xlink:href="#lines-hover"></use>
     </svg>
-    <div style="position: absolute; top: 0; left: 0;">
-      <div class="station-name station-name-placeholder" v-if="stationPlaceholderVisible" :style="{ top: newStationY + 'px', left: gui.layout.left + 'px'}">{{ stationPlaceholderText }}</div>
-      <div class="station-name" contenteditable v-for="(s, i) in gui.stations" :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px' }" @focus="gui.resetInput" @keydown.tab.prevent="modifyStationKeyProceed(i)" @keydown.enter.prevent="modifyStationKeyProceed(i)" @keydown.esc.prevent="modifyStationKeyCancel(i)" @blur="modifyStationBlur(i)" ref="existingStation">{{ s.name }}</div>
-      <div class="station-name" contenteditable :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }" @focus="newStationFocus" @blur="newStationBlur" @keydown.tab.prevent="newStationKeyProceed" @keydown.enter.prevent="newStationKeyProceed" @keydown.esc.prevent="newStationKeyCancel" ref="newStation"></div>
-      <div class="station-name" style="opacity: 0" ref="stationForMeasure"></div>
+    <div style="position: absolute; top: 0; left: 0">
+      <div v-if="stationPlaceholderVisible" class="station-name station-name-placeholder" :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }">{{ stationPlaceholderText }}</div>
+      <div
+        v-for="(s, i) in gui.stations"
+        ref="existingStation"
+        class="station-name"
+        contenteditable
+        :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px' }"
+        @focus="gui.resetInput"
+        @keydown.tab.prevent="modifyStationKeyProceed(i)"
+        @keydown.enter.prevent="modifyStationKeyProceed(i)"
+        @keydown.esc.prevent="modifyStationKeyCancel(i)"
+        @blur="modifyStationBlur(i)"
+      >
+        {{ s.name }}
+      </div>
+      <div
+        ref="newStation"
+        class="station-name"
+        contenteditable
+        :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }"
+        @focus="newStationFocus"
+        @blur="newStationBlur"
+        @keydown.tab.prevent="newStationKeyProceed"
+        @keydown.enter.prevent="newStationKeyProceed"
+        @keydown.esc.prevent="newStationKeyCancel"
+      ></div>
+      <div ref="stationForMeasure" class="station-name" style="opacity: 0"></div>
       <TimeInput ref="timeInput"></TimeInput>
     </div>
   </div>
@@ -31,10 +54,10 @@ import LineDefs from "./LineDefs.vue"
 import StationDefs from "./StationDefs.vue"
 import LineInputDefs from "./LineInputDefs.vue"
 import TimeInput from "./TimeInput.vue"
-import { computed, ref, watch } from "vue";
-import { useMainStore } from "../stores/main";
-import { useGuiStore } from "../stores/gui";
-import { useGuiMessageStore } from "../stores/gui-message";
+import { computed, ref, watch } from "vue"
+import { useMainStore } from "../stores/main"
+import { useGuiStore } from "../stores/gui"
+import { useGuiMessageStore } from "../stores/gui-message"
 import * as TimeUtil from "../time-util"
 
 const store = useMainStore()
@@ -121,7 +144,6 @@ const newStationBlur = () => {
   stationPlaceholderVisible.value = true
 }
 
-
 const newStationKeyProceed = () => {
   const element = newStation.value
   const text = element.innerText.trim()
@@ -169,9 +191,9 @@ const modifyStationBlur = (i) => {
   }
 }
 
-const stationNames = computed(() =>  store.stations.map(e => e.name))
+const stationNames = computed(() => store.stations.map((e) => e.name))
 watch(stationNames, (value) => {
-  const widths = value.map(e => measureStationWidth(e))
+  const widths = value.map((e) => measureStationWidth(e))
   gui.stationsWidth = Math.max(100, ...widths) + 10
 })
 const measureStationWidth = (name) => {

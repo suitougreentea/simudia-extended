@@ -39,18 +39,18 @@ type ComputedLineTime = {
 }
 
 type ComputedHaltTime = {
-  arrival: number,
-  wait: number,
-  departure: number,
-  journey: number,
-  scheduled: boolean,
+  arrival: number
+  wait: number
+  departure: number
+  journey: number
+  scheduled: boolean
 }
 
 export type State = {
-  monthLength: Time,
-  shiftDivisor: number,
-  stations: Station[],
-  lines: Line[],
+  monthLength: Time
+  shiftDivisor: number
+  stations: Station[]
+  lines: Line[]
 }
 
 const getEmptyState = (): State => {
@@ -73,7 +73,7 @@ const getEmptyLineHalt = (defaultLoadingTime: number): LineHalt => {
     waitTime: 0,
     scheduled: false,
     departureTime: 0,
-    skip: false
+    skip: false,
   }
 }
 
@@ -81,7 +81,7 @@ export const useMainStore = defineStore("main", {
   state: () => getEmptyState(),
   getters: {
     timeList(state) {
-      const result: { fromStationId: number, toStationId: number, lineIndex: number, haltIndex: number, time: number }[] = []
+      const result: { fromStationId: number; toStationId: number; lineIndex: number; haltIndex: number; time: number }[] = []
 
       const lines = state.lines
       lines.forEach((line, lineIndex) => {
@@ -102,19 +102,21 @@ export const useMainStore = defineStore("main", {
       return result
     },
     findStationIndex(state) {
-      return (id) => state.stations.findIndex(e => id === e.id)
+      return (id) => state.stations.findIndex((e) => id === e.id)
     },
     findStation(state) {
       return (id) => state.stations[this.findStationIndex(id)]
     },
     computedTimes(state) {
       const lines = state.lines
-      return lines.map(line => {
+      return lines.map((line) => {
         const halts = line.halts
-        const haltTimes: ComputedHaltTime[] = Array.from({ length: halts.length }, _ => { return { arrival: 0, wait: 0, departure: 0, journey: 0, scheduled: false } })
+        const haltTimes: ComputedHaltTime[] = Array.from({ length: halts.length }, (_) => {
+          return { arrival: 0, wait: 0, departure: 0, journey: 0, scheduled: false }
+        })
         const length = halts.length
         let accum = 0
-        let firstScheduledIndex = halts.findIndex(e => e.scheduled && !e.skip)
+        let firstScheduledIndex = halts.findIndex((e) => e.scheduled && !e.skip)
         if (firstScheduledIndex >= 0) {
           accum = halts[firstScheduledIndex].departureTime
         } else {
@@ -123,11 +125,11 @@ export const useMainStore = defineStore("main", {
         for (let j = 0; j < length; j++) {
           const i = (j + firstScheduledIndex) % length
           const halt = halts[i]
-          const nextHalt = halts[(i+1) % length]
+          const nextHalt = halts[(i + 1) % length]
           haltTimes[i].departure = accum
           haltTimes[i].journey = halt.skip ? 0 : halt.time
           accum += halt.skip ? 0 : halt.time
-          haltTimes[(i+1) % length].arrival = accum
+          haltTimes[(i + 1) % length].arrival = accum
           if (nextHalt.skip) {
             haltTimes[(i + 1) % length].scheduled = false
             haltTimes[(i + 1) % length].wait = 0
@@ -171,11 +173,13 @@ export const useMainStore = defineStore("main", {
     modifyShiftDivisor({ value }) {
       this.shiftDivisor = value
     },
-    addStation({ pos: _pos, name }: { pos?: number, name: string }) {
-      const pos = (_pos == null) ? this.stations.length : _pos
+    addStation({ pos: _pos, name }: { pos?: number; name: string }) {
+      const pos = _pos == null ? this.stations.length : _pos
       // get unused ID
       let id
-      do { id = Math.floor(Math.random() * 4294967296) } while (this.stations.some(e => e.id === id))
+      do {
+        id = Math.floor(Math.random() * 4294967296)
+      } while (this.stations.some((e) => e.id === id))
       this.stations.splice(pos, 0, { name, id })
     },
     modifyStation({ pos, name }) {
@@ -211,12 +215,21 @@ export const useMainStore = defineStore("main", {
       }
       halts[0].scheduled = true
       halts[0].departureTime = firstTime
-      this.lines.push({ name: "New Line", divisor: 1, lineWidth: 1, color: "#000000", halts, defaultLoadingTime: 30 * TimeUtil.SECOND_DIVISOR, reversingTime: 60 * TimeUtil.SECOND_DIVISOR, visible: true })
+      this.lines.push({
+        name: "New Line",
+        divisor: 1,
+        lineWidth: 1,
+        color: "#000000",
+        halts,
+        defaultLoadingTime: 30 * TimeUtil.SECOND_DIVISOR,
+        reversingTime: 60 * TimeUtil.SECOND_DIVISOR,
+        visible: true,
+      })
     },
     copyLine(index) {
       this.lines.push({
         ...this.lines[index],
-        halts: this.lines[index].halts.map(e => ({ ...e })),
+        halts: this.lines[index].halts.map((e) => ({ ...e })),
         name: `Copy of ${this.lines[index].name}`,
       })
     },
@@ -238,19 +251,19 @@ export const useMainStore = defineStore("main", {
           ...getEmptyLineHalt(line.defaultLoadingTime),
           stationId: this.stations[stationIndices[i]].id,
           time: times[i],
-          reverse: false // reverses are set later
+          reverse: false, // reverses are set later
         })
       }
-      const newHalts = halts.map(e => e)
-      insertingHalts[0] = {...newHalts[haltIndex], ...insertingHalts[0]}
+      const newHalts = halts.map((e) => e)
+      insertingHalts[0] = { ...newHalts[haltIndex], ...insertingHalts[0] }
       newHalts.splice(haltIndex, 1, ...insertingHalts)
 
       // update reverses
       const size = newHalts.length
       for (let i = haltIndex; i < haltIndex + stationIndices.length; i++) {
-        const prev = this.findStationIndex(newHalts[(i+size-1) % size].stationId)
+        const prev = this.findStationIndex(newHalts[(i + size - 1) % size].stationId)
         const curr = this.findStationIndex(newHalts[i % size].stationId) // because i == size when inserting at tail
-        const next = this.findStationIndex(newHalts[(i+1) % size].stationId)
+        const next = this.findStationIndex(newHalts[(i + 1) % size].stationId)
 
         const reverse = (curr - prev) * (curr - next) > 0
         newHalts[i % size].reverse = reverse
@@ -262,15 +275,15 @@ export const useMainStore = defineStore("main", {
       halts.splice(haltIndex, 1)
       const size = halts.length
       if (size <= 1) return
-      if (halts[(haltIndex+size-1)%size].stationId === halts[haltIndex%size].stationId) {
+      if (halts[(haltIndex + size - 1) % size].stationId === halts[haltIndex % size].stationId) {
         // v
-        halts.splice((haltIndex+size-1)%size, 1)
+        halts.splice((haltIndex + size - 1) % size, 1)
         const newSize = halts.length
-        halts[(haltIndex+newSize-1)%newSize].reverse = true
+        halts[(haltIndex + newSize - 1) % newSize].reverse = true
       } else {
         // / or \
-        const newTime = halts[(haltIndex+size-1)%size].time + halts[haltIndex%size].time
-        halts[(haltIndex+size-1)%size].time = newTime
+        const newTime = halts[(haltIndex + size - 1) % size].time + halts[haltIndex % size].time
+        halts[(haltIndex + size - 1) % size].time = newTime
       }
     },
   },

@@ -1,9 +1,9 @@
-<template>  
+<template>
   <v-app @dragover="dragover" @drop="drop">
     <v-navigation-drawer permanent touchless rail color="primary">
       <v-list density="compact" nav>
         <v-menu>
-          <template v-slot:activator="{ props }">
+          <template #activator="{ props }">
             <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
           </template>
           <v-list>
@@ -25,9 +25,10 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main><!-- TODO: @contextmenu.prevent after replacing contenteditable elements -->
-      <div style="position: absolute; left: var(--v-layout-left); right: var(--v-layout-right); top: var(--v-layout-top); bottom: var(--v-layout-bottom);">
-        <Workspace style="position: absolute; width: 100%; height: 100%;" ref="workspace"></Workspace>
+    <v-main
+      ><!-- TODO: @contextmenu.prevent after replacing contenteditable elements -->
+      <div style="position: absolute; left: var(--v-layout-left); right: var(--v-layout-right); top: var(--v-layout-top); bottom: var(--v-layout-bottom)">
+        <Workspace ref="workspace" style="position: absolute; width: 100%; height: 100%"></Workspace>
         <div :style="horizontalZoomStyle">
           <v-btn-group density="comfortable" class="ma-2" elevation="4">
             <v-btn color="grey-lighten-4" icon="mdi-plus" @click.prevent.stop="zoomInHorizontal"></v-btn>
@@ -35,9 +36,9 @@
           </v-btn-group>
         </div>
         <div :style="verticalZoomStyle">
-          <v-btn-group density="comfortable" class="ma-2" style="flex-direction: column; height: 80px;" elevation="4">
-            <v-btn color="grey-lighten-4" icon="mdi-plus" style="border-end-start-radius: revert; height: 50%;" @click.prevent.stop="zoomInVertical"></v-btn>
-            <v-btn color="grey-lighten-4" icon="mdi-minus" style="border-start-end-radius: revert; height: 50%;" @click.prevent.stop="zoomOutVertical"></v-btn>
+          <v-btn-group density="comfortable" class="ma-2" style="flex-direction: column; height: 80px" elevation="4">
+            <v-btn color="grey-lighten-4" icon="mdi-plus" style="border-end-start-radius: revert; height: 50%" @click.prevent.stop="zoomInVertical"></v-btn>
+            <v-btn color="grey-lighten-4" icon="mdi-minus" style="border-start-end-radius: revert; height: 50%" @click.prevent.stop="zoomOutVertical"></v-btn>
           </v-btn-group>
         </div>
         <div :style="toggleSidebarStyle">
@@ -48,13 +49,13 @@
       </div>
     </v-main>
 
-    <v-navigation-drawer permanent v-model="showSidebar" location="right" :width="sidebarWidth">
+    <v-navigation-drawer v-model="showSidebar" permanent location="right" :width="sidebarWidth">
       <Sidebar ref="sideBar"></Sidebar>
     </v-navigation-drawer>
 
     <v-snackbar v-model="updateNotification" timeout="-1">
       A new version of SimuDia-Extended is available!
-      <template v-slot:actions>
+      <template #actions>
         <v-btn @click="updateVersion">Update</v-btn>
         <v-btn @click="updateNotification = false">Close</v-btn>
       </template>
@@ -95,21 +96,30 @@ const gui = useGuiStore()
 const message = useGuiMessageStore()
 
 const workspace = ref<InstanceType<typeof Workspace>>(null)
-const horizontalZoomStyle = computed(() => ({
-  position: "absolute",
-  right: `${(workspace.value?.scrollBarSize?.width ?? 0) + 44}px`,
-  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0)}px`,
-}) satisfies StyleValue)
-const verticalZoomStyle = computed(() => ({
-  position: "absolute",
-  right: `${(workspace.value?.scrollBarSize?.width ?? 0)}px`,
-  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0) + 48}px`,
-}) satisfies StyleValue)
-const toggleSidebarStyle = computed(() => ({
-  position: "absolute",
-  right: `${(workspace.value?.scrollBarSize?.width ?? 0)}px`,
-  bottom: `${(workspace.value?.scrollBarSize?.height ?? 0)}px`,
-}) satisfies StyleValue)
+const horizontalZoomStyle = computed(
+  () =>
+    ({
+      position: "absolute",
+      right: `${(workspace.value?.scrollBarSize?.width ?? 0) + 44}px`,
+      bottom: `${workspace.value?.scrollBarSize?.height ?? 0}px`,
+    }) satisfies StyleValue
+)
+const verticalZoomStyle = computed(
+  () =>
+    ({
+      position: "absolute",
+      right: `${workspace.value?.scrollBarSize?.width ?? 0}px`,
+      bottom: `${(workspace.value?.scrollBarSize?.height ?? 0) + 48}px`,
+    }) satisfies StyleValue
+)
+const toggleSidebarStyle = computed(
+  () =>
+    ({
+      position: "absolute",
+      right: `${workspace.value?.scrollBarSize?.width ?? 0}px`,
+      bottom: `${workspace.value?.scrollBarSize?.height ?? 0}px`,
+    }) satisfies StyleValue
+)
 
 const stationContextMenu = ref<InstanceType<typeof StationContextMenu>>(null)
 provide(stationContextMenuInjection, stationContextMenu)
@@ -127,10 +137,18 @@ const title = computed(() => {
   return (gui.modified ? "*" : "") + gui.currentFileHandle.getFilename() + " - SimuDia-Extended " + (__VERSION__ ?? "")
 })
 
-const zoomInHorizontal = () => { gui.zoom.horizontal++ }
-const zoomOutHorizontal = () => { gui.zoom.horizontal-- }
-const zoomInVertical = () => { gui.zoom.vertical++ }
-const zoomOutVertical = () => { gui.zoom.vertical-- }
+const zoomInHorizontal = () => {
+  gui.zoom.horizontal++
+}
+const zoomOutHorizontal = () => {
+  gui.zoom.horizontal--
+}
+const zoomInVertical = () => {
+  gui.zoom.vertical++
+}
+const zoomOutVertical = () => {
+  gui.zoom.vertical--
+}
 
 const showSidebar = ref(true)
 const toggleSidebar = () => {
@@ -226,7 +244,7 @@ const checkModifiedAndSaveFile = async (): Promise<boolean> => {
 
 // returns true if succeeds
 const newFile = async (): Promise<boolean> => {
-  if (!await checkModifiedAndSaveFile()) return false
+  if (!(await checkModifiedAndSaveFile())) return false
   gui.newFile()
   gui.unselectAll()
   return true
@@ -234,7 +252,7 @@ const newFile = async (): Promise<boolean> => {
 
 // returns true if succeeds
 const openFile = async (): Promise<boolean> => {
-  if (!await checkModifiedAndSaveFile()) return false
+  if (!(await checkModifiedAndSaveFile())) return false
 
   const api = availableFileApis[0]
   const fileHandle = await api.open({ type: "standard" })
@@ -245,7 +263,7 @@ const openFile = async (): Promise<boolean> => {
 
 // returns true if succeeds
 const importLegacyFile = async (): Promise<boolean> => {
-  if (!await checkModifiedAndSaveFile()) return false
+  if (!(await checkModifiedAndSaveFile())) return false
 
   const api = availableFileApis[0]
   const fileHandle = await api.open({ type: "legacy" })
@@ -255,8 +273,8 @@ const importLegacyFile = async (): Promise<boolean> => {
 }
 
 // returns true if succeeds
-const importUrl = async(): Promise<boolean> => {
-  if (!await checkModifiedAndSaveFile()) return false
+const importUrl = async (): Promise<boolean> => {
+  if (!(await checkModifiedAndSaveFile())) return false
 
   const url = await importUrlDialog.value.open()
   if (url == null) return false
@@ -306,7 +324,7 @@ const drop = async (e: DragEvent): Promise<boolean> => {
   const fileHandle = await api.onFileDrop(e.dataTransfer.items[0])
   if (fileHandle == null) return false
 
-  if (!await checkModifiedAndSaveFile()) return false
+  if (!(await checkModifiedAndSaveFile())) return false
 
   return await openFileInternal(fileHandle, null, false)
 }
@@ -341,12 +359,12 @@ const sidebarWidth = ref(300)
 const updateSidebarWidth = () => {
   sidebarWidth.value = Math.max(window.innerWidth * 0.2, 300)
 }
-window.addEventListener("resize", event => {
+window.addEventListener("resize", (event) => {
   updateSidebarWidth()
 })
 updateSidebarWidth()
 
-window.addEventListener("keydown", event => {
+window.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     message.enterKeyPressed({ event })
   }
@@ -361,16 +379,16 @@ window.addEventListener("keydown", event => {
   if (event.key === "Shift") gui.modifierStates.shift = true
   if (event.key === "Control") gui.modifierStates.control = true
 })
-window.addEventListener("keyup", event => {
+window.addEventListener("keyup", (event) => {
   if (event.key === "Shift") gui.modifierStates.shift = false
   if (event.key === "Control") gui.modifierStates.control = false
 })
-window.addEventListener("beforeunload", e => beforeUnload(e))
+window.addEventListener("beforeunload", (e) => beforeUnload(e))
 
 const updateAvailable = ref(false)
 const updateNotification = ref(false)
 watch(updateAvailable, () => {
-  if (updateAvailable) updateNotification.value = true
+  if (updateAvailable.value) updateNotification.value = true
 })
 const updateVersion = () => {
   console.log("Updating version")
@@ -390,5 +408,4 @@ const updateSW = registerSW({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

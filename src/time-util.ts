@@ -1,10 +1,10 @@
 export const SECOND_DIVISOR = 360
 
 export type PretiffiedTime = {
-  hour: number,
-  second: number,
-  minute: number,
-  secondUnrounded: number,
+  hour: number
+  second: number
+  minute: number
+  secondUnrounded: number
 }
 
 export function getPrettifiedTime(time: number): PretiffiedTime {
@@ -15,22 +15,22 @@ export function getPrettifiedTime(time: number): PretiffiedTime {
     hour,
     minute,
     second: Math.floor(secondUnrounded),
-    secondUnrounded
+    secondUnrounded,
   }
 }
 
 export function joinStringSimple(time: number): string {
   const { hour, minute, second } = getPrettifiedTime(time)
-  return ((hour > 0) ? String(hour) : "") + String(minute).padStart(2, "0") + String(second).padStart(2, "0")
+  return (hour > 0 ? String(hour) : "") + String(minute).padStart(2, "0") + String(second).padStart(2, "0")
 }
 
 export function joinString(time: number, omitHour: boolean = true): string {
   const { hour, minute, second } = getPrettifiedTime(time)
-  return ((hour > 0 || !omitHour) ? (String(hour) + ":") : "") + String(minute).padStart(2, "0") + ":" + String(second).padStart(2, "0")
+  return (hour > 0 || !omitHour ? String(hour) + ":" : "") + String(minute).padStart(2, "0") + ":" + String(second).padStart(2, "0")
 }
 
 export function fromHMS(hour: number, minute: number, second: number): number {
-  return ((((hour * 60) + minute) * 60) + second) * SECOND_DIVISOR
+  return ((hour * 60 + minute) * 60 + second) * SECOND_DIVISOR
 }
 
 const simpleTestWithHour = /^([0-9]*)([0-5][0-9])([0-5][0-9])$/

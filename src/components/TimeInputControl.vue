@@ -1,7 +1,7 @@
-<template>  
-  <v-text-field type="text" v-model="model" :rules="[rule]" @change="onChange" @update:focused="onFocusChanged" ref="textField">
+<template>
+  <v-text-field ref="textField" v-model="model" type="text" :rules="[rule]" @change="onChange" @update:focused="onFocusChanged">
     <v-tooltip v-if="hints != null && hints.length > 0" v-model="focused" activator="parent" :open-on-focus="false" :open-on-hover="false" location="bottom">
-      <v-list density="compact" style="pointer-events: initial;" bg-color="transparent">
+      <v-list density="compact" style="pointer-events: initial" bg-color="transparent">
         <v-list-item v-for="e in hints" @click.prevent.stop="setFromHint(e.time)">
           <div class="hint-container">
             <div class="hint-time">{{ TimeUtil.joinString(e.time) }}</div>
@@ -19,23 +19,26 @@ import { ref, toRefs, watch } from "vue"
 import * as TimeUtil from "../time-util"
 
 export type Hint = {
-  time: number,
-  source: string,
+  time: number
+  source: string
 }
 
-const props = withDefaults(defineProps<{
-  modelValue: number,
-  omitHour?: boolean,
-  hints?: Hint[],
-}>(), {
-  omitHour: false,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: number
+    omitHour?: boolean
+    hints?: Hint[]
+  }>(),
+  {
+    omitHour: false,
+  }
+)
 
 const textField = ref(null)
 
 const emit = defineEmits<{
-  "update:modelValue": [newValue: number],
-  "selectedFromHints": [newValue: number],
+  "update:modelValue": [newValue: number]
+  selectedFromHints: [newValue: number]
 }>()
 
 const model = ref("")
@@ -96,4 +99,3 @@ const setFromHint = (time: number) => {
   opacity: 0.7;
 }
 </style>
-

@@ -1,22 +1,25 @@
-<template>  
-  <v-text-field type="number" v-model="model" :min="min" :max="max" :rules="[rule]" @change="onChange"></v-text-field>
+<template>
+  <v-text-field v-model="model" type="number" :min="min" :max="max" :rules="[rule]" @change="onChange"></v-text-field>
 </template>
 
 <script setup lang="ts">
 import { ref, toRefs, watch } from "vue"
-const props = withDefaults(defineProps<{
-  modelValue: number,
-  min?: number,
-  max?: number,
-  integer?: boolean,
-}>(), {
-  min: undefined,
-  max: undefined,
-  integer: false,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: number
+    min?: number
+    max?: number
+    integer?: boolean
+  }>(),
+  {
+    min: undefined,
+    max: undefined,
+    integer: false,
+  }
+)
 
 const emit = defineEmits<{
-  "update:modelValue": [newValue: number],
+  "update:modelValue": [newValue: number]
 }>()
 
 const model = ref(0)
@@ -58,4 +61,3 @@ input.error {
   box-shadow: 0px 0px 2px 1px red;
 }
 </style>
-

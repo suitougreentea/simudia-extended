@@ -39,7 +39,7 @@ class UrlOpenFileHandle implements OpenFileHandle {
   getFilename(): string {
     if (this.resolvedFilename != null) return this.resolvedFilename
     const url = new URL(this.url)
-    const names = url.pathname.split("/").filter(e => e != "")
+    const names = url.pathname.split("/").filter((e) => e != "")
     if (names.length == 0) return "Imported File"
     return names[names.length - 1]
   }
@@ -111,7 +111,7 @@ class FileApiOpenFileHandle implements OpenFileHandle {
   async save(content: string): Promise<void> {
     const blob = new Blob([content], { type: "application/json" })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement("a")
     a.href = url
     a.download = this.getFilename()
@@ -178,7 +178,7 @@ class FileSystemApiOpenFileHandle implements OpenFileHandle {
     this.handle = handle
   }
   getFilename(): string {
-      return this.handle.name
+    return this.handle.name
   }
   async open(): Promise<string> {
     const file = await this.handle.getFile()
@@ -193,4 +193,4 @@ class FileSystemApiOpenFileHandle implements OpenFileHandle {
 }
 
 export const allApis: FileHandler[] = [new FileSystemApiFileHandler(), new FileApiFileHandler()]
-export const allAvailableApis = allApis.filter(e => e.isAvailable())
+export const allAvailableApis = allApis.filter((e) => e.isAvailable())

@@ -1,5 +1,5 @@
 <template>
-  <div ref="coordinateSpace" style="position: absolute; width: 100%; height: 100%; pointer-events: none;">
+  <div ref="coordinateSpace" style="position: absolute; width: 100%; height: 100%; pointer-events: none">
     <div :style="divStyle">
       <v-menu v-model="opened" activator="parent">
         <slot></slot>
@@ -18,13 +18,16 @@ const coordinateSpace = ref<HTMLDivElement>(null)
 const opened = ref(false)
 const offset = ref({ x: 0, y: 0 })
 
-const divStyle = computed(() => ({
-  position: "absolute",
-  left: `${offset.value.x}px`,
-  top: `${offset.value.y}px`,
-}) satisfies StyleValue)
+const divStyle = computed(
+  () =>
+    ({
+      position: "absolute",
+      left: `${offset.value.x}px`,
+      top: `${offset.value.y}px`,
+    }) satisfies StyleValue
+)
 
-const open = async (location: { x: number, y: number }) => {
+const open = async (location: { x: number; y: number }) => {
   message.closeAllContextMenus({})
   await nextTick()
   offset.value = location
@@ -48,5 +51,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

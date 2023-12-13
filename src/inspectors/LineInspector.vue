@@ -1,11 +1,11 @@
 <template>
-  <v-checkbox-btn label="Visible" v-model="currentLine.visible"></v-checkbox-btn>
-  <v-text-field label="Name" v-model="currentLine.name"></v-text-field>
-  <NumberInputControl label="Departures/month" v-model="currentLine.divisor" integer :min="1" :max="65535"></NumberInputControl>
-  <NumberInputControl label="Line width" v-model="currentLine.lineWidth" :min="1"></NumberInputControl>
-  <ColorInputControl label="Color" v-model="currentLine.color"></ColorInputControl>
-  <TimeInputControl label="Default loading time" omit-hour v-model="currentLine.defaultLoadingTime"></TimeInputControl>
-  <TimeInputControl label="Reversing time" omit-hour v-model="currentLine.reversingTime"></TimeInputControl>
+  <v-checkbox-btn v-model="currentLine.visible" label="Visible"></v-checkbox-btn>
+  <v-text-field v-model="currentLine.name" label="Name"></v-text-field>
+  <NumberInputControl v-model="currentLine.divisor" label="Departures/month" integer :min="1" :max="65535"></NumberInputControl>
+  <NumberInputControl v-model="currentLine.lineWidth" label="Line width" :min="1"></NumberInputControl>
+  <ColorInputControl v-model="currentLine.color" label="Color"></ColorInputControl>
+  <TimeInputControl v-model="currentLine.defaultLoadingTime" label="Default loading time" omit-hour></TimeInputControl>
+  <TimeInputControl v-model="currentLine.reversingTime" label="Reversing time" omit-hour></TimeInputControl>
   <v-divider class="ma-3"></v-divider>
   <v-btn @click="gui.copySelectedLine(gui.lineSelection.selectedLine)">Copy line</v-btn>
   <v-btn @click="gui.deleteSelectedLine(gui.lineSelection.selectedLine)">Delete line</v-btn>
@@ -22,12 +22,13 @@ import { useGuiStore } from "../stores/gui"
 const store = useMainStore()
 const gui = useGuiStore()
 
-const currentLine = computed(() => { return store.lines[gui.lineSelection.selectedLine] })
+const currentLine = computed(() => {
+  return store.lines[gui.lineSelection.selectedLine]
+})
 
 const changeLine = (key, value) => {
   store.modifyLine({ index: gui.lineSelection.selectedLine, key, value })
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

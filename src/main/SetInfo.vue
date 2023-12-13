@@ -9,5 +9,4 @@ import { useGuiStore } from "../stores/gui"
 const gui = useGuiStore()
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

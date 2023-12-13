@@ -1,5 +1,5 @@
 <template>
-  <div v-if="selectedStations.length > 1" v-for="selectedStation in selectedStations" class="text-body-2 row">
+  <div v-for="selectedStation in selectedStations" v-if="selectedStations.length > 1" class="text-body-2 row">
     <v-spacer></v-spacer>
     <div>{{ selectedStation }}</div>
     <v-spacer></v-spacer>
@@ -41,7 +41,7 @@ import { useGuiStore } from "../stores/gui"
 const data = useMainStore()
 const gui = useGuiStore()
 
-const selectedStations = computed(() => gui.resolvedSelectedStations.map(e => e.name))
+const selectedStations = computed(() => gui.resolvedSelectedStations.map((e) => e.name))
 
 const selectedLine = computed(() => {
   if (gui.lineSelection.selectedLine == -1) return null
@@ -74,14 +74,14 @@ const selectedHalt = computed(() => {
     return {
       fromIndex: gui.lineSelection.selectedHalt,
       toIndex: (gui.lineSelection.selectedHalt + 1) % halts.length,
-      name: `${currentStationName} → ${nextStationName}`
+      name: `${currentStationName} → ${nextStationName}`,
     }
   }
   if (gui.lineSelection.selectedType == 1) {
     const halt = data.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt]
     const stationName = data.stations[data.findStationIndex(halt.stationId)].name
     return {
-      index: gui.lineSelection.selectedHalt, 
+      index: gui.lineSelection.selectedHalt,
       name: stationName,
     }
   }
@@ -114,7 +114,8 @@ const selectSetAbsolute = (index: number) => {
 
 const selectHalt = (delta: number) => {
   const line = data.lines[gui.lineSelection.selectedLine]
-  if (gui.lineSelection.selectedType == 0) { // journey (to next)
+  if (gui.lineSelection.selectedType == 0) {
+    // journey (to next)
     if (delta == -1) {
       gui.lineSelection.selectedType = 1
     }
@@ -125,7 +126,8 @@ const selectHalt = (delta: number) => {
       gui.lineSelection.selectedType = 1
       gui.lineSelection.selectedHalt = (gui.lineSelection.selectedHalt + 1) % line.halts.length
     }
-  } else if (gui.lineSelection.selectedType == 1) { // halt
+  } else if (gui.lineSelection.selectedType == 1) {
+    // halt
     if (delta == -1) {
       if (gui.lineSelection.selectedHalt == 0) {
         selectSet(-data.computedTimes[gui.lineSelection.selectedLine].setOffset)
@@ -138,7 +140,6 @@ const selectHalt = (delta: number) => {
     }
   }
 }
-
 </script>
 
 <style scoped>

@@ -39,20 +39,20 @@ export const useGuiStore = defineStore("gui", () => {
     selectedLine: -1,
     selectedSet: -1,
     selectedHalt: -1,
-    selectedType: -1
+    selectedType: -1,
   })
   const hoveredTime = ref(-1)
   const modifierStates = ref({
     control: false,
-    shift: false
+    shift: false,
   })
   const lineInsertOrigin = ref({
     line: -1,
-    halt: -1
+    halt: -1,
   })
   const zoom = ref({
     horizontal: 0,
-    vertical: 0
+    vertical: 0,
   })
 
   const stationsWidth = ref(110)
@@ -79,9 +79,9 @@ export const useGuiStore = defineStore("gui", () => {
 
   const hiddenStationIds = ref<number[]>([])
   const stations = computed(() => {
-    const visibleStations = data.stations.filter(e => hiddenStationIds.value.indexOf(e.id) == -1)
+    const visibleStations = data.stations.filter((e) => hiddenStationIds.value.indexOf(e.id) == -1)
 
-    const result: { id: number, name: string, accumulatedTime: number }[] = []
+    const result: { id: number; name: string; accumulatedTime: number }[] = []
     let accum = MARGIN + 20
     for (let i = 0; i < data.stations.length; i++) {
       const from = data.stations[i]
@@ -89,11 +89,9 @@ export const useGuiStore = defineStore("gui", () => {
 
       result.push({ id: from.id, name: from.name, accumulatedTime: accum })
 
-      const times = data.timeList
-        .filter(e => (e.fromStationId == from.id && e.toStationId == to.id) || (e.toStationId == from.id && e.fromStationId == to.id))
-        .map(e => e.time)
+      const times = data.timeList.filter((e) => (e.fromStationId == from.id && e.toStationId == to.id) || (e.toStationId == from.id && e.fromStationId == to.id)).map((e) => e.time)
 
-      const slowestTime = (times.length > 0) ? Math.max(...times) : 20 * 3600
+      const slowestTime = times.length > 0 ? Math.max(...times) : 20 * 3600
       accum += slowestTime
     }
     return result
@@ -114,7 +112,7 @@ export const useGuiStore = defineStore("gui", () => {
   const resetInput = () => {
     lineInsertOrigin.value = {
       line: -1,
-      halt: -1
+      halt: -1,
     }
     inputtingTime.value = false
     mode.value = "edit"
@@ -210,7 +208,7 @@ export const useGuiStore = defineStore("gui", () => {
       selectedLine: -1,
       selectedSet: -1,
       selectedHalt: -1,
-      selectedType: -1
+      selectedType: -1,
     }
   }
 
@@ -227,10 +225,10 @@ export const useGuiStore = defineStore("gui", () => {
     const monthLength = data.monthLength
     const halts = data.lines[lineIndex].halts
     const halt = halts[haltIndex]
-    const nextHalt = halts[(haltIndex + 1)%halts.length]
+    const nextHalt = halts[(haltIndex + 1) % halts.length]
     const stationIndex = data.findStationIndex(halt.stationId)
     const nextStationIndex = data.findStationIndex(nextHalt.stationId)
-    const time = (data.computedTimes[lineIndex].haltTimes[haltIndex].departure + monthLength / line.divisor * setIndex) % monthLength
+    const time = (data.computedTimes[lineIndex].haltTimes[haltIndex].departure + (monthLength / line.divisor) * setIndex) % monthLength
 
     lineInsertOrigin.value = {
       line: lineIndex,
@@ -265,12 +263,8 @@ export const useGuiStore = defineStore("gui", () => {
   const hoveredStationIds = ref<number[]>([])
   const selectedStationIds = ref<number[]>([])
 
-  const resolvedHoveredStations = computed(() => hoveredStationIds.value
-    .map(id => stations.value.find(station => station.id == id))
-    .filter(station => station != null))
-  const resolvedSelectedStations = computed(() => selectedStationIds.value
-    .map(id => stations.value.find(station => station.id == id))
-    .filter(station => station != null))
+  const resolvedHoveredStations = computed(() => hoveredStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null))
+  const resolvedSelectedStations = computed(() => selectedStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null))
   const isSingleStationHovered = computed(() => hoveredStationIds.value.length == 1)
   const isSingleStationSelected = computed(() => selectedStationIds.value.length == 1)
 
@@ -293,21 +287,21 @@ export const useGuiStore = defineStore("gui", () => {
   }
 
   const toggleAppendStationSelection = (id: number) => {
-    if (selectedStationIds.value.findIndex(e => e == id) >= 0) {
-      selectedStationIds.value = selectedStationIds.value.filter(e => e != id)
+    if (selectedStationIds.value.findIndex((e) => e == id) >= 0) {
+      selectedStationIds.value = selectedStationIds.value.filter((e) => e != id)
     } else {
       selectedStationIds.value.push(id)
     }
   }
 
   const selectStationRelativeTo = (id: number, relativeTo: number) => {
-    const stationIndex = stations.value.findIndex(e => e.id == id)
+    const stationIndex = stations.value.findIndex((e) => e.id == id)
     if (stationIndex == -1) return
     selectedStationIds.value = [stations.value[(stationIndex + relativeTo + stations.value.length) % stations.value.length].id]
   }
 
   const insertStationRelativeTo = (id: number, relativeTo: number) => {
-    const stationIndex = stations.value.findIndex(e => e.id == id)
+    const stationIndex = stations.value.findIndex((e) => e.id == id)
     if (stationIndex == -1) return
     data.addStation({
       pos: stationIndex + relativeTo,
@@ -318,8 +312,8 @@ export const useGuiStore = defineStore("gui", () => {
 
   const deleteStations = (ids: number[]) => {
     unselectLine()
-    ids.forEach(id => {
-      const stationIndex = stations.value.findIndex(e => e.id == id)
+    ids.forEach((id) => {
+      const stationIndex = stations.value.findIndex((e) => e.id == id)
       if (stationIndex == -1) return
       data.deleteStation({
         pos: stationIndex,
@@ -333,14 +327,17 @@ export const useGuiStore = defineStore("gui", () => {
     if (stationIds.length < 2) return []
     stationIds = [...stationIds]
     stationIds.sort((a, b) => data.findStationIndex(a) - data.findStationIndex(b))
-    const result: { lineIndex: number, haltIndex: number, fromId: number, toId: number, time: number }[] = []
+    const result: { lineIndex: number; haltIndex: number; fromId: number; toId: number; time: number }[] = []
 
     for (let i = 0; i < stationIds.length; i++) {
       for (let j = i + 1; j < stationIds.length; j++) {
         const a = stationIds[i]
         const b = stationIds[j]
 
-        ;[[a, b], [b, a]].map(([from, to]) => {
+        ;[
+          [a, b],
+          [b, a],
+        ].map(([from, to]) => {
           data.lines.forEach((line, lineIndex) => {
             for (let k = 0; k < line.halts.length; k++) {
               const fromHalt = line.halts[k]
@@ -366,7 +363,7 @@ export const useGuiStore = defineStore("gui", () => {
 
   const getTimeHintsBetween = (stationId0: number, stationId1: number) => {
     const journeyTimes = getJourneyTimesAmong([stationId0, stationId1])
-    return journeyTimes.map(e => {
+    return journeyTimes.map((e) => {
       const line = data.lines[e.lineIndex]
       const fromStation = data.findStation(e.fromId)
       const toStation = data.findStation(e.toId)

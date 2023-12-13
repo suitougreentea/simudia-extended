@@ -8,18 +8,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from "vue"
 import ContextMenu from "../components/ContextMenu.vue"
-import { useGuiStore } from "../stores/gui";
+import { useGuiStore } from "../stores/gui"
 
 const gui = useGuiStore()
 
 const selectedLineIndex = ref(-1)
 const menu = ref<InstanceType<typeof ContextMenu>>()
-const open = ((ev: MouseEvent, lineIndex: number) => {
+const open = (ev: MouseEvent, lineIndex: number) => {
   selectedLineIndex.value = lineIndex
   menu.value?.openByEvent(ev)
-})
+}
 
 const copyLine = () => {
   gui.copySelectedLine(selectedLineIndex.value)
@@ -33,5 +33,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
