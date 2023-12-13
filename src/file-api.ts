@@ -31,7 +31,7 @@ export const createUrlFileHandle = (url: string): OpenFileHandle => new UrlOpenF
 class UrlOpenFileHandle implements OpenFileHandle {
   url: string
   resolvedFilename: string | null = null
-  hasOpenedFile: true = true
+  hasOpenedFile: true = true as const
 
   constructor(url: string) {
     this.url = url
@@ -49,7 +49,7 @@ class UrlOpenFileHandle implements OpenFileHandle {
     this.resolvedFilename = null // TODO: parse Content-Disposition?
     return await response.text()
   }
-  save(content: string): Promise<void> {
+  save(_content: string): Promise<void> {
     throw new Error("Not supported")
   }
 }
@@ -64,11 +64,11 @@ export class FileApiFileHandler implements FileHandler {
     return true
   }
 
-  open(options: { type: FileType | null }): Promise<OpenFileHandle | null> {
-    return new Promise((resolve, reject) => {
+  open(_options: { type: FileType | null }): Promise<OpenFileHandle | null> {
+    return new Promise((resolve) => {
       const input = document.createElement("input")
       input.type = "file"
-      input.onchange = async (ev) => {
+      input.onchange = async (_) => {
         if (input.files == null || input.files.length == 0) {
           resolve(null)
           return
@@ -93,7 +93,7 @@ export class FileApiFileHandler implements FileHandler {
 class FileApiOpenFileHandle implements OpenFileHandle {
   file: File
   preferredFilename: string
-  hasOpenedFile: true = true
+  hasOpenedFile: true = true as const
 
   constructor(...args: [file: File] | [preferredFilename: string]) {
     if (args[0] instanceof File) {
@@ -172,7 +172,7 @@ export class FileSystemApiFileHandler implements FileHandler {
 
 class FileSystemApiOpenFileHandle implements OpenFileHandle {
   handle: FileSystemFileHandle
-  hasOpenedFile: true = true
+  hasOpenedFile: true = true as const
 
   constructor(handle: FileSystemFileHandle) {
     this.handle = handle

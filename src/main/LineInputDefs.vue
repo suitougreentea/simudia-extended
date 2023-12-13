@@ -82,7 +82,7 @@ const displayPathNew = computed(() => {
 })
 
 const displayCircles = computed(() => {
-  return rubberbands.value.map((e, i) => {
+  return rubberbands.value.map((e) => {
     const x = gui.x(e.time)
     const y = gui.y(gui.stations[e.station].accumulatedTime)
     return { x, y }
@@ -90,7 +90,7 @@ const displayCircles = computed(() => {
 })
 
 const displayCirclesNew = computed(() => {
-  return newRubberbands.value.map((e, i) => {
+  return newRubberbands.value.map((e) => {
     const x = gui.x(e.time)
     const y = gui.y(gui.stations[e.station].accumulatedTime)
     return { x, y }

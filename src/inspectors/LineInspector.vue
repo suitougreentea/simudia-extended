@@ -25,10 +25,6 @@ const gui = useGuiStore()
 const currentLine = computed(() => {
   return store.lines[gui.lineSelection.selectedLine]
 })
-
-const changeLine = (key, value) => {
-  store.modifyLine({ index: gui.lineSelection.selectedLine, key, value })
-}
 </script>
 
 <style scoped></style>

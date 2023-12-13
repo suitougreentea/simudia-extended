@@ -359,7 +359,7 @@ const sidebarWidth = ref(300)
 const updateSidebarWidth = () => {
   sidebarWidth.value = Math.max(window.innerWidth * 0.2, 300)
 }
-window.addEventListener("resize", (event) => {
+window.addEventListener("resize", (_) => {
   updateSidebarWidth()
 })
 updateSidebarWidth()

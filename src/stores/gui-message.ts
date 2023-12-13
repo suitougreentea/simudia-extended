@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { defineStore } from "pinia"
 import { type Time } from "./main"
 

@@ -34,14 +34,6 @@ const currentHalt = computed(() => {
   return store.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt]
 })
 
-const stationName = computed(() => {
-  return store.stations[store.findStationIndex(currentHalt.value.stationId)].name
-})
-
-const changeHalt = (key, value) => {
-  store.modifyLineHalt({ lineIndex: gui.lineSelection.selectedLine, haltIndex: gui.lineSelection.selectedHalt, key, value })
-}
-
 const departureTimeShift = (time) => {
   const monthLength = store.monthLength
   const shiftDivisor = store.shiftDivisor

@@ -10,7 +10,6 @@ const HEADER_HEIGHT = 20
 const applyZoomX = (input: number, zoom: number) => input / (7200 * Math.pow(2, -zoom / 2))
 const applyZoomXInverse = (input: number, zoom: number) => input * (7200 * Math.pow(2, -zoom / 2))
 const applyZoomY = (input: number, zoom: number) => input / (3600 * Math.pow(2, -zoom / 2))
-const applyZoomYInverse = (input: number, zoom: number) => input * (3600 * Math.pow(2, -zoom / 2))
 
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
@@ -79,8 +78,6 @@ export const useGuiStore = defineStore("gui", () => {
 
   const hiddenStationIds = ref<number[]>([])
   const stations = computed(() => {
-    const visibleStations = data.stations.filter((e) => hiddenStationIds.value.indexOf(e.id) == -1)
-
     const result: { id: number; name: string; accumulatedTime: number }[] = []
     let accum = MARGIN + 20
     for (let i = 0; i < data.stations.length; i++) {

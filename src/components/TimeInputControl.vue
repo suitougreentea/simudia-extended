@@ -31,6 +31,7 @@ const props = withDefaults(
   }>(),
   {
     omitHour: false,
+    hints: () => [],
   }
 )
 

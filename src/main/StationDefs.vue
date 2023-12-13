@@ -19,7 +19,7 @@
     </symbol>
     <symbol id="stations-hover">
       <line
-        v-for="(s, i) in gui.stations"
+        v-for="s in gui.stations"
         :x1="gui.layout.left"
         :x2="gui.layout.right"
         :y1="gui.y(s.accumulatedTime)"
@@ -55,7 +55,7 @@ const hoverStationLine = (station: Station, ev: MouseEvent) => {
   gui.hoveredTime = hoveredTime
 }
 
-const unhoverStationLine = (station: Station, ev: MouseEvent) => {
+const unhoverStationLine = (station: Station, _ev: MouseEvent) => {
   gui.unhoverStation(station.id)
 }
 
