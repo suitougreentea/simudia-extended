@@ -1,10 +1,11 @@
-import { fileURLToPath, URL } from 'node:url'
+/* eslint-env node */
+import { fileURLToPath, URL } from "node:url"
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import checker from 'vite-plugin-checker'
-import { VitePWA } from 'vite-plugin-pwa'
-import packageJson from './package.json'
+import { defineConfig } from "vite"
+import vue from "@vitejs/plugin-vue"
+import checker from "vite-plugin-checker"
+import { VitePWA } from "vite-plugin-pwa"
+import packageJson from "./package.json"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,10 +14,10 @@ export default defineConfig({
     vue(),
     checker({ vueTsc: true }),
     VitePWA({
-      registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon-512.png'],
+      registerType: "prompt",
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-icon-512.png"],
       workbox: {
-        globPatterns: ['**/*.{js,css,html}', '**/materialdesignicons-webfont-*'],
+        globPatterns: ["**/*.{js,css,html}", "**/materialdesignicons-webfont-*"],
         ignoreURLParametersMatching: [/^v$/],
       },
       manifest: {
@@ -28,31 +29,31 @@ export default defineConfig({
           {
             src: "pwa-icon-192.png",
             sizes: "192x192",
-            type: "image/png"
+            type: "image/png",
           },
           {
             src: "pwa-icon-512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any"
+            purpose: "any",
           },
           {
             src: "pwa-icon-512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "maskable"
+            purpose: "maskable",
           },
         ],
-      }
+      },
     }),
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
   },
   define: {
-    "__VERSION__": `"${packageJson.version}"`,
-    "__BUILD_DATE__": JSON.stringify(new Date())
-  }
+    __VERSION__: `"${packageJson.version}"`,
+    __BUILD_DATE__: JSON.stringify(new Date()),
+  },
 })
