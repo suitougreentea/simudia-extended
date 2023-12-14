@@ -1,6 +1,6 @@
 {
   "name": "simudia-extended",
-  "version": "0.11.2-beta",
+  "version": "1.0.0",
   "author": "suitougreentea",
   "description": "An interactive editor for planning timetables used in Simutrans-Extended",
   "license": "MIT",
