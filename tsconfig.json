@@ -1,0 +1,12 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "types": [
+        "@types/wicg-file-system-access",
+        "vite-plugin-pwa/client",
+        "./src/vite-define"
+    ]
+  }
+}

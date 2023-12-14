@@ -1,44 +1,48 @@
 # SimuDia-Extended
 
-## For Japanese users
+An interactive editor for planning timetables used in Simutrans-Extended
 
-本体は[Releases](https://github.com/suitougreentea/simudia-extended/releases)からダウンロードできます。
+**Since v1.0.0, SimuDia-Extended is served as an web app:**
 
+**v1.0.0から、SimuDia-ExtendedはWebアプリとして提供されています:**
 
-## Installing (for users)
+https://suitougreentea.github.io/simudia-extended/
 
-Go [Releases](https://github.com/suitougreentea/simudia-extended/releases) and download binaries for your platform.
+## Project Setup
 
-
-## Developing
-
-This is an Electron app. Node.js is required. Yarn is strongly recommended.
-
-1. Clone repository
-
-``` bash
-git clone https://github.com/suitougreentea/simudia-extended
+```sh
+npm install
 ```
 
-2. Install dependencies
+### Compile and Hot-Reload for Development
 
-``` bash
-yarn install
+```sh
+npm run dev
 ```
 
-3. Develop
+### Compile and Minify for Production
 
-``` bash
-# serve with hot reload at localhost:9080
-yarn dev
-
-# build electron application for production for your platform
-yarn build
-
-# lint all JS/Vue component files in `src/`
-yarn lint
+```sh
+npm run build
 ```
 
+### Test Production Build
+
+```sh
+npm run preview
+```
+
+### Lint with [ESLint](https://eslint.org/)
+
+```sh
+npm run lint
+```
+
+### Format with [Prettier](https://prettier.io/)
+
+```sh
+npm run format
+```
 
 ## Contributing
 
@@ -48,4 +52,3 @@ Issues / Forks / PRs
 ## License
 
 MIT. See [LICENSE](LICENSE)
-
