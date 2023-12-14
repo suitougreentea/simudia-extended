@@ -1,9 +1,11 @@
 <template>
-  <div v-for="selectedStation in selectedStations" v-if="selectedStations.length > 1" class="text-body-2 row">
-    <v-spacer></v-spacer>
-    <div>{{ selectedStation }}</div>
-    <v-spacer></v-spacer>
-  </div>
+  <template v-if="selectedStations.length > 1">
+    <div v-for="selectedStation in selectedStations" class="text-body-2 row">
+      <v-spacer></v-spacer>
+      <div>{{ selectedStation }}</div>
+      <v-spacer></v-spacer>
+    </div>
+  </template>
   <div v-if="selectedStations.length == 1" class="text-body-2 row">
     <v-icon icon="mdi-chevron-left" @click="selectStation(-1)"></v-icon>
     <v-spacer></v-spacer>
