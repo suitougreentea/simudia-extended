@@ -8,7 +8,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="dialog.close(null)">OK</v-btn>
+        <v-btn color="primary" @click="dialog!.close(null)">OK</v-btn>
       </v-card-actions>
     </v-card>
   </DialogBase>
@@ -24,7 +24,7 @@ const messages = ref<string[]>([])
 const open = async (type_: "error" | "warning", messages_: string[]) => {
   type.value = type_
   messages.value = messages_
-  return (await dialog.value.open()) as null
+  return (await dialog.value!.open()) as null
 }
 
 defineExpose({

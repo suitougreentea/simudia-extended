@@ -1,7 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.json",
   "compilerOptions": {
-    "strictNullChecks": false,
     "types": [
         "@types/wicg-file-system-access",
         "vite-plugin-pwa/client",

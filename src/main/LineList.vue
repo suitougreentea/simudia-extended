@@ -28,7 +28,7 @@ import { lineContextMenuInjection } from "./injection"
 const store = useMainStore()
 const gui = useGuiStore()
 
-const lineContextMenu = inject(lineContextMenuInjection)
+const lineContextMenu = inject(lineContextMenuInjection)!
 
 const clickLine = (event: KeyboardEvent | MouseEvent, index: number) => {
   if ((event.target as Element).nodeName != "INPUT") {

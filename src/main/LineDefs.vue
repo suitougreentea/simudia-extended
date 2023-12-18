@@ -385,7 +385,7 @@ const selectedHaltPoints = computed(() => {
 
 const contextLine = (ev: MouseEvent, lineIndex: number) => {
   gui.resetInput() // needed by Sidebar
-  lineContextMenu.value.open(ev, lineIndex)
+  lineContextMenu!.value.open(ev, lineIndex)
 }
 
 const hoverSegment = (segmentIndex: number, type: number) => {
@@ -402,7 +402,7 @@ const clickSegment = (segmentIndex: number, type: number) => {
 
 const contextSegment = (ev: MouseEvent, segmentIndex: number, type: number) => {
   if (type === 1) {
-    lineSegmentContextMenu.value.open(ev, segmentIndex)
+    lineSegmentContextMenu!.value.open(ev, segmentIndex)
   }
 }
 </script>

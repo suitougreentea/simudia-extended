@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-let currentResolve: (action: any) => void = null
+let currentResolve: ((action: any) => void) | null = null
 const opened = ref(false)
 
 const open = async () => {
@@ -18,8 +18,10 @@ const open = async () => {
 }
 
 const close = (action: any) => {
-  currentResolve(action)
-  currentResolve = null
+  if (currentResolve != null) {
+    currentResolve(action)
+    currentResolve = null
+  }
   opened.value = false
 }
 

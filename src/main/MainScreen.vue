@@ -95,7 +95,7 @@ const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const workspace = ref<InstanceType<typeof MainWorkspace>>(null)
+const workspace = ref<InstanceType<typeof MainWorkspace>>()
 const horizontalZoomStyle = computed(
   () =>
     ({
@@ -121,17 +121,17 @@ const toggleSidebarStyle = computed(
     }) satisfies StyleValue
 )
 
-const stationContextMenu = ref<InstanceType<typeof StationContextMenu>>(null)
-provide(stationContextMenuInjection, stationContextMenu)
-const lineContextMenu = ref<InstanceType<typeof LineContextMenu>>(null)
-provide(lineContextMenuInjection, lineContextMenu)
-const lineSegmentContextMenu = ref<InstanceType<typeof LineSegmentContextMenu>>(null)
-provide(lineSegmentContextMenuInjection, lineSegmentContextMenu)
+const stationContextMenu = ref<InstanceType<typeof StationContextMenu>>()
+provide(stationContextMenuInjection, stationContextMenu as any) // TODO: typing
+const lineContextMenu = ref<InstanceType<typeof LineContextMenu>>()
+provide(lineContextMenuInjection, lineContextMenu as any)
+const lineSegmentContextMenu = ref<InstanceType<typeof LineSegmentContextMenu>>()
+provide(lineSegmentContextMenuInjection, lineSegmentContextMenu as any)
 
-const saveChangesDialog = ref<InstanceType<typeof SaveChangesDialog>>(null)
-const fileOpenInfoDialog = ref<InstanceType<typeof FileOpenInfoDialog>>(null)
-const importUrlDialog = ref<InstanceType<typeof ImportUrlDialog>>(null)
-const aboutDialog = ref<InstanceType<typeof AboutDialog>>(null)
+const saveChangesDialog = ref<InstanceType<typeof SaveChangesDialog>>()
+const fileOpenInfoDialog = ref<InstanceType<typeof FileOpenInfoDialog>>()
+const importUrlDialog = ref<InstanceType<typeof ImportUrlDialog>>()
+const aboutDialog = ref<InstanceType<typeof AboutDialog>>()
 
 const title = computed(() => {
   return (gui.modified ? "*" : "") + gui.currentFileHandle.getFilename() + " - SimuDia-Extended " + (__VERSION__ ?? "")
@@ -171,17 +171,17 @@ const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "
   try {
     content = await fileHandle.open()
   } catch (e) {
-    await fileOpenInfoDialog.value.open("error", [`${e}`])
+    await fileOpenInfoDialog.value!.open("error", [`${e}`])
     return false
   }
 
   const { result, type: resolvedType, errors, warnings } = deserialize(content, type)
   if (errors.length > 0) {
-    await fileOpenInfoDialog.value.open("error", errors)
+    await fileOpenInfoDialog.value!.open("error", errors)
     return false
   }
 
-  store.$patch(result)
+  store.$patch(result!)
 
   let imported = forceImport
   let newFilenameWhenImported = fileHandle.getFilename()
@@ -201,7 +201,7 @@ const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "
   gui.unselectAll()
 
   if (warnings.length > 0) {
-    await fileOpenInfoDialog.value.open("warning", warnings)
+    await fileOpenInfoDialog.value!.open("warning", warnings)
   }
 
   return true
@@ -210,21 +210,21 @@ const openFileInternal = async (fileHandle: OpenFileHandle, type: "standard" | "
 const saveFileInternal = async (fileHandle: OpenFileHandle): Promise<boolean> => {
   const { result, errors, warnings } = serialize(store)
   if (errors.length > 0) {
-    await fileOpenInfoDialog.value.open("error", errors)
+    await fileOpenInfoDialog.value!.open("error", errors)
     return false
   }
 
   try {
-    await fileHandle.save(result)
+    await fileHandle.save(result!)
   } catch (e) {
-    await fileOpenInfoDialog.value.open("error", [`${e}`])
+    await fileOpenInfoDialog.value!.open("error", [`${e}`])
     return false
   }
 
   gui.modified = false
 
   if (warnings.length > 0) {
-    await fileOpenInfoDialog.value.open("warning", warnings)
+    await fileOpenInfoDialog.value!.open("warning", warnings)
   }
 
   return true
@@ -233,7 +233,7 @@ const saveFileInternal = async (fileHandle: OpenFileHandle): Promise<boolean> =>
 // returns true if proceedable
 const checkModifiedAndSaveFile = async (): Promise<boolean> => {
   if (gui.modified) {
-    const result = await saveChangesDialog.value.open()
+    const result = await saveChangesDialog.value!.open()
     if (result == "cancel") return false
     if (result == "yes") {
       return await saveFile()
@@ -276,7 +276,7 @@ const importLegacyFile = async (): Promise<boolean> => {
 const importUrl = async (): Promise<boolean> => {
   if (!(await checkModifiedAndSaveFile())) return false
 
-  const url = await importUrlDialog.value.open()
+  const url = await importUrlDialog.value!.open()
   if (url == null) return false
   const fileHandle = createUrlFileHandle(url)
   if (fileHandle == null) return false
@@ -301,6 +301,7 @@ const saveFileAs = async (): Promise<boolean> => {
 
   if (await saveFileInternal(fileHandle)) {
     gui.currentFileHandle = fileHandle
+    return true
   } else {
     return false
   }
@@ -308,6 +309,7 @@ const saveFileAs = async (): Promise<boolean> => {
 
 const dragover = (e: DragEvent) => {
   e.preventDefault()
+  if (e.dataTransfer == null) return
   if (e.dataTransfer.items.length != 1 || e.dataTransfer.items[0].kind != "file") {
     e.dataTransfer.dropEffect = "none"
     return
@@ -318,7 +320,7 @@ const dragover = (e: DragEvent) => {
 // returns true if succeeds
 const drop = async (e: DragEvent): Promise<boolean> => {
   e.preventDefault()
-  if (e.dataTransfer.items.length != 1 || e.dataTransfer.items[0].kind != "file") return false
+  if (e.dataTransfer == null || e.dataTransfer.items.length != 1 || e.dataTransfer.items[0].kind != "file") return false
 
   const api = availableFileApis[0]
   const fileHandle = await api.onFileDrop(e.dataTransfer.items[0])
@@ -340,7 +342,7 @@ onMounted(async () => {
 })
 
 const showAboutDialog = () => {
-  aboutDialog.value.open()
+  aboutDialog.value!.open()
 }
 
 const beforeUnload = (e: BeforeUnloadEvent) => {

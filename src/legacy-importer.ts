@@ -8,13 +8,13 @@ export class ImportError extends Error {
 }
 
 class ImportContext {
-  lineNumber: number
+  lineNumber: number = -1
 
-  throw(message: string) {
+  throw(message: string): never {
     this.throwAt(this.lineNumber, message)
   }
 
-  throwAt(at: number, message: string) {
+  throwAt(at: number, message: string): never {
     throw new ImportError(at, message)
   }
 }
@@ -92,7 +92,7 @@ const parseRawTimes = (ctx: ImportContext, input: string, monthLength: number) =
   const { options, entry } = parseEntryWithInlineOptions(ctx, input)
   let timeId = 0
   options.forEach((e) => {
-    if (e.key == "time_id") timeId = parseInteger(ctx, e.value)
+    if (e.key == "time_id") timeId = parseInteger(ctx, e.value ?? "0")
   })
 
   const split = entry.match(/(.*)->(.*):(.*)/)
@@ -197,16 +197,16 @@ export const importLegacyData = (data: string): { state: State; warnings: string
     } else {
       if (mode == "General") {
         const { key, value } = parseOption(ctx, line)
-        if (key == "month_length") monthLength = parseTime(ctx, value)
-        if (key == "shift_divisor") shiftDivisor = parseInteger(ctx, value)
-        if (key == "default_loading_time") defaultLoadingTime = parseTime(ctx, value)
-        if (key == "default_reversing_time") defaultReversingTime = parseTime(ctx, value)
+        if (key == "month_length") monthLength = parseTime(ctx, value ?? "62400")
+        if (key == "shift_divisor") shiftDivisor = parseInteger(ctx, value ?? "1440")
+        if (key == "default_loading_time") defaultLoadingTime = parseTime(ctx, value ?? "0030")
+        if (key == "default_reversing_time") defaultReversingTime = parseTime(ctx, value ?? "0100")
       }
       if (mode == "Stations") {
         stations.push(parseStation(ctx, line))
       }
       if (mode == "RawTimes") {
-        parseRawTimes(ctx, line, monthLength).forEach((e) => rawTimes.push({ lineNumber: ctx.lineNumber, ...e }))
+        parseRawTimes(ctx, line, monthLength!).forEach((e) => rawTimes.push({ lineNumber: ctx.lineNumber, ...e }))
       }
       if (mode == "Lines") {
         if (line.startsWith("-")) {
@@ -214,27 +214,27 @@ export const importLegacyData = (data: string): { state: State; warnings: string
           currentLineData = getInitialLineData()
         } else if (!line.startsWith("<") && line.indexOf("=") >= 0) {
           const { key, value } = parseOption(ctx, line)
-          if (key == "name") currentLineData.name = value
-          if (key == "divisor") currentLineData.divisor = parseInteger(ctx, value)
-          if (key == "divisor_by_every" && currentLineData.divisor == null) currentLineData.divisor = Math.floor(monthLength / parseTime(ctx, value))
-          if (key == "width") currentLineData.width = parseFloatingPoint(ctx, value)
-          if (key == "color") currentLineData.color = parseColor(ctx, value)
-          if (key == "default_loading_time") currentLineData.defaultLoadingTime = parseTime(ctx, value)
-          if (key == "default_reversing_time") currentLineData.defaultReversingTime = parseTime(ctx, value)
-          if (key == "default_time_id") currentLineData.defaultTimeId = parseInteger(ctx, value)
+          if (key == "name") currentLineData.name = value ?? ""
+          if (key == "divisor") currentLineData.divisor = parseInteger(ctx, value ?? "1")
+          if (key == "divisor_by_every" && currentLineData.divisor == null && value != null) currentLineData.divisor = Math.floor(monthLength! / parseTime(ctx, value))
+          if (key == "width") currentLineData.width = parseFloatingPoint(ctx, value ?? "1")
+          if (key == "color") currentLineData.color = parseColor(ctx, value ?? "#000000")
+          if (key == "default_loading_time") currentLineData.defaultLoadingTime = parseTime(ctx, value ?? "0030")
+          if (key == "default_reversing_time") currentLineData.defaultReversingTime = parseTime(ctx, value ?? "0100")
+          if (key == "default_time_id") currentLineData.defaultTimeId = parseInteger(ctx, value ?? "0")
         } else {
           const options: (typeof currentLineData)["stations"][number]["options"] = { reverse: false }
 
           const { options: parsedOptions, entry } = parseEntryWithInlineOptions(ctx, line)
           parsedOptions.forEach((e) => {
             const { key, value } = e
-            if (key == "shift") options.shiftTime = parseTime(ctx, value)
-            if (key == "shift_num") options.shiftNum = parseInteger(ctx, value)
-            if (key == "wait") options.waitingTime = parseTime(ctx, value)
-            if (key == "load") options.loadingTime = parseTime(ctx, value)
-            if (key == "time_id") options.timeId = parseInteger(ctx, value)
-            if (key == "trip") options.tripTime = parseTime(ctx, value)
-            if (key == "trip_offset") options.tripTimeOffset = parseOffsetTime(ctx, value)
+            if (key == "shift") options.shiftTime = parseTime(ctx, value ?? "0000")
+            if (key == "shift_num") options.shiftNum = parseInteger(ctx, value ?? "0")
+            if (key == "wait") options.waitingTime = parseTime(ctx, value ?? "0000")
+            if (key == "load") options.loadingTime = parseTime(ctx, value ?? "0000")
+            if (key == "time_id") options.timeId = parseInteger(ctx, value ?? "0")
+            if (key == "trip") options.tripTime = parseTime(ctx, value ?? "0000")
+            if (key == "trip_offset") options.tripTimeOffset = parseOffsetTime(ctx, value ?? "0000")
             if (key == "reverse") {
               options.reverse = true
               if (value != null) options.reversingTime = parseTime(ctx, value)
@@ -269,6 +269,7 @@ export const importLegacyData = (data: string): { state: State; warnings: string
     if (fromStationIndex < toStationIndex) return stations.slice(fromStationIndex, toStationIndex + 1)
     else if (fromStationIndex > toStationIndex) return stations.slice(toStationIndex, fromStationIndex + 1).reverse()
     else ctx.throw("Assertion failed")
+    return [] // TODO: why is this needed for typing?
   }
 
   const calculateTripTime = (from: (typeof stations)[number], to: (typeof stations)[number], timeId: number) => {
@@ -297,17 +298,17 @@ export const importLegacyData = (data: string): { state: State; warnings: string
     }
   }
 
-  result.monthLength = monthLength
-  result.shiftDivisor = shiftDivisor
+  result.monthLength = monthLength!
+  result.shiftDivisor = shiftDivisor!
   result.stations = []
   stations.forEach((e) => {
     // get unused ID
     let id: number
     do {
       id = Math.floor(Math.random() * 4294967296)
-    } while (result.stations.some((e) => e.id === id))
+    } while (result.stations!.some((e) => e.id === id))
     const name = e.name
-    result.stations.push({ id, name })
+    result.stations!.push({ id, name })
   })
   result.lines = []
   lines.forEach((e) => {
@@ -316,14 +317,14 @@ export const importLegacyData = (data: string): { state: State; warnings: string
     const lineWidth = e.width
     const color = e.color
     const resolvedDefaultLoadingTime = e.defaultLoadingTime ?? defaultLoadingTime ?? TimeUtil.fromHMS(0, 0, 30)
-    const allReversingTimes = e.stations.map((s) => s.options.reversingTime).filter((t) => t != null)
+    const allReversingTimes = e.stations.map((s) => s.options.reversingTime).filter((t) => t != null) as number[]
     const resolvedReversingTime =
       allReversingTimes.length > 0 ? allReversingTimes.reduce((a, b) => a + b) / allReversingTimes.length : e.defaultReversingTime ?? defaultReversingTime ?? TimeUtil.fromHMS(0, 1, 0)
     const halts: LineHalt[] = []
     for (let i = 0; i < e.stations.length; i++) {
       const fromStation = e.stations[i]
       const fromStationIndex = findStationIndex(fromStation.station, fromStation.lineNumber)
-      const fromStationId = result.stations[fromStationIndex].id
+      const fromStationId = result.stations![fromStationIndex].id
       const toStation = e.stations[(i + 1) % e.stations.length]
       // const toStationIndex = findStationIndex(toStation.station, toStation.lineNumber)
       // const toStationId = result.stations[toStationIndex].id
@@ -335,7 +336,7 @@ export const importLegacyData = (data: string): { state: State; warnings: string
       const wait = fromStation.options.waitingTime != null
       const waitTime = fromStation.options.waitingTime ?? 0
       const scheduled = fromStation.options.shiftNum != null || fromStation.options.shiftTime != null
-      const departureTime = fromStation.options.shiftNum != null ? (fromStation.options.shiftNum / shiftDivisor) * monthLength : fromStation.options.shiftTime ?? 0
+      const departureTime = fromStation.options.shiftNum != null ? (fromStation.options.shiftNum / shiftDivisor!) * monthLength! : fromStation.options.shiftTime ?? 0
       const skip = fromStation.station.name == toStation.station.name
 
       halts.push({
@@ -352,7 +353,7 @@ export const importLegacyData = (data: string): { state: State; warnings: string
       })
     }
 
-    result.lines.push({
+    result.lines!.push({
       name,
       divisor,
       lineWidth,

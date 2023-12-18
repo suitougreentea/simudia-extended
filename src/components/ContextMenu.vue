@@ -14,7 +14,7 @@ import { useGuiMessageStore } from "../stores/gui-message"
 
 const message = useGuiMessageStore()
 
-const coordinateSpace = ref<HTMLDivElement>(null)
+const coordinateSpace = ref<HTMLDivElement>()
 const opened = ref(false)
 const offset = ref({ x: 0, y: 0 })
 
@@ -35,7 +35,7 @@ const open = async (location: { x: number; y: number }) => {
 }
 
 const openByEvent = async (event: MouseEvent) => {
-  const spaceOffset = coordinateSpace.value?.getBoundingClientRect() ?? { left: 0, top: 0 }
+  const spaceOffset = coordinateSpace.value!.getBoundingClientRect()
   await open({ x: event.clientX - spaceOffset.left + 8, y: event.clientY - spaceOffset.top + 8 })
 }
 

@@ -36,7 +36,7 @@ watch(modelRefs.modelValue, (newValue) => {
 const rule = (value: string) => {
   const numbered = Number(value)
   if (isNaN(numbered)) return false
-  if (numbered < props.min || props.max < numbered) return false
+  if ((props.min != null && numbered < props.min) || (props.max != null && props.max < numbered)) return false
   if (props.integer && Math.floor(numbered) != numbered) return false
   return true
 }

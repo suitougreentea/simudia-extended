@@ -86,13 +86,14 @@ export class FileApiFileHandler implements FileHandler {
 
   async onFileDrop(item: DataTransferItem): Promise<OpenFileHandle> {
     const fileToLoad = item.getAsFile()
+    if (fileToLoad == null) throw new Error("Dropped file is null")
     return new FileApiOpenFileHandle(fileToLoad)
   }
 }
 
 class FileApiOpenFileHandle implements OpenFileHandle {
-  file: File
-  preferredFilename: string
+  file?: File
+  preferredFilename: string = ""
   hasOpenedFile: true = true as const
 
   constructor(...args: [file: File] | [preferredFilename: string]) {
@@ -106,7 +107,7 @@ class FileApiOpenFileHandle implements OpenFileHandle {
     return this.file?.name ?? this.preferredFilename
   }
   async open(): Promise<string> {
-    return await this.file.text()
+    return await this.file!.text()
   }
   async save(content: string): Promise<void> {
     const blob = new Blob([content], { type: "application/json" })

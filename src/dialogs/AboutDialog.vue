@@ -17,7 +17,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="dialog.close(null)">Close</v-btn>
+        <v-btn color="primary" @click="dialog!.close(null)">Close</v-btn>
       </v-card-actions>
     </v-card>
   </DialogBase>
@@ -31,7 +31,7 @@ type Actions = null
 
 const dialog = ref<InstanceType<typeof DialogBase>>()
 const open = async () => {
-  return (await dialog.value.open()) as Actions
+  return (await dialog.value!.open()) as Actions
 }
 
 const version = __VERSION__ != null ? `Version ${__VERSION__}` : ""

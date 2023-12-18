@@ -20,7 +20,7 @@ import { useGuiMessageStore } from "../stores/gui-message"
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const rubberbands = ref([]) // {time, station, done}
+const rubberbands = ref<{ time: number; station: number }[]>([])
 const terminal = ref(-1)
 
 const getNewRubberbands = (station: number, _time: number, skip: boolean) => {
@@ -52,7 +52,7 @@ const getNewRubberbands = (station: number, _time: number, skip: boolean) => {
 }
 
 const newRubberbands = computed(() => {
-  if (gui.resolvedHoveredStations.length != 1) return
+  if (gui.resolvedHoveredStations.length != 1) return []
   const stationIndex = gui.stations.findIndex((e) => e.id == gui.resolvedHoveredStations[0].id)
   return getNewRubberbands(stationIndex, gui.hoveredTime, !gui.modifierStates.shift)
 })

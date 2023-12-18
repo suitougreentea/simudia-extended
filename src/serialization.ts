@@ -125,6 +125,7 @@ export const deserialize = (input: string, type: "standard" | "legacy" | null): 
       return error(`Uncaught error: ${e}`)
     }
   }
+  return error("unreachable")
 }
 
 export const serialize = (input: State): { result?: string; errors: string[]; warnings: string[] } => {

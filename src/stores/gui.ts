@@ -260,8 +260,10 @@ export const useGuiStore = defineStore("gui", () => {
   const hoveredStationIds = ref<number[]>([])
   const selectedStationIds = ref<number[]>([])
 
-  const resolvedHoveredStations = computed(() => hoveredStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null))
-  const resolvedSelectedStations = computed(() => selectedStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null))
+  const resolvedHoveredStations = computed(() => hoveredStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null) as typeof stations.value)
+  const resolvedSelectedStations = computed(
+    () => selectedStationIds.value.map((id) => stations.value.find((station) => station.id == id)).filter((station) => station != null) as typeof stations.value
+  )
   const isSingleStationHovered = computed(() => hoveredStationIds.value.length == 1)
   const isSingleStationSelected = computed(() => selectedStationIds.value.length == 1)
 

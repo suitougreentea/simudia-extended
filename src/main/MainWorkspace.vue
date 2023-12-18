@@ -64,7 +64,7 @@ const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const container = ref<HTMLDivElement>(null)
+const container = ref<HTMLDivElement>()
 const scrollBarSize = computed(() => {
   if (container.value == null) return { width: 0, height: 0 }
   return {
@@ -72,10 +72,10 @@ const scrollBarSize = computed(() => {
     height: container.value.offsetHeight - container.value.clientHeight,
   }
 })
-const lineInputDefs = ref(null)
-const newStation = ref(null)
-const existingStation = ref(null)
-const stationForMeasure = ref(null)
+const lineInputDefs = ref<InstanceType<typeof LineInputDefs>>()
+const newStation = ref<HTMLDivElement>()
+const existingStation = ref<HTMLDivElement[]>()
+const stationForMeasure = ref<HTMLDivElement>()
 
 const newStationY = computed(() => {
   const stations = store.stations
@@ -129,13 +129,13 @@ const clickBackground = () => {
 
 const newStationFocus = () => {
   gui.resetInput()
-  const element = newStation.value
+  const element = newStation.value!
   element.innerText = ""
   stationPlaceholderVisible.value = false
 }
 
 const newStationBlur = () => {
-  const element = newStation.value
+  const element = newStation.value!
   const text = element.innerText.trim()
   if (text !== "") {
     store.addStation({ name: text })
@@ -145,7 +145,7 @@ const newStationBlur = () => {
 }
 
 const newStationKeyProceed = () => {
-  const element = newStation.value
+  const element = newStation.value!
   const text = element.innerText.trim()
   if (text !== "") {
     store.addStation({ name: text })
@@ -156,34 +156,34 @@ const newStationKeyProceed = () => {
 }
 
 const newStationKeyCancel = () => {
-  const element = newStation.value
+  const element = newStation.value!
   element.innerText = ""
   element.blur()
 }
 
 const modifyStationKeyProceed = (i: number) => {
-  const array = existingStation.value
+  const array = existingStation.value!
   const element = array[i]
   const text = element.innerText.trim()
   if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text })
   }
   if (array.length === i + 1) {
-    newStation.value.focus()
+    newStation.value!.focus()
   } else {
     array[i + 1].focus()
   }
 }
 
 const modifyStationKeyCancel = (i: number) => {
-  const array = existingStation.value
+  const array = existingStation.value!
   const element = array[i]
   element.innerText = gui.stations[i].name
   element.blur()
 }
 
 const modifyStationBlur = (i: number) => {
-  const array = existingStation.value
+  const array = existingStation.value!
   const element = array[i]
   const text = element.innerText.trim()
   if (text !== gui.stations[i].name) {
@@ -197,7 +197,7 @@ watch(stationNames, (value) => {
   gui.stationsWidth = Math.max(100, ...widths) + 10
 })
 const measureStationWidth = (name: string) => {
-  const element = stationForMeasure.value
+  const element = stationForMeasure.value!
   element.innerText = name
   return element.clientWidth
 }
@@ -205,7 +205,7 @@ const measureStationWidth = (name: string) => {
 message.$onAction(({ name, args: _args }) => {
   if (name == "enterKeyPressed") {
     const args = _args[0]
-    const lineInputDefsElement = lineInputDefs.value
+    const lineInputDefsElement = lineInputDefs.value!
     if (gui.mode === "input" && !gui.inputtingTime && lineInputDefsElement.rubberbands.length > 0) {
       args.event.preventDefault()
       args.event.stopPropagation()

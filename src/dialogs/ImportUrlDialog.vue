@@ -22,7 +22,7 @@
       </v-card>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="dialog.close(null)">Cancel</v-btn>
+        <v-btn color="primary" @click="dialog!.close(null)">Cancel</v-btn>
       </v-card-actions>
     </v-card>
   </DialogBase>
@@ -39,7 +39,7 @@ const dialog = ref<InstanceType<typeof DialogBase>>()
 const open = async () => {
   url.value = ""
   loadExamples()
-  return (await dialog.value.open()) as Actions
+  return (await dialog.value!.open()) as Actions
 }
 
 const url = ref("")
@@ -62,11 +62,11 @@ const loadExamples = async () => {
 
 const openUrl = () => {
   const trimmed = url.value.trim()
-  dialog.value.close(trimmed != "" ? trimmed : null)
+  dialog.value!.close(trimmed != "" ? trimmed : null)
 }
 
 const openExample = (url: string) => {
-  dialog.value.close(url)
+  dialog.value!.close(url)
 }
 
 defineExpose({

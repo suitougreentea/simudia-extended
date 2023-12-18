@@ -45,7 +45,7 @@ import { type Station } from "../stores/main"
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const contextMenu = inject(stationContextMenuInjection)
+const contextMenu = inject(stationContextMenuInjection)!
 
 const hoverStationLine = (station: Station, ev: MouseEvent) => {
   gui.hoverStation(station.id)

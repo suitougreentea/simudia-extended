@@ -15,13 +15,13 @@ const store = useMainStore()
 const gui = useGuiStore()
 const message = useGuiMessageStore()
 
-const timeInput = ref(null)
+const timeInput = ref<InstanceType<typeof TimeInputControl>>()
 const inputValue = ref(0)
 const hints = ref<Hint[]>([])
 
 const rubberbands = ref<{ time: number; station: number }[]>([])
 const inputtingTimeIndex = ref(-1)
-const inputtingTimes = ref([])
+const inputtingTimes = ref<number[]>([])
 
 const temporaryHidden = ref(false)
 
@@ -49,9 +49,9 @@ const startInput = async (index: number) => {
   ]
   await nextTick()
   inputValue.value = nextRubberband.time - currentRubberband.time
-  timeInput.value.$el.querySelector("input").focus()
+  timeInput.value!.$el.querySelector("input").focus()
   await nextTick()
-  timeInput.value.$el.querySelector("input").select()
+  timeInput.value!.$el.querySelector("input").select()
 }
 
 const onEnterKeyDown = async () => {
