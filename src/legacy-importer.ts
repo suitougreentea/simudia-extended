@@ -127,7 +127,7 @@ export const importLegacyData = (data: string): { state: State; warnings: string
   const getInitialLineData = () => ({
     width: 1,
     color: "#000000",
-    stations: [],
+    stations: [] as (typeof currentLineData)["stations"],
   })
 
   let mode = "Top"
@@ -302,7 +302,7 @@ export const importLegacyData = (data: string): { state: State; warnings: string
   result.stations = []
   stations.forEach((e) => {
     // get unused ID
-    let id
+    let id: number
     do {
       id = Math.floor(Math.random() * 4294967296)
     } while (result.stations.some((e) => e.id === id))

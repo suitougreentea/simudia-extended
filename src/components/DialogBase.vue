@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-let currentResolve: (any) => void = null
+let currentResolve: (action: any) => void = null
 const opened = ref(false)
 
 const open = async () => {

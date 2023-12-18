@@ -78,7 +78,7 @@ const detectFileType = (input: string): "standard" | "legacy" | null => {
 export const deserialize = (input: string, type: "standard" | "legacy" | null): { result?: State; type?: "standard" | "legacy"; errors: string[]; warnings: string[] } => {
   const error = (message: string) => ({
     errors: [message],
-    warnings: [],
+    warnings: [] as string[],
   })
 
   type ??= detectFileType(input)
@@ -130,7 +130,7 @@ export const deserialize = (input: string, type: "standard" | "legacy" | null): 
 export const serialize = (input: State): { result?: string; errors: string[]; warnings: string[] } => {
   const error = (message: string) => ({
     errors: [message],
-    warnings: [],
+    warnings: [] as string[],
   })
 
   const ctx = new FileContext()

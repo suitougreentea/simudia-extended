@@ -94,15 +94,15 @@ export const useGuiStore = defineStore("gui", () => {
     return result
   })
 
-  const x = (tick) => {
+  const x = (tick: number) => {
     return layout.value.left + layout.value.stationsWidth + applyZoomX(tick, zoom.value.horizontal)
   }
 
-  const xi = (x) => {
+  const xi = (x: number) => {
     return applyZoomXInverse(x - layout.value.left - layout.value.stationsWidth, zoom.value.horizontal)
   }
 
-  const y = (tick) => {
+  const y = (tick: number) => {
     return layout.value.top + layout.value.headerHeight + applyZoomY(tick, zoom.value.vertical)
   }
 
@@ -117,20 +117,20 @@ export const useGuiStore = defineStore("gui", () => {
     message.resetInput({})
   }
 
-  const hoverLine = (index) => {
+  const hoverLine = (index: number) => {
     lineSelection.value.hoveredLine = index
     lineSelection.value.hoveredSet = -1
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
   }
 
-  const unhoverLine = (index) => {
+  const unhoverLine = (index: number) => {
     if (lineSelection.value.hoveredLine === index) {
       lineSelection.value.hoveredLine = -1
     }
   }
 
-  const clickLine = (index) => {
+  const clickLine = (index: number) => {
     resetInput() // needed by Sidebar
     unselectStations()
     lineSelection.value.selectedLine = index
@@ -143,21 +143,21 @@ export const useGuiStore = defineStore("gui", () => {
     lineSelection.value.hoveredType = -1
   }
 
-  const hoverSet = (index) => {
+  const hoverSet = (index: number) => {
     lineSelection.value.hoveredLine = -1
     lineSelection.value.hoveredSet = index
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
   }
 
-  const unhoverSet = (index) => {
+  const unhoverSet = (index: number) => {
     if (lineSelection.value.hoveredSet === index) {
       lineSelection.value.hoveredLine = -1
       lineSelection.value.hoveredSet = -1
     }
   }
 
-  const clickSet = (index) => {
+  const clickSet = (index: number) => {
     unselectStations()
     lineSelection.value.selectedSet = index
     lineSelection.value.selectedHalt = -1
@@ -214,7 +214,7 @@ export const useGuiStore = defineStore("gui", () => {
     unselectStations()
   }
 
-  const insertHaltToSelectedLine = (haltIndex) => {
+  const insertHaltToSelectedLine = (haltIndex: number) => {
     const lineIndex = lineSelection.value.selectedLine
     const setIndex = lineSelection.value.selectedSet
     const line = data.lines[lineIndex]
@@ -237,7 +237,7 @@ export const useGuiStore = defineStore("gui", () => {
     message.addLineInputPoint({ stationIndex, time, skip: false })
   }
 
-  const deleteHaltFromSelectedLine = (haltIndex) => {
+  const deleteHaltFromSelectedLine = (haltIndex: number) => {
     const lineIndex = lineSelection.value.selectedLine
 
     lineSelection.value.selectedHalt = -1
@@ -245,12 +245,12 @@ export const useGuiStore = defineStore("gui", () => {
     data.deleteHalt({ lineIndex, haltIndex })
   }
 
-  const copySelectedLine = (index) => {
+  const copySelectedLine = (index: number) => {
     data.copyLine(index)
     lineSelection.value.selectedLine = data.lines.length - 1
   }
 
-  const deleteSelectedLine = (index) => {
+  const deleteSelectedLine = (index: number) => {
     lineSelection.value.selectedLine = -1
     data.deleteLine(index)
   }

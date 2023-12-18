@@ -1,7 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.json",
   "compilerOptions": {
-    "noImplicitAny": false,
     "strictNullChecks": false,
     "types": [
         "@types/wicg-file-system-access",

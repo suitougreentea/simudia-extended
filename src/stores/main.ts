@@ -102,10 +102,10 @@ export const useMainStore = defineStore("main", {
       return result
     },
     findStationIndex(state) {
-      return (id) => state.stations.findIndex((e) => id === e.id)
+      return (id: number) => state.stations.findIndex((e) => id === e.id)
     },
     findStation(state) {
-      return (id) => state.stations[this.findStationIndex(id)]
+      return (id: number) => state.stations[this.findStationIndex(id)]
     },
     computedTimes(state) {
       const lines = state.lines
@@ -167,26 +167,26 @@ export const useMainStore = defineStore("main", {
     emptyState() {
       this.$patch(getEmptyState())
     },
-    modifyMonthLength({ value }) {
+    modifyMonthLength({ value }: { value: number }) {
       this.monthLength = value
     },
-    modifyShiftDivisor({ value }) {
+    modifyShiftDivisor({ value }: { value: number }) {
       this.shiftDivisor = value
     },
     addStation({ pos: _pos, name }: { pos?: number; name: string }) {
       const pos = _pos == null ? this.stations.length : _pos
       // get unused ID
-      let id
+      let id: number
       do {
         id = Math.floor(Math.random() * 4294967296)
       } while (this.stations.some((e) => e.id === id))
       this.stations.splice(pos, 0, { name, id })
     },
-    modifyStation({ pos, name }) {
+    modifyStation({ pos, name }: { pos: number; name: string }) {
       const old = this.stations[pos]
       this.stations[pos] = { name, id: old.id }
     },
-    deleteStation({ pos }) {
+    deleteStation({ pos }: { pos: number }) {
       const station = this.stations[pos]
       const id = station.id
       this.stations.splice(pos, 1)
@@ -202,7 +202,7 @@ export const useMainStore = defineStore("main", {
         }
       })
     },
-    addLine({ stationIndices, times, firstTime }) {
+    addLine({ stationIndices, times, firstTime }: { stationIndices: number[]; times: Time[]; firstTime: Time }) {
       const halts: LineHalt[] = []
       const size = stationIndices.length - 1
       for (let i = 0; i < size; i++) {
@@ -226,23 +226,23 @@ export const useMainStore = defineStore("main", {
         visible: true,
       })
     },
-    copyLine(index) {
+    copyLine(index: number) {
       this.lines.push({
         ...this.lines[index],
         halts: this.lines[index].halts.map((e) => ({ ...e })),
         name: `Copy of ${this.lines[index].name}`,
       })
     },
-    deleteLine(index) {
+    deleteLine(index: number) {
       this.lines.splice(index, 1)
     },
-    modifyLine({ index, key, value }) {
+    modifyLine<TKey extends keyof Line>({ index, key, value }: { index: number; key: TKey; value: Line[TKey] }) {
       this.lines[index][key] = value
     },
-    modifyLineHalt({ lineIndex, haltIndex, key, value }) {
+    modifyLineHalt<TKey extends keyof LineHalt>({ lineIndex, haltIndex, key, value }: { lineIndex: number; haltIndex: number; key: TKey; value: LineHalt[TKey] }) {
       this.lines[lineIndex].halts[haltIndex][key] = value
     },
-    insertHalts({ lineIndex, haltIndex, stationIndices, times }) {
+    insertHalts({ lineIndex, haltIndex, stationIndices, times }: { lineIndex: number; haltIndex: number; stationIndices: number[]; times: Time[] }) {
       const line = this.lines[lineIndex]
       const halts = line.halts
       const insertingHalts: LineHalt[] = []
@@ -270,7 +270,7 @@ export const useMainStore = defineStore("main", {
       }
       this.lines[lineIndex].halts = newHalts
     },
-    deleteHalt({ lineIndex, haltIndex }) {
+    deleteHalt({ lineIndex, haltIndex }: { lineIndex: number; haltIndex: number }) {
       const halts = this.lines[lineIndex].halts
       halts.splice(haltIndex, 1)
       const size = halts.length

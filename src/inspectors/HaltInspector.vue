@@ -34,13 +34,13 @@ const currentHalt = computed(() => {
   return store.lines[gui.lineSelection.selectedLine].halts[gui.lineSelection.selectedHalt]
 })
 
-const departureTimeShift = (time) => {
+const departureTimeShift = (time: number) => {
   const monthLength = store.monthLength
   const shiftDivisor = store.shiftDivisor
   return Math.round(((time % monthLength) / monthLength) * shiftDivisor)
 }
 
-const shiftToTime = (shift) => {
+const shiftToTime = (shift: number) => {
   const monthLength = store.monthLength
   const shiftDivisor = store.shiftDivisor
   return (shift / shiftDivisor) * monthLength

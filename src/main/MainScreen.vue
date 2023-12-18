@@ -343,7 +343,7 @@ const showAboutDialog = () => {
   aboutDialog.value.open()
 }
 
-const beforeUnload = (e) => {
+const beforeUnload = (e: BeforeUnloadEvent) => {
   if (gui.modified) {
     e.returnValue = ""
     e.preventDefault()

@@ -23,7 +23,7 @@ const message = useGuiMessageStore()
 const rubberbands = ref([]) // {time, station, done}
 const terminal = ref(-1)
 
-const getNewRubberbands = (station, _time, skip) => {
+const getNewRubberbands = (station: number, _time: number, skip: boolean) => {
   if (_time < 0) return []
   if (gui.inputtingTime) return []
   if (rubberbands.value.length === 0) return [{ station, time: _time }]
@@ -97,11 +97,11 @@ const displayCirclesNew = computed(() => {
   })
 })
 
-const setTerminal = (stationIndex) => {
+const setTerminal = (stationIndex: number) => {
   terminal.value = stationIndex
 }
 
-const addPoint = ({ station, time, skip }) => {
+const addPoint = ({ station, time, skip }: { station: number; time: number; skip: boolean }) => {
   if (rubberbands.value.length === 0 && terminal.value === -1) {
     terminal.value = station
   }

@@ -70,7 +70,7 @@ const onChange = () => {
 }
 
 const focused = ref(false)
-const onFocusChanged = (newFocused) => {
+const onFocusChanged = (newFocused: boolean) => {
   focused.value = newFocused
 }
 

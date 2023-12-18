@@ -161,7 +161,7 @@ const newStationKeyCancel = () => {
   element.blur()
 }
 
-const modifyStationKeyProceed = (i) => {
+const modifyStationKeyProceed = (i: number) => {
   const array = existingStation.value
   const element = array[i]
   const text = element.innerText.trim()
@@ -175,14 +175,14 @@ const modifyStationKeyProceed = (i) => {
   }
 }
 
-const modifyStationKeyCancel = (i) => {
+const modifyStationKeyCancel = (i: number) => {
   const array = existingStation.value
   const element = array[i]
   element.innerText = gui.stations[i].name
   element.blur()
 }
 
-const modifyStationBlur = (i) => {
+const modifyStationBlur = (i: number) => {
   const array = existingStation.value
   const element = array[i]
   const text = element.innerText.trim()
@@ -196,7 +196,7 @@ watch(stationNames, (value) => {
   const widths = value.map((e) => measureStationWidth(e))
   gui.stationsWidth = Math.max(100, ...widths) + 10
 })
-const measureStationWidth = (name) => {
+const measureStationWidth = (name: string) => {
   const element = stationForMeasure.value
   element.innerText = name
   return element.clientWidth
