@@ -17,7 +17,7 @@ export const useGuiStore = defineStore("gui", () => {
 
   const currentFileHandle = ref<OpenFileHandle | NewFileHandle>(createNewFileHandle())
   const newFile = () => {
-    data.emptyState()
+    data.clear()
     currentFileHandle.value = createNewFileHandle()
     modified.value = false
   }
