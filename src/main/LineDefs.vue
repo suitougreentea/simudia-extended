@@ -118,6 +118,7 @@ import { computed, inject } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
 import { lineContextMenuInjection, lineSegmentContextMenuInjection } from "./injection"
+import { getLineComputedTimes } from "../lib/lib"
 
 const store = useMainStore()
 const gui = useGuiStore()
@@ -204,7 +205,6 @@ const segmentToPaths = (segments: LineSegment[]): Path[] => {
 const lineSegments = computed(() => {
   // line, set, segment
   const lines = store.lines
-  const computedTimes = store.computedTimes
 
   const pushSegment = (array: LineSegment[], segment: RawLineSegment) => {
     const monthLength = store.monthLength
@@ -232,7 +232,7 @@ const lineSegments = computed(() => {
   }
 
   return lines.map((line, i) => {
-    const { haltTimes } = computedTimes[i]
+    const { haltTimes } = getLineComputedTimes(lines[i], store.monthLength)
     const sets: LineSegment[][] = []
     const length = line.halts.length
     for (let set = 0; set < line.divisor; set++) {

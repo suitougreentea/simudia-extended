@@ -39,6 +39,7 @@
 import { computed } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
+import { getLineComputedTimes } from "../lib/lib"
 
 const data = useMainStore()
 const gui = useGuiStore()
@@ -90,6 +91,10 @@ const selectedHalt = computed(() => {
   return null
 })
 
+const selectedLineComputedTimes = computed(() => {
+  return getLineComputedTimes(data.lines[gui.lineSelection.selectedLine], data.monthLength)
+})
+
 const selectStation = (delta: number) => {
   if (gui.isSingleStationSelected) {
     gui.selectStationRelativeTo(gui.resolvedSelectedStations[0].id, delta)
@@ -123,7 +128,7 @@ const selectHalt = (delta: number) => {
     }
     if (delta == 1) {
       if (gui.lineSelection.selectedHalt == line.halts.length - 1) {
-        selectSet(data.computedTimes[gui.lineSelection.selectedLine].setOffset)
+        selectSet(selectedLineComputedTimes.value.setOffset)
       }
       gui.lineSelection.selectedType = 1
       gui.lineSelection.selectedHalt = (gui.lineSelection.selectedHalt + 1) % line.halts.length
@@ -132,7 +137,7 @@ const selectHalt = (delta: number) => {
     // halt
     if (delta == -1) {
       if (gui.lineSelection.selectedHalt == 0) {
-        selectSet(-data.computedTimes[gui.lineSelection.selectedLine].setOffset)
+        selectSet(-selectedLineComputedTimes.value.setOffset)
       }
       gui.lineSelection.selectedType = 0
       gui.lineSelection.selectedHalt = (gui.lineSelection.selectedHalt - 1 + line.halts.length) % line.halts.length

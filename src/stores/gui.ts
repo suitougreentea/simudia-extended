@@ -3,6 +3,7 @@ import { computed, ref } from "vue"
 import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
 import { type NewFileHandle, type OpenFileHandle, createNewFileHandle } from "../file-api"
+import { getAllJourneyTimes, getLineComputedTimes } from "../lib/lib"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
@@ -86,7 +87,9 @@ export const useGuiStore = defineStore("gui", () => {
 
       result.push({ id: from.id, name: from.name, accumulatedTime: accum })
 
-      const times = data.timeList.filter((e) => (e.fromStationId == from.id && e.toStationId == to.id) || (e.toStationId == from.id && e.fromStationId == to.id)).map((e) => e.time)
+      const times = getAllJourneyTimes(data.lines)
+        .filter((e) => (e.fromStationId == from.id && e.toStationId == to.id) || (e.toStationId == from.id && e.fromStationId == to.id))
+        .map((e) => e.time)
 
       const slowestTime = times.length > 0 ? Math.max(...times) : 20 * 3600
       accum += slowestTime
@@ -225,7 +228,8 @@ export const useGuiStore = defineStore("gui", () => {
     const nextHalt = halts[(haltIndex + 1) % halts.length]
     const stationIndex = data.findStationIndex(halt.stationId)
     const nextStationIndex = data.findStationIndex(nextHalt.stationId)
-    const time = (data.computedTimes[lineIndex].haltTimes[haltIndex].departure + (monthLength / line.divisor) * setIndex) % monthLength
+    const { haltTimes } = getLineComputedTimes(data.lines[lineIndex], data.monthLength)
+    const time = (haltTimes[haltIndex].departure + (monthLength / line.divisor) * setIndex) % monthLength
 
     lineInsertOrigin.value = {
       line: lineIndex,

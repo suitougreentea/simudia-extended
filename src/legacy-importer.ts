@@ -1,4 +1,5 @@
-import { type LineHalt, type State } from "./stores/main"
+import { type LineHalt } from "./lib/lib"
+import { type State } from "./stores/main"
 import * as TimeUtil from "./time-util"
 
 export class ImportError extends Error {

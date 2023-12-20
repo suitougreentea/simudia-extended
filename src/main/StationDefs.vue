@@ -40,7 +40,7 @@ import { inject } from "vue"
 import { useGuiStore } from "../stores/gui"
 import { useGuiMessageStore } from "../stores/gui-message"
 import { stationContextMenuInjection } from "./injection"
-import { type Station } from "../stores/main"
+import { type Station } from "../lib/lib"
 
 const gui = useGuiStore()
 const message = useGuiMessageStore()

@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import { defineStore } from "pinia"
-import { type Time } from "./main"
+import { type Time } from "../lib/lib"
 
 export const useGuiMessageStore = defineStore("gui-message", () => {
   const resetInput = (args: {}) => {}

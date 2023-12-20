@@ -39,6 +39,7 @@ import { computed } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
 import * as TimeUtil from "../time-util"
+import { getLineComputedTimes } from "../lib/lib"
 
 const store = useMainStore()
 const gui = useGuiStore()
@@ -65,7 +66,7 @@ const times = computed(() => {
   const shiftDivisor = store.shiftDivisor
   const line = store.lines[lineIndex]
   const halts = line.halts
-  const haltTimes = store.computedTimes[lineIndex].haltTimes
+  const { haltTimes } = getLineComputedTimes(store.lines[lineIndex], store.monthLength)
   const offsetTime = setIndex * (store.monthLength / line.divisor)
 
   for (let i = 0; i < halts.length; i++) {
