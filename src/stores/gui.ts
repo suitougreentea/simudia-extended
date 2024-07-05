@@ -4,6 +4,7 @@ import { useMainStore } from "./main"
 import { useGuiMessageStore } from "./gui-message"
 import { type NewFileHandle, type OpenFileHandle, createNewFileHandle } from "../file-api"
 import { getAllJourneyTimes, getLineComputedTimes } from "../lib/lib"
+import { getLineRenderData } from "../lib/render"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
@@ -130,6 +131,9 @@ export const useGuiStore = defineStore("gui", () => {
   const unhoverLine = (index: number) => {
     if (lineSelection.value.hoveredLine === index) {
       lineSelection.value.hoveredLine = -1
+      lineSelection.value.hoveredSet = -1
+      lineSelection.value.hoveredHalt = -1
+      lineSelection.value.hoveredType = -1
     }
   }
 
@@ -140,29 +144,30 @@ export const useGuiStore = defineStore("gui", () => {
     lineSelection.value.selectedSet = -1
     lineSelection.value.selectedHalt = -1
     lineSelection.value.selectedType = -1
-    lineSelection.value.hoveredLine = index
+    lineSelection.value.hoveredLine = -1
     lineSelection.value.hoveredSet = -1
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
   }
 
-  const hoverSet = (index: number) => {
-    lineSelection.value.hoveredLine = -1
+  const hoverSet = (lineIndex: number, index: number) => {
+    lineSelection.value.hoveredLine = lineIndex
     lineSelection.value.hoveredSet = index
     lineSelection.value.hoveredHalt = -1
     lineSelection.value.hoveredType = -1
   }
 
-  const unhoverSet = (index: number) => {
+  const unhoverSet = (lineIndex: number, index: number) => {
     if (lineSelection.value.hoveredSet === index) {
       lineSelection.value.hoveredLine = -1
       lineSelection.value.hoveredSet = -1
     }
   }
 
-  const clickSet = (index: number) => {
+  const clickSet = (lineIndex: number, setIndex: number) => {
     unselectStations()
-    lineSelection.value.selectedSet = index
+    lineSelection.value.selectedLine = lineIndex
+    lineSelection.value.selectedSet = setIndex
     lineSelection.value.selectedHalt = -1
     lineSelection.value.selectedType = -1
     lineSelection.value.hoveredLine = -1
@@ -379,6 +384,21 @@ export const useGuiStore = defineStore("gui", () => {
     })
   }
 
+  // render data
+  
+  const lineRenderData = computed(() => {
+    const lines = data.lines.map(line => ({
+      line,
+      times: getLineComputedTimes(line, data.monthLength)
+    }))
+    const renderOptions = {
+      stations: stations.value,
+      x,
+      y,
+    }
+    return getLineRenderData(lines, data.monthLength, renderOptions)
+  })
+
   return {
     modified,
     currentFileHandle,
@@ -433,5 +453,8 @@ export const useGuiStore = defineStore("gui", () => {
     // journey times
     getJourneyTimesAmong,
     getTimeHintsBetween,
+
+    // render data
+    lineRenderData,
   }
 })
