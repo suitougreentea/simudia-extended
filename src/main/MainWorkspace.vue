@@ -207,15 +207,13 @@ message.$onAction(({ name, args: _args }) => {
   }
 })
 
-const clientSize = ref({ width: 0, height: 0 })
-const scrollBarSize = ref({ width: 0, height: 0 })
 const containerResizeObserver = new ResizeObserver(() => {
   if (container.value == null) return
-  clientSize.value = {
+  gui.workspaceSize = {
     width: container.value.clientWidth,
     height: container.value.clientHeight,
   }
-  scrollBarSize.value = {
+  gui.scrollbarSize = {
     width: container.value.offsetWidth - container.value.clientWidth,
     height: container.value.offsetHeight - container.value.clientHeight,
   }
@@ -225,11 +223,6 @@ watch(container, c => {
   if (currentObservedContainer != null) containerResizeObserver.unobserve(currentObservedContainer)
   if (c != null) containerResizeObserver.observe(c)
   currentObservedContainer = c
-})
-
-defineExpose({
-  clientSize,
-  scrollBarSize,
 })
 </script>
 

@@ -21,6 +21,11 @@ export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
   const message = useGuiMessageStore()
 
+  const workspaceSize = ref({ width: 0, height: 0 })
+  const scrollbarSize = ref({ width: 0, height: 0 })
+
+  const showSidebar = ref(true)
+
   const currentFileHandle = ref<OpenFileHandle | NewFileHandle>(createNewFileHandle())
   const newFile = () => {
     data.clear()
@@ -421,6 +426,9 @@ export const useGuiStore = defineStore("gui", () => {
   })
 
   return {
+    workspaceSize,
+    scrollbarSize,
+    showSidebar,
     modified,
     currentFileHandle,
     newFile,
