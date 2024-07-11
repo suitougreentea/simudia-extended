@@ -65,13 +65,6 @@ const gui = useGuiStore()
 const message = useGuiMessageStore()
 
 const container = ref<HTMLDivElement>()
-const scrollBarSize = computed(() => {
-  if (container.value == null) return { width: 0, height: 0 }
-  return {
-    width: container.value.offsetWidth - container.value.clientWidth,
-    height: container.value.offsetHeight - container.value.clientHeight,
-  }
-})
 const lineInputDefs = ref<InstanceType<typeof LineInputDefs>>()
 const newStation = ref<HTMLDivElement>()
 const existingStation = ref<HTMLDivElement[]>()
@@ -214,7 +207,28 @@ message.$onAction(({ name, args: _args }) => {
   }
 })
 
+const clientSize = ref({ width: 0, height: 0 })
+const scrollBarSize = ref({ width: 0, height: 0 })
+const containerResizeObserver = new ResizeObserver(() => {
+  if (container.value == null) return
+  clientSize.value = {
+    width: container.value.clientWidth,
+    height: container.value.clientHeight,
+  }
+  scrollBarSize.value = {
+    width: container.value.offsetWidth - container.value.clientWidth,
+    height: container.value.offsetHeight - container.value.clientHeight,
+  }
+})
+let currentObservedContainer: Element | undefined = undefined
+watch(container, c => {
+  if (currentObservedContainer != null) containerResizeObserver.unobserve(currentObservedContainer)
+  if (c != null) containerResizeObserver.observe(c)
+  currentObservedContainer = c
+})
+
 defineExpose({
+  clientSize,
   scrollBarSize,
 })
 </script>

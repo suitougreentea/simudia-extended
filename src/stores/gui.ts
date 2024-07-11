@@ -8,10 +8,14 @@ import { getLineRenderData } from "../lib/render"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
+const TOOLBAR_MARGIN = 40
 
-const applyZoomX = (input: number, zoom: number) => input / (7200 * Math.pow(2, -zoom / 2))
-const applyZoomXInverse = (input: number, zoom: number) => input * (7200 * Math.pow(2, -zoom / 2))
-const applyZoomY = (input: number, zoom: number) => input / (3600 * Math.pow(2, -zoom / 2))
+const applyZoomX = (input: number, zoom: number) => input / (7200 * Math.pow(2, -zoom / 3))
+const applyZoomXInverse = (input: number, zoom: number) => input * (7200 * Math.pow(2, -zoom / 3))
+const getZoomX = (input: number, x: number) => -3 * Math.log2(input / (7200 * x))
+const applyZoomY = (input: number, zoom: number) => input / (3600 * Math.pow(2, -zoom / 3))
+const applyZoomYInverse = (input: number, zoom: number) => input / (3600 * Math.pow(2, -zoom / 3))
+const getZoomY = (input: number, y: number) => -3 * Math.log2(input / (3600 * y))
 
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
@@ -108,6 +112,23 @@ export const useGuiStore = defineStore("gui", () => {
 
   const y = (tick: number) => {
     return layout.value.top + layout.value.headerHeight + applyZoomY(tick, zoom.value.vertical)
+  }
+
+  const yi = (y: number) => {
+    return applyZoomYInverse(y - layout.value.top - layout.value.headerHeight, zoom.value.vertical)
+  }
+
+  // fit zoom value
+  const xf = (tick: number, width: number) => {
+    const rawX = width - (MARGIN + layout.value.stationsWidth + TOOLBAR_MARGIN + MARGIN)
+    if (rawX <= 0) return undefined
+    return getZoomX(tick, rawX)
+  }
+
+  const yf = (tick: number, height: number) => {
+    const rawY = height - (MARGIN + HEADER_HEIGHT + TOOLBAR_MARGIN + MARGIN)
+    if (rawY <= 0) return undefined
+    return getZoomY(tick, rawY)
   }
 
   const resetInput = () => {
@@ -416,7 +437,10 @@ export const useGuiStore = defineStore("gui", () => {
     stations,
     x,
     xi,
+    xf,
     y,
+    yi,
+    yf,
     resetInput,
     hoverLine,
     unhoverLine,
