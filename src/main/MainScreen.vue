@@ -32,7 +32,11 @@
       </div>
     </v-main>
 
-    <v-navigation-drawer v-model="gui.showSidebar" permanent location="right" :width="sidebarWidth">
+    <v-navigation-drawer v-model="gui.showSidebar" permanent touchless location="right" :width="sidebarWidth">
+      <div
+        class="sidebar-resizable"
+        @pointerdown.prevent.stop="onSidebarResizablePointerdown">
+      </div>
       <SidebarContent></SidebarContent>
     </v-navigation-drawer>
 
@@ -297,14 +301,42 @@ watch(title, (value) => {
   document.title = value
 })
 
-const sidebarWidth = ref(300)
-const updateSidebarWidth = () => {
-  sidebarWidth.value = Math.max(window.innerWidth * 0.2, 300)
-}
+const windowWidth = ref(0)
 window.addEventListener("resize", (_) => {
-  updateSidebarWidth()
+  windowWidth.value = window.innerWidth
 })
-updateSidebarWidth()
+windowWidth.value = window.innerWidth
+
+// 割合で保存
+// 表示の際は50以上、(ウィンドウ幅-100)未満
+const sidebarProportion = ref(0.3)
+const sidebarWidth = computed(() => {
+  return Math.max(50, Math.min(windowWidth.value - 100, windowWidth.value * sidebarProportion.value))
+})
+const requestSidebarWidth = (width: number) => {
+  width = Math.max(0, Math.min(windowWidth.value, width))
+  sidebarProportion.value = width / windowWidth.value
+}
+
+const onSidebarResizablePointerdown = (ev: PointerEvent) => {
+  const offset = sidebarWidth.value - (windowWidth.value - ev.screenX)
+  const elem = (ev.target as HTMLElement).closest(".v-navigation-drawer")! as HTMLElement
+  elem.style.transitionDuration = "0s"
+
+  const pointermove = (ev: PointerEvent) => {
+    requestSidebarWidth((windowWidth.value - ev.screenX) + offset)
+  }
+
+  const pointerup = (ev: PointerEvent) => {
+    elem.style.transitionDuration = ""
+    window.removeEventListener("pointermove", pointermove)
+    window.removeEventListener("pointerup", pointerup)
+    window.removeEventListener("pointercancel", pointerup)
+  }
+  window.addEventListener("pointermove", pointermove)
+  window.addEventListener("pointerup", pointerup)
+  window.addEventListener("pointercancel", pointerup)
+}
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
@@ -357,5 +389,14 @@ const updateSW = registerSW({
   right: var(--v-layout-right);
   top: var(--v-layout-top);
   bottom: var(--v-layout-bottom);
+}
+
+.sidebar-resizable {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 100%;
+  cursor: ew-resize;
+  touch-action: none;
 }
 </style>

@@ -33,12 +33,14 @@ const gui = useGuiStore()
 
 <style scoped>
 #sidebar-above {
+  max-width: unset;
   height: 50%;
   overflow-y: scroll;
   border-bottom: 2px solid dimgrey;
 }
 
 #sidebar-below {
+  max-width: unset;
   height: 50%;
   overflow-y: scroll;
 }
