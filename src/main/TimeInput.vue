@@ -1,6 +1,6 @@
 <template>
   <div v-if="inputtingTimeIndex >= 0 && !temporaryHidden" class="time-input-container" :style="{ top: timeInputPosition.y + 'px', left: timeInputPosition.x + 'px' }">
-    <TimeInputControl ref="timeInput" v-model="inputValue" omit-hour :hints="hints" @keydown.enter="onEnterKeyDown" @selected-from-hints="onSelectedFromHints"></TimeInputControl>
+    <TimeInputControl ref="timeInput" v-model="inputValue" omit-hour :hints="hints" @keydown.enter="onEnterKeyDown" @selected-from-hints="onSelectedFromHints" @contextmenu.stop></TimeInputControl>
   </div>
 </template>
 

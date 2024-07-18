@@ -25,7 +25,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main><!-- TODO: @contextmenu.prevent after replacing contenteditable elements -->
+    <v-main @contextmenu.prevent>
       <div class="main-area">
         <MainWorkspace style="position: absolute; width: 100%; height: 100%;"></MainWorkspace>
         <Toolbar></Toolbar>

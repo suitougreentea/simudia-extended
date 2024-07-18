@@ -16,32 +16,36 @@
       <ClickableLines></ClickableLines>
     </svg>
     <div style="position: absolute; top: 0; left: 0">
-      <div v-if="stationPlaceholderVisible" class="station-name station-name-placeholder" :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }">{{ stationPlaceholderText }}</div>
-      <div
+      <div v-if="stationPlaceholderVisible"
+        class="station-name station-name-placeholder"
+        :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }"
+      >{{ stationPlaceholderText }}</div>
+      <input
         v-for="(s, i) in gui.stations"
         ref="existingStation"
+        type="text"
+        :value="s.name"
         class="station-name"
-        contenteditable
-        :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px' }"
+        :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px', width: gui.stationsWidth + 'px' }"
         @focus="gui.resetInput"
+        @blur="modifyStationBlur(i)"
         @keydown.tab.prevent="modifyStationKeyProceed(i)"
         @keydown.enter.prevent="modifyStationKeyProceed(i)"
         @keydown.esc.prevent="modifyStationKeyCancel(i)"
-        @blur="modifyStationBlur(i)"
+        @contextmenu.stop
       >
-        {{ s.name }}
-      </div>
-      <div
+      <input
         ref="newStation"
+        type="text"
         class="station-name"
-        contenteditable
-        :style="{ top: newStationY + 'px', left: gui.layout.left + 'px' }"
+        :style="{ top: newStationY + 'px', left: gui.layout.left + 'px', width: gui.stationsWidth + 'px' }"
         @focus="newStationFocus"
         @blur="newStationBlur"
         @keydown.tab.prevent="newStationKeyProceed"
         @keydown.enter.prevent="newStationKeyProceed"
         @keydown.esc.prevent="newStationKeyCancel"
-      ></div>
+        @contextmenu.stop
+      >
       <div ref="stationForMeasure" class="station-name" style="opacity: 0"></div>
       <TimeInput ref="timeInput"></TimeInput>
     </div>
@@ -66,8 +70,8 @@ const message = useGuiMessageStore()
 
 const container = ref<HTMLDivElement>()
 const lineInputDefs = ref<InstanceType<typeof LineInputDefs>>()
-const newStation = ref<HTMLDivElement>()
-const existingStation = ref<HTMLDivElement[]>()
+const newStation = ref<HTMLInputElement>()
+const existingStation = ref<HTMLInputElement[]>()
 const stationForMeasure = ref<HTMLDivElement>()
 
 const newStationY = computed(() => {
@@ -123,26 +127,26 @@ const clickBackground = () => {
 const newStationFocus = () => {
   gui.resetInput()
   const element = newStation.value!
-  element.innerText = ""
+  element.value = ""
   stationPlaceholderVisible.value = false
 }
 
 const newStationBlur = () => {
   const element = newStation.value!
-  const text = element.innerText.trim()
+  const text = element.value.trim()
   if (text !== "") {
     store.addStation({ name: text })
-    element.innerText = ""
+    element.value = ""
   }
   stationPlaceholderVisible.value = true
 }
 
 const newStationKeyProceed = () => {
   const element = newStation.value!
-  const text = element.innerText.trim()
+  const text = element.value.trim()
   if (text !== "") {
     store.addStation({ name: text })
-    element.innerText = ""
+    element.value = ""
   } else {
     element.blur()
   }
@@ -150,14 +154,14 @@ const newStationKeyProceed = () => {
 
 const newStationKeyCancel = () => {
   const element = newStation.value!
-  element.innerText = ""
+  element.value = ""
   element.blur()
 }
 
 const modifyStationKeyProceed = (i: number) => {
   const array = existingStation.value!
   const element = array[i]
-  const text = element.innerText.trim()
+  const text = element.value.trim()
   if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text })
   }
@@ -171,14 +175,14 @@ const modifyStationKeyProceed = (i: number) => {
 const modifyStationKeyCancel = (i: number) => {
   const array = existingStation.value!
   const element = array[i]
-  element.innerText = gui.stations[i].name
+  element.value = gui.stations[i].name
   element.blur()
 }
 
 const modifyStationBlur = (i: number) => {
   const array = existingStation.value!
   const element = array[i]
-  const text = element.innerText.trim()
+  const text = element.value.trim()
   if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text })
   }
