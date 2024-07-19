@@ -5,11 +5,10 @@
         <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
         <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
       </filter>
-      <LineInputDefs ref="lineInputDefs"></LineInputDefs>
       <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
       <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
       <VisibleStations></VisibleStations>
-      <use v-if="gui.mode == 'input'" xlink:href="#line-input"></use>
+      <LineInput ref="lineInput"></LineInput>
       <VisibleLines></VisibleLines>
       <ClickableStations></ClickableStations>
       <ClickableLines></ClickableLines>
@@ -52,12 +51,12 @@
 </template>
 
 <script setup lang="ts">
-import LineInputDefs from "./LineInputDefs.vue"
-import TimeInput from "./TimeInput.vue"
 import VisibleStations from "./VisibleStations.vue"
 import ClickableStations from "./ClickableStations.vue"
 import VisibleLines from "./VisibleLines.vue"
 import ClickableLines from "./ClickableLines.vue"
+import LineInput from "./LineInput.vue"
+import TimeInput from "./TimeInput.vue"
 import { computed, ref, watch } from "vue"
 import { useMainStore } from "../stores/main"
 import { useGuiStore } from "../stores/gui"
@@ -69,7 +68,6 @@ const gui = useGuiStore()
 const message = useGuiMessageStore()
 
 const container = ref<HTMLDivElement>()
-const lineInputDefs = ref<InstanceType<typeof LineInputDefs>>()
 const newStation = ref<HTMLInputElement>()
 const existingStation = ref<HTMLInputElement[]>()
 const stationForMeasure = ref<HTMLDivElement>()
@@ -198,18 +196,6 @@ const measureStationWidth = (name: string) => {
   element.innerText = name
   return element.clientWidth
 }
-
-message.$onAction(({ name, args: _args }) => {
-  if (name == "enterKeyPressed") {
-    const args = _args[0]
-    const lineInputDefsElement = lineInputDefs.value!
-    if (gui.mode === "input" && !gui.inputtingTime && lineInputDefsElement.rubberbands.length > 0) {
-      args.event.preventDefault()
-      args.event.stopPropagation()
-      lineInputDefsElement.finishInput()
-    }
-  }
-})
 
 const containerResizeObserver = new ResizeObserver(() => {
   if (container.value == null) return

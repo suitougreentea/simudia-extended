@@ -1,14 +1,10 @@
 <template>
-  <defs>
-    <symbol id="line-input">
-      <path :d="displayPath" fill="none" stroke="black"></path>
-      <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
-      <g v-if="gui.isSingleStationHovered && gui.hoveredTime >= 0">
-        <path :d="displayPathNew" fill="none" stroke="grey"></path>
-        <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
-      </g>
-    </symbol>
-  </defs>
+  <path :d="displayPath" fill="none" stroke="black"></path>
+  <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
+  <g v-if="gui.isSingleStationHovered && gui.hoveredTime >= 0">
+    <path :d="displayPathNew" fill="none" stroke="grey"></path>
+    <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
+  </g>
 </template>
 
 <script setup lang="ts">
@@ -139,14 +135,16 @@ message.$onAction(({ name, args: _args }) => {
     const args = _args[0]
     setTerminal(args.stationIndex)
   }
+  if (name == "enterKeyPressed") {
+    const args = _args[0]
+    if (gui.mode === "input" && !gui.inputtingTime && rubberbands.value.length > 0) {
+      args.event.preventDefault()
+      args.event.stopPropagation()
+      finishInput()
+    }
+  }
 })
 
-defineExpose({
-  rubberbands,
-  setTerminal,
-  addPoint,
-  finishInput,
-})
 </script>
 
 <style scoped></style>
