@@ -5,14 +5,13 @@
         <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="2"></feGaussianBlur>
         <feBlend in="SourceGraphic" in2="blur" mode="normal"></feBlend>
       </filter>
-      <StationDefs ref="stationDefs"></StationDefs>
       <LineInputDefs ref="lineInputDefs"></LineInputDefs>
       <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
       <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
-      <use xlink:href="#stations"></use>
+      <VisibleStations></VisibleStations>
       <use v-if="gui.mode == 'input'" xlink:href="#line-input"></use>
       <VisibleLines></VisibleLines>
-      <use xlink:href="#stations-hover"></use>
+      <ClickableStations></ClickableStations>
       <ClickableLines></ClickableLines>
     </svg>
     <div style="position: absolute; top: 0; left: 0">
@@ -53,9 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import StationDefs from "./StationDefs.vue"
 import LineInputDefs from "./LineInputDefs.vue"
 import TimeInput from "./TimeInput.vue"
+import VisibleStations from "./VisibleStations.vue"
+import ClickableStations from "./ClickableStations.vue"
 import VisibleLines from "./VisibleLines.vue"
 import ClickableLines from "./ClickableLines.vue"
 import { computed, ref, watch } from "vue"
