@@ -14,7 +14,7 @@
     </svg>
     <div style="position: absolute; top: 0; left: 0">
       <EditableStationNames></EditableStationNames>
-      <TimeInput ref="timeInput"></TimeInput>
+      <TimeInput></TimeInput>
     </div>
   </div>
 </template>
