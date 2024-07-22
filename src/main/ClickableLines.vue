@@ -1,45 +1,47 @@
 <template>
-  <template v-if="gui.mode == 'edit'">
-    <template
-      v-for="lineIndex in lineClickables.indices">
-      <Line
-        :data="gui.lineRenderData"
-        appearance="clickable"
-        :line="lineIndex"
-        @mouseenter="hoverLine(lineIndex)"
-        @mouseleave="unhoverLine(lineIndex)"
-        @click.prevent.stop="selectLine(lineIndex)"
-        @contextmenu.prevent.stop="contextLine($event, lineIndex)">
-      </Line>
+  <g>
+    <template v-if="gui.mode == 'edit'">
+      <template
+        v-for="lineIndex in lineClickables.indices">
+        <Line
+          :data="gui.lineRenderData"
+          appearance="clickable"
+          :line="lineIndex"
+          @mouseenter="hoverLine(lineIndex)"
+          @mouseleave="unhoverLine(lineIndex)"
+          @click.prevent.stop="selectLine(lineIndex)"
+          @contextmenu.prevent.stop="contextLine($event, lineIndex)">
+        </Line>
+      </template>
+      <template
+        v-for="setIndex in setClickables.indices">
+        <Line
+          :data="gui.lineRenderData"
+          appearance="clickable"
+          :line="setClickables.lineIndex"
+          :set="setIndex"
+          @mouseenter="hoverSet(setIndex)"
+          @mouseleave="unhoverSet(setIndex)"
+          @click.prevent.stop="selectSet(setIndex)">
+        </Line>
+      </template>
+      <template
+        v-for="{ haltIndex, haltType } in haltClickables.indices">
+        <Line
+          :data="gui.lineRenderData"
+          appearance="clickable"
+          :line="haltClickables.lineIndex"
+          :set="haltClickables.setIndex"
+          :halt="haltIndex"
+          :type="haltType"
+          @mouseenter="hoverHalt(haltIndex, haltType)"
+          @mouseleave="unhoverHalt(haltIndex, haltType)"
+          @click.prevent.stop="selectHalt(haltIndex, haltType)"
+          @contextmenu.prevent.stop="contextHalt($event, haltIndex, haltType)">
+        </Line>
+      </template>
     </template>
-    <template
-      v-for="setIndex in setClickables.indices">
-      <Line
-        :data="gui.lineRenderData"
-        appearance="clickable"
-        :line="setClickables.lineIndex"
-        :set="setIndex"
-        @mouseenter="hoverSet(setIndex)"
-        @mouseleave="unhoverSet(setIndex)"
-        @click.prevent.stop="selectSet(setIndex)">
-      </Line>
-    </template>
-    <template
-      v-for="{ haltIndex, haltType } in haltClickables.indices">
-      <Line
-        :data="gui.lineRenderData"
-        appearance="clickable"
-        :line="haltClickables.lineIndex"
-        :set="haltClickables.setIndex"
-        :halt="haltIndex"
-        :type="haltType"
-        @mouseenter="hoverHalt(haltIndex, haltType)"
-        @mouseleave="unhoverHalt(haltIndex, haltType)"
-        @click.prevent.stop="selectHalt(haltIndex, haltType)"
-        @contextmenu.prevent.stop="contextHalt($event, haltIndex, haltType)">
-      </Line>
-    </template>
-  </template>
+  </g>
 </template>
 
 <script setup lang="ts">

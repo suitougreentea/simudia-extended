@@ -1,15 +1,17 @@
 <template>
-  <StationLine
-    v-for="(station, i) in gui.stations"
-    appearance="clickable"
-    :x1="gui.layout.left"
-    :x2="gui.layout.right"
-    :y="gui.y(station.accumulatedTime)"
-    @mousemove="hoverStationLine($event, i)"
-    @mouseout="unhoverStationLine($event, i)"
-    @click.prevent.stop="clickStationLine($event, i)"
-    @contextmenu.prevent.stop="contextStationLine($event, i)">
-  </StationLine>
+  <g>
+    <StationLine
+      v-for="(station, i) in gui.stations"
+      appearance="clickable"
+      :x1="gui.layout.left"
+      :x2="gui.layout.right"
+      :y="gui.y(station.accumulatedTime)"
+      @mousemove="hoverStationLine($event, i)"
+      @mouseout="unhoverStationLine($event, i)"
+      @click.prevent.stop="clickStationLine($event, i)"
+      @contextmenu.prevent.stop="contextStationLine($event, i)">
+    </StationLine>
+  </g>
 </template>
 
 <script setup lang="ts">

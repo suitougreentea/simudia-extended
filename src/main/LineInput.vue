@@ -1,8 +1,10 @@
 <template>
-  <path v-if="shouldShow" :d="displayPath" fill="none" stroke="black"></path>
-  <circle v-if="shouldShow" v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
-  <path v-if="shouldShow && shouldShowHovered" :d="displayPathNew" fill="none" stroke="grey"></path>
-  <circle v-if="shouldShow && shouldShowHovered" v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
+  <g>
+    <path v-if="shouldShow" :d="displayPath" fill="none" stroke="black"></path>
+    <circle v-if="shouldShow" v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
+    <path v-if="shouldShow && shouldShowHovered" :d="displayPathNew" fill="none" stroke="grey"></path>
+    <circle v-if="shouldShow && shouldShowHovered" v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
+  </g>
 </template>
 
 <script setup lang="ts">

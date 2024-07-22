@@ -1,26 +1,28 @@
 <template>
-  <Line
-    v-for="lineIndex in lineList.indices"
-    :data="gui.lineRenderData"
-    appearance="normal"
-    :line="lineIndex">
-  </Line>
-  <Line
-    :data="gui.lineRenderData"
-    appearance="selected"
-    :line="selection.lineIndex"
-    :set="selection.setIndex"
-    :halt="selection.haltIndex"
-    :type="selection.type">
-  </Line>
-  <Line
-    :data="gui.lineRenderData"
-    appearance="hovered"
-    :line="hovered.lineIndex"
-    :set="hovered.setIndex"
-    :halt="hovered.haltIndex"
-    :type="hovered.type">
-  </Line>
+  <g>
+    <Line
+      v-for="lineIndex in lineList.indices"
+      :data="gui.lineRenderData"
+      appearance="normal"
+      :line="lineIndex">
+    </Line>
+    <Line
+      :data="gui.lineRenderData"
+      appearance="selected"
+      :line="selection.lineIndex"
+      :set="selection.setIndex"
+      :halt="selection.haltIndex"
+      :type="selection.type">
+    </Line>
+    <Line
+      :data="gui.lineRenderData"
+      appearance="hovered"
+      :line="hovered.lineIndex"
+      :set="hovered.setIndex"
+      :halt="hovered.haltIndex"
+      :type="hovered.type">
+    </Line>
+  </g>
 </template>
 
 <script setup lang="ts">
