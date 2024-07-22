@@ -1,10 +1,8 @@
 <template>
-  <path :d="displayPath" fill="none" stroke="black"></path>
-  <circle v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
-  <g v-if="gui.isSingleStationHovered && gui.hoveredTime >= 0">
-    <path :d="displayPathNew" fill="none" stroke="grey"></path>
-    <circle v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
-  </g>
+  <path v-if="shouldShow" :d="displayPath" fill="none" stroke="black"></path>
+  <circle v-if="shouldShow" v-for="c in displayCircles" :cx="c.x" :cy="c.y" r="3" fill="black"></circle>
+  <path v-if="shouldShow && shouldShowHovered" :d="displayPathNew" fill="none" stroke="grey"></path>
+  <circle v-if="shouldShow && shouldShowHovered" v-for="c in displayCirclesNew" :cx="c.x" :cy="c.y" r="3" fill="grey"></circle>
 </template>
 
 <script setup lang="ts">
@@ -15,6 +13,9 @@ import { useGuiMessageStore } from "../stores/gui-message"
 
 const gui = useGuiStore()
 const message = useGuiMessageStore()
+
+const shouldShow = computed(() => gui.mode == "input")
+const shouldShowHovered = computed(() => gui.isSingleStationHovered && gui.hoveredTime >= 0)
 
 const rubberbands = ref<{ time: number; station: number }[]>([])
 const terminal = ref(-1)
