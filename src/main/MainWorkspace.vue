@@ -8,7 +8,7 @@
       <line v-for="l in verticalGrids" :x1="l.x" :x2="l.x" :y1="l.y" :y2="gui.layout.bottom" :stroke="l.color"></line>
       <text v-for="t in verticalTexts" style="user-select: none; cursor: default" :x="t.x" :y="t.y" font-size="14">{{ t.text }}</text>
       <VisibleStations></VisibleStations>
-      <LineInput ref="lineInput"></LineInput>
+      <LineInput></LineInput>
       <VisibleLines></VisibleLines>
       <ClickableStations></ClickableStations>
       <ClickableLines></ClickableLines>
