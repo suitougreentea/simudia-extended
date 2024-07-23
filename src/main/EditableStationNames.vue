@@ -12,8 +12,9 @@
     :style="{ top: gui.y(s.accumulatedTime) - 20 + 'px', left: '20px', width: gui.stationsWidth + 'px' }"
     @focus="gui.resetInput"
     @blur="modifyStationBlur(i)"
-    @keydown.tab.prevent="modifyStationKeyProceed(i)"
-    @keydown.enter.prevent="modifyStationKeyProceed(i)"
+    @keydown.tab.exact.prevent="modifyStationKeyProceed(i, 1)"
+    @keydown.tab.shift.exact.prevent="modifyStationKeyProceed(i, -1)"
+    @keydown.enter.prevent="modifyStationKeyProceed(i, 1)"
     @keydown.esc.prevent="modifyStationKeyCancel(i)"
     @contextmenu.stop
   >
@@ -24,8 +25,9 @@
     :style="{ top: newStationY + 'px', left: gui.layout.left + 'px', width: gui.stationsWidth + 'px' }"
     @focus="newStationFocus"
     @blur="newStationBlur"
-    @keydown.tab.prevent="newStationKeyProceed"
-    @keydown.enter.prevent="newStationKeyProceed"
+    @keydown.tab.exact.prevent="newStationKeyProceed(1)"
+    @keydown.tab.shift.exact.prevent="newStationKeyProceed(-1)"
+    @keydown.enter.prevent="newStationKeyProceed(1)"
     @keydown.esc.prevent="newStationKeyCancel"
     @contextmenu.stop
   >
@@ -75,7 +77,8 @@ const newStationBlur = () => {
   stationPlaceholderVisible.value = true
 }
 
-const newStationKeyProceed = () => {
+const newStationKeyProceed = (offset: number) => {
+  const array = existingStation.value ?? []
   const element = newStation.value!
   const text = element.value.trim()
   if (text !== "") {
@@ -83,6 +86,11 @@ const newStationKeyProceed = () => {
     element.value = ""
   } else {
     element.blur()
+  }
+  const newIndex = array.length + offset
+  if (newIndex < 0) return
+  if (newIndex < array.length) {
+    array[newIndex].focus()
   }
 }
 
@@ -92,17 +100,19 @@ const newStationKeyCancel = () => {
   element.blur()
 }
 
-const modifyStationKeyProceed = (i: number) => {
+const modifyStationKeyProceed = (i: number, offset: number) => {
   const array = existingStation.value!
   const element = array[i]
   const text = element.value.trim()
   if (text !== gui.stations[i].name) {
     store.modifyStation({ pos: i, name: text })
   }
-  if (array.length === i + 1) {
+  const newIndex = i + offset
+  if (newIndex < 0) return
+  if (newIndex >= array.length) {
     newStation.value!.focus()
   } else {
-    array[i + 1].focus()
+    array[newIndex].focus()
   }
 }
 
