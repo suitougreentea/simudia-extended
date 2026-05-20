@@ -1,34 +1,47 @@
 <template>
   <v-app @dragover="dragover" @drop="drop">
     <v-navigation-drawer permanent touchless rail color="primary">
-      <v-list density="compact" nav>
-        <v-menu>
-          <template #activator="{ props }">
-            <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
-          </template>
-          <v-list>
-            <v-list-item @click="newFile">New</v-list-item>
-            <v-list-item @click="openFile">Open...</v-list-item>
-            <v-list-item @click="saveFile">Save</v-list-item>
-            <v-list-item @click="saveFileAs">Save As...</v-list-item>
-            <v-list-item @click="importLegacyFile">Import SimuDia data...</v-list-item>
-            <v-list-item @click="importUrl">Import from URL / Examples...</v-list-item>
-            <v-divider></v-divider>
-            <v-list-item @click="showAboutDialog">About</v-list-item>
-          </v-list>
-        </v-menu>
-      </v-list>
-      <v-divider></v-divider>
-      <v-list density="compact">
-        <v-list-item prepend-icon="mdi-cursor-default-outline" :active="gui.mode == 'edit'" @click.prevent.stop="toggleInputMode()"></v-list-item>
-        <v-list-item prepend-icon="mdi-pencil" :active="gui.mode == 'input'" @click.prevent.stop="toggleInputMode()"></v-list-item>
-      </v-list>
+      <template v-if="gui.screen == 'main'">
+        <v-list density="compact" nav>
+          <v-menu>
+            <template #activator="{ props }">
+              <v-list-item prepend-icon="mdi-menu" :active="false" v-bind="props"></v-list-item>
+            </template>
+            <v-list>
+              <v-list-item @click="newFile">New</v-list-item>
+              <v-list-item @click="openFile">Open...</v-list-item>
+              <v-list-item @click="saveFile">Save</v-list-item>
+              <v-list-item @click="saveFileAs">Save As...</v-list-item>
+              <v-list-item @click="importLegacyFile">Import SimuDia data...</v-list-item>
+              <v-list-item @click="importUrl">Import from URL / Examples...</v-list-item>
+              <v-list-item @click="exportAsSvg">Export as SVG...</v-list-item>
+              <v-divider></v-divider>
+              <v-list-item @click="showAboutDialog">About</v-list-item>
+            </v-list>
+          </v-menu>
+        </v-list>
+        <v-divider></v-divider>
+        <v-list density="compact">
+          <v-list-item prepend-icon="mdi-cursor-default-outline" :active="gui.mode == 'edit'" @click.prevent.stop="toggleInputMode()"></v-list-item>
+          <v-list-item prepend-icon="mdi-pencil" :active="gui.mode == 'input'" @click.prevent.stop="toggleInputMode()"></v-list-item>
+        </v-list>
+      </template>
+      <template v-if="gui.screen == 'exportPreview'">
+        <v-list density="compact">
+          <v-list-item prepend-icon="mdi-arrow-left" @click.prevent.stop="backToMainScreen"></v-list-item>
+        </v-list>
+      </template>
     </v-navigation-drawer>
 
     <v-main @contextmenu.prevent>
       <div class="main-area">
-        <MainWorkspace style="position: absolute; width: 100%; height: 100%;"></MainWorkspace>
-        <Toolbar></Toolbar>
+        <template v-if="gui.screen == 'main'">
+          <MainWorkspace style="position: absolute; width: 100%; height: 100%;"></MainWorkspace>
+          <Toolbar></Toolbar>
+        </template>
+        <template v-if="gui.screen == 'exportPreview'">
+          <ExportPreviewSpace style="position: absolute; width: 100%; height: 100%;"></ExportPreviewSpace>
+        </template>
       </div>
     </v-main>
 
@@ -37,7 +50,12 @@
         class="sidebar-resizable"
         @pointerdown.prevent.stop="onSidebarResizablePointerdown">
       </div>
-      <SidebarContent></SidebarContent>
+      <template v-if="gui.screen == 'main'">
+        <SidebarContent></SidebarContent>
+      </template>
+      <template v-if="gui.screen == 'exportPreview'">
+        <ExportOptionSidebarContent></ExportOptionSidebarContent>
+      </template>
     </v-navigation-drawer>
 
     <v-snackbar v-model="updateNotification" timeout="-1">
@@ -64,9 +82,12 @@ import { computed, ref, watch, provide, onMounted } from "vue"
 import { useMainStore } from "../stores/main"
 import { type OpenFileHandle, allAvailableApis as availableFileApis, createNewFileHandle, createUrlFileHandle } from "../file-api"
 import { deserialize, serialize } from "../serialization"
+import { getSvgString } from "../svg-exporter"
 import MainWorkspace from "./MainWorkspace.vue"
+import ExportPreviewSpace from "./ExportPreviewSpace.vue"
 import Toolbar from "./Toolbar.vue"
 import SidebarContent from "./SidebarContent.vue"
+import ExportOptionSidebarContent from "./ExportOptionSidebarContent.vue"
 import { useGuiStore } from "../stores/gui"
 import { useGuiMessageStore } from "../stores/gui-message"
 import StationContextMenu from "../context-menus/StationContextMenu.vue"
@@ -171,6 +192,16 @@ const saveFileInternal = async (fileHandle: OpenFileHandle): Promise<boolean> =>
     await fileOpenInfoDialog.value!.open("warning", warnings)
   }
 
+  return true
+}
+
+const exportFileInternal = async (fileHandle: OpenFileHandle, content: string): Promise<boolean> => {
+  try {
+    await fileHandle.save(content)
+  } catch (e) {
+    await fileOpenInfoDialog.value!.open("error", [`${e}`])
+    return false
+  }
   return true
 }
 
@@ -284,6 +315,29 @@ onMounted(async () => {
     await openFileInternal(fileHandle, null, true)
   }
 })
+
+const exportAsSvg = () => {
+  gui.screen = "exportPreview"
+}
+const backToMainScreen = () => gui.screen = "main"
+message.$onAction(({ name, args: _args }) => {
+  if (name == "exportAsSvg") {
+    exportAsSvgCore()
+  }
+})
+
+// returns true if succeeds
+const exportAsSvgCore = async (): Promise<boolean> => {
+  const svg = document.querySelector("svg#export-preview-space") as SVGElement
+  const content = await getSvgString(svg)
+
+  const api = availableFileApis[0]
+  const currentFilename = gui.currentFileHandle.getFilename()
+  const preferredFilename = currentFilename.includes(".") ? currentFilename.replace(/\.[^.]+$/, ".svg") : `${currentFilename}.svg`
+  const fileHandle = await api.create({ preferredFilename })
+  if (fileHandle == null) return false
+  return await exportFileInternal(fileHandle, content)
+}
 
 const showAboutDialog = () => {
   aboutDialog.value!.open()

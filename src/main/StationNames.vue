@@ -2,7 +2,6 @@
   <text
     v-for="s in gui.stations"
     ref="existingStation"
-    type="text"
     class="station-name"
     x="20"
     :y="gui.y(s.accumulatedTime) - 6">

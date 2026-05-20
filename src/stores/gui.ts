@@ -8,7 +8,6 @@ import { getLineRenderData } from "../lib/render"
 
 const MARGIN = 20
 const HEADER_HEIGHT = 20
-const TOOLBAR_MARGIN = 40
 
 const applyZoomX = (input: number, zoom: number) => input / (7200 * Math.pow(2, -zoom / 3))
 const applyZoomXInverse = (input: number, zoom: number) => input * (7200 * Math.pow(2, -zoom / 3))
@@ -20,6 +19,8 @@ const getZoomY = (input: number, y: number) => -3 * Math.log2(input / (3600 * y)
 export const useGuiStore = defineStore("gui", () => {
   const data = useMainStore()
   const message = useGuiMessageStore()
+
+  const screen = ref("main")
 
   const workspaceSize = ref({ width: 0, height: 0 })
   const scrollbarSize = ref({ width: 0, height: 0 })
@@ -82,6 +83,7 @@ export const useGuiStore = defineStore("gui", () => {
       bottom: height - MARGIN,
       width,
       height,
+      margin: MARGIN,
       headerHeight: HEADER_HEIGHT,
       stationsWidth: stationsWidth.value,
     }
@@ -125,13 +127,13 @@ export const useGuiStore = defineStore("gui", () => {
 
   // fit zoom value
   const xf = (tick: number, width: number) => {
-    const rawX = width - (MARGIN + layout.value.stationsWidth + TOOLBAR_MARGIN + MARGIN)
+    const rawX = width - (MARGIN + layout.value.stationsWidth + MARGIN)
     if (rawX <= 0) return undefined
     return getZoomX(tick, rawX)
   }
 
   const yf = (tick: number, height: number) => {
-    const rawY = height - (MARGIN + HEADER_HEIGHT + TOOLBAR_MARGIN + MARGIN)
+    const rawY = height - (MARGIN + HEADER_HEIGHT + MARGIN)
     if (rawY <= 0) return undefined
     return getZoomY(tick, rawY)
   }
@@ -426,6 +428,7 @@ export const useGuiStore = defineStore("gui", () => {
   })
 
   return {
+    screen,
     workspaceSize,
     scrollbarSize,
     showSidebar,

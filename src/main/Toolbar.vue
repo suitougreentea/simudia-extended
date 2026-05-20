@@ -61,6 +61,8 @@ const scrollbarSizeStyle = computed(() => ({
   "--scrollbar-height": `${gui.scrollbarSize.height}px`,
 }))
 
+const TOOLBAR_MARGIN = 40
+
 const zoomInHorizontal = () => {
   gui.zoom.horizontal++
 }
@@ -69,7 +71,7 @@ const zoomOutHorizontal = () => {
 }
 const zoomFitHorizontal = () => {
   const lastTime = store.monthLength
-  const value = gui.xf(lastTime, gui.workspaceSize.width)
+  const value = gui.xf(lastTime, gui.workspaceSize.width - TOOLBAR_MARGIN)
   if (value != null) gui.zoom.horizontal = value
 }
 const zoomResetHorizontal = () => {
@@ -86,7 +88,7 @@ const zoomFitVertical = () => {
   if (stations.length == 0) return
   const lastStation = stations[stations.length - 1]
   const lastStationTime = lastStation.accumulatedTime
-  const value = gui.yf(lastStationTime, gui.workspaceSize.height)
+  const value = gui.yf(lastStationTime, gui.workspaceSize.height - TOOLBAR_MARGIN)
   if (value != null) gui.zoom.vertical = value
 }
 const zoomResetVertical = () => {

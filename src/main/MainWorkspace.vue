@@ -28,34 +28,19 @@ import ClickableLines from "./ClickableLines.vue"
 import LineInput from "./LineInput.vue"
 import EditableStationNames from "./EditableStationNames.vue"
 import TimeInput from "./TimeInput.vue"
-import { ref, watch } from "vue"
+import { ref, onBeforeUnmount } from "vue"
 import { useGuiStore } from "../stores/gui"
+import { observeMainWorkspaceSize } from "../gui-util"
 
 const gui = useGuiStore()
 
 const container = ref<HTMLDivElement>()
+const { cancel: cancelContainerObservation } = observeMainWorkspaceSize(container, gui)
+onBeforeUnmount(() => cancelContainerObservation())
 
 const clickBackground = () => {
   gui.unselectAll()
 }
-
-const containerResizeObserver = new ResizeObserver(() => {
-  if (container.value == null) return
-  gui.workspaceSize = {
-    width: container.value.clientWidth,
-    height: container.value.clientHeight,
-  }
-  gui.scrollbarSize = {
-    width: container.value.offsetWidth - container.value.clientWidth,
-    height: container.value.offsetHeight - container.value.clientHeight,
-  }
-})
-let currentObservedContainer: Element | undefined = undefined
-watch(container, c => {
-  if (currentObservedContainer != null) containerResizeObserver.unobserve(currentObservedContainer)
-  if (c != null) containerResizeObserver.observe(c)
-  currentObservedContainer = c
-})
 </script>
 
 <style scoped></style>
